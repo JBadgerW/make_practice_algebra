@@ -19,7 +19,7 @@ numerically with sympy before anything is written.
 
 ```sh
 # Rebuild the lesson set
-python3 gen_sequence.py && for f in *.typ; do typst compile "$f"; done
+python3 gen_sequence.py && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
 
 # Practice sets from the command line
 python3 make_practice.py --mix 3:6 8:4 A:2 --versions 3 --seed 12
@@ -58,7 +58,8 @@ details.
 | `make_practice.py` | Practice generator: templates, the formula pool, the solver and answer formatter, Typst output, and the command line |
 | `practice_tui.py` | Terminal app over `make_practice.py` |
 | `tests/` | `test_tui_keys.py` (no terminal needed) and `screen_test.py` (draws the real screen; needs `pyte`) |
-| `lesson_1-4_literal_seq_*` | The lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
+| `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
+| `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |
 | `EXTENDING.md` | A brief for an LLM (or a person) turning this into a general worksheet builder |
 
@@ -66,9 +67,8 @@ details.
 
 - Python 3.10+ with **sympy** (tested with 1.13).
 - **Typst** 0.15 to compile PDFs. Without it, the `.typ` files are still written.
-- The worksheet and slide styles come from `../../mixed_review/mixed_review_v1.typ`
-  and `mixed_review_slides.typ`. They are read at run time, so keep that
-  folder where it is or update the paths in `literal_common.py`.
+- The worksheet and slide styles live in `templates/` (`mixed_review_v1.typ`,
+  `mixed_review_slides.typ`) and are read at run time.
 - Optional: `pyte`, only for `tests/screen_test.py`.
 
 ## Reproducibility

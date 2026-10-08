@@ -1,10 +1,10 @@
 """Lesson 1-4 literal equations, re-sequenced by solving strategy.
 
-The 50 equations from ../lesson_1-4_literal_eq_v1 are sorted into eleven
+The 50 equations from the original lesson 1-4 literal-equations worksheet are sorted into eleven
 types plus two special cases and renumbered 1-50 in that order. Every
 solution and every worked step is written in Typst math and checked numerically with
 sympy before any Typst is emitted. Run from this folder:
-    python3 gen_sequence.py && for f in *.typ; do typst compile $f; done
+    python3 gen_sequence.py && cd lesson_1-4 && for f in *.typ; do typst compile $f; done
 """
 import json, random
 from pathlib import Path
@@ -12,9 +12,10 @@ from literal_common import (TYPES, label, to_sympy, side_diff, syms_of, holds,
                             MARK, head, slhead, vars_)
 
 HERE = Path(__file__).resolve().parent
+OUT = HERE / "lesson_1-4"; OUT.mkdir(exist_ok=True)
 
 # ------------------------------------------------------------------
-# Equations (from ../gen_literal.py, renumbered in sequence order). Typst math syntax.
+# Equations (from the original gen_literal.py, renumbered in sequence order). Typst math syntax.
 # A solution of None means "already solved for this variable (given)".
 # ------------------------------------------------------------------
 
@@ -235,13 +236,13 @@ bank = {
                       **({"alternate_steps": ALT[n]} if n in ALT else {}))
                  for n in seq],
 }
-(HERE / "lesson_1-4_literal_seq_bank.json").write_text(json.dumps(bank, indent=1))
+(OUT / "lesson_1-4_literal_seq_bank.json").write_text(json.dumps(bank, indent=1))
 
 # ------------------------------------------------------------------
 # Typst
 # ------------------------------------------------------------------
 def write(name, s):
-    (HERE / name).write_text(s)
+    (OUT / name).write_text(s)
 
 def prompt_tx(n):
     p, t, _ = EQ[n]

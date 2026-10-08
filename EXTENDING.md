@@ -81,7 +81,7 @@ anything.
 8. **The TUI preview shows exactly what `:w` writes.** Same function, same
    arguments.
 9. **The Typst look stays the teacher's:** the preamble comes from
-   `../../mixed_review/` (Name/Date/Ver header, the `question` environment
+   `templates/` (Name/Date/Ver header, the `question` environment
    with `points`, `choices`, `parts`). Reuse it; don't restyle it.
 
 ## 4. Where the code assumes literal equations

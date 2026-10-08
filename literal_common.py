@@ -1,6 +1,6 @@
 """Shared pieces for the literal-equation scripts in this folder:
 the type classification, Typst math -> sympy parsing and numeric checks,
-and the worksheet/slide preambles borrowed from ../../mixed_review.
+and the worksheet/slide preambles copied into templates/.
 """
 import random, re
 from pathlib import Path
@@ -108,9 +108,9 @@ def holds(eq, prompt, var, sol, trials=5):
 # Typst preambles
 # ------------------------------------------------------------------
 MARK = "// ==================================================\n// DOCUMENT VARIABLES"
-head = (HERE / "../../mixed_review/mixed_review_v1.typ").read_text()
+head = (HERE / "templates/mixed_review_v1.typ").read_text()
 head = head[:head.index(MARK)]
-slhead = (HERE / "../../mixed_review/mixed_review_slides.typ").read_text()
+slhead = (HERE / "templates/mixed_review_slides.typ").read_text()
 slhead = slhead[:slhead.index(MARK)]
 
 def vars_(title, version="1"):

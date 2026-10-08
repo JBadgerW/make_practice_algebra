@@ -467,7 +467,7 @@ def make(prompt, target, typ):
 # ------------------------------------------------------------------
 def original_prompts():
     try:
-        bank = json.loads((HERE / "lesson_1-4_literal_seq_bank.json").read_text())
+        bank = json.loads((HERE / "lesson_1-4" / "lesson_1-4_literal_seq_bank.json").read_text())
         return {(p["prompt"], p["target"]) for p in bank["problems"]}
     except (OSError, ValueError, KeyError):
         return set()
