@@ -4,12 +4,17 @@ The 50 equations from the original lesson 1-4 literal-equations worksheet are so
 types plus two special cases and renumbered 1-50 in that order. Every
 solution and every worked step is written in Typst math and checked numerically with
 sympy before any Typst is emitted. Run from this folder:
-    python3 gen_sequence.py && cd lesson_1-4 && for f in *.typ; do typst compile $f; done
+    python3 gen_sequence.py [--class NAME] && cd lesson_1-4 && for f in *.typ; do typst compile $f; done
 """
-import json, random
+import argparse, json, random
 from pathlib import Path
 from literal_common import (TYPES, label, to_sympy, side_diff, syms_of, holds,
                             MARK, head, slhead, vars_)
+
+ap = argparse.ArgumentParser(description="Write the lesson 1-4 set into lesson_1-4/.")
+ap.add_argument("--class", dest="class_name", default="Algebra 1", metavar="NAME",
+                help="class name in the worksheet and slide header (default: Algebra 1)")
+CLASS = ap.parse_args().class_name
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "lesson_1-4"; OUT.mkdir(exist_ok=True)
@@ -274,7 +279,7 @@ def steps_tx(st, indent="  ", args=""):
 # ---- worksheet and key ----
 def ws(key):
     title = "Literal Equations by Type" + (" — Answer Key" if key else "")
-    s = head + vars_(title) + """#let type-head(lbl, title, hint) = block(sticky: true, above: 1.1em, below: 0.7em)[
+    s = head + vars_(title, class_name=CLASS) + """#let type-head(lbl, title, hint) = block(sticky: true, above: 1.1em, below: 0.7em)[
   #text(weight: "bold", size: 13pt)[#lbl: #title] \\
   #text(size: 10.5pt, style: "italic")[#hint]
 ]
@@ -300,7 +305,7 @@ write("lesson_1-4_literal_seq_worksheet.typ", ws(False))
 write("lesson_1-4_literal_seq_key.typ", ws(True))
 
 # ---- slides ----
-s = slhead + vars_("Literal Equations by Type") + STEPS_DEF + """
+s = slhead + vars_("Literal Equations by Type", class_name=CLASS) + STEPS_DEF + """
 #let slide(n, prob, answer: none) = {
   align(left)[#text(size: 30pt, weight: "bold")[Problem #n]]
   v(1.5em)

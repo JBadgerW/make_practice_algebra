@@ -15,7 +15,7 @@ guide, and the rules about which problems get worked out. Run it, then
 compile:
 
 ```sh
-python3 gen_sequence.py && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
+python3 gen_sequence.py [--class NAME] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
 ```
 
 | Output | Contents |
