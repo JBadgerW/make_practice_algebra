@@ -4,17 +4,27 @@ The 50 equations from the original lesson 1-4 literal-equations worksheet are so
 types plus two special cases and renumbered 1-50 in that order. Every
 solution and every worked step is written in Typst math and checked numerically with
 sympy before any Typst is emitted. Run from this folder:
-    python3 gen_sequence.py [--class NAME] && cd lesson_1-4 && for f in *.typ; do typst compile $f; done
+    python3 gen_sequence.py [--class NAME] [--groups 9 8 3+4=Warm-up ...] && cd lesson_1-4 && for f in *.typ; do typst compile $f; done
 """
 import argparse, json, random
 from pathlib import Path
+import make_practice as mp
 from literal_common import (TYPES, label, to_sympy, side_diff, syms_of, holds,
                             MARK, head, slhead, vars_)
 
 ap = argparse.ArgumentParser(description="Write the lesson 1-4 set into lesson_1-4/.")
 ap.add_argument("--class", dest="class_name", default="Algebra 1", metavar="NAME",
                 help="class name in the worksheet and slide header (default: Algebra 1)")
-CLASS = ap.parse_args().class_name
+ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP",
+                help="print the worksheet, key, and slides in this order; join types with +, "
+                     "rename with =: 9 8 3+4=Warm-up 1  (the guide and all-solutions stay in lesson order)")
+ap.add_argument("--seed", type=int, default=0, help="shuffles the problems inside mixed groups (default: 0)")
+_a = ap.parse_args()
+CLASS = _a.class_name
+try:
+    GROUPS = mp.parse_groups(_a.groups)
+except ValueError as e:
+    ap.error(str(e))
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "lesson_1-4"; OUT.mkdir(exist_ok=True)
@@ -276,28 +286,53 @@ def steps_tx(st, indent="  ", args=""):
         rows.append(f"{indent}  ([$display({l})$], [$display({r})$], [{note}]),")
     return f"{indent}#steps({args}\n" + "\n".join(rows) + f"\n{indent})\n"
 
+# ---- groups: the printed order of the worksheet, key, and slides ----
+TYPE = {t["key"]: t for t in TYPES}
+LAY = mp.layout(GROUPS, {t["key"]: len(t["probs"]) for t in TYPES})
+PLAIN = LAY == mp.default_layout({t["key"]: 1 for t in TYPES})
+_rng = random.Random(_a.seed)
+PRINT = []                       # [(group, [lesson problem numbers in print order])]
+for _g in LAY:
+    _nums = [n for k in _g["types"] for n in TYPE[k]["probs"]]
+    if len(_g["types"]) > 1:
+        _rng.shuffle(_nums)
+    PRINT.append((_g, _nums))
+
+def group_hint(g):
+    if len(g["types"]) == 1:
+        ty = TYPE[g["types"][0]]
+        return f'{ty["look"]} {ty["move"]}'
+    return "Includes: " + "; ".join(f'{label(TYPE[k])}, {TYPE[k]["title"]}' for k in g["types"]) + "."
+
+def special_only(g):
+    return all(TYPE[k].get("special") for k in g["types"])
+
 # ---- worksheet and key ----
 def ws(key):
     title = "Literal Equations by Type" + (" — Answer Key" if key else "")
-    s = head + vars_(title, class_name=CLASS) + """#let type-head(lbl, title, hint) = block(sticky: true, above: 1.1em, below: 0.7em)[
-  #text(weight: "bold", size: 13pt)[#lbl: #title] \\
+    s = head + vars_(title, class_name=CLASS) + """#let type-head(heading, hint) = block(sticky: true, above: 1.1em, below: 0.7em)[
+  #text(weight: "bold", size: 13pt)[#heading] \\
   #text(size: 10.5pt, style: "italic")[#hint]
 ]
 
 #first-page-header(class-name, worksheet-title, version: version)
 #v(-2.2em)
-Solve each equation for the indicated variable. The problems are grouped by the kind of first move they need, from simplest to most involved.
+Solve each equation for the indicated variable. The problems are grouped by the kind of first move they need""" + (", from simplest to most involved" if PLAIN else "") + """.
 #v(0.2em)
 
 """
-    for ty in TYPES:
-        if ty["key"] == "A":
+    i, prev_special = 0, False
+    for g, nums in PRINT:
+        if special_only(g) and not prev_special:
             s += "#v(0.6em)\n#align(center, text(weight: \"bold\", size: 14pt)[Special Cases])\n"
-        s += f'#type-head([{label(ty)}], [{ty["title"]}], [{ty["look"]} {ty["move"]}])\n'
-        s += f'#grid(\n  columns: (1fr, 1fr),\n  rows: {ty["space"]}in,\n  column-gutter: 1em,\n'
-        for n in ty["probs"]:
+        prev_special = special_only(g)
+        space = max(TYPE[k]["space"] for k in g["types"])
+        s += f'#type-head([{mp.esc(mp.heading(g))}], [{group_hint(g)}])\n'
+        s += f'#grid(\n  columns: (1fr, 1fr),\n  rows: {space}in,\n  column-gutter: 1em,\n'
+        for n in nums:
+            i += 1
             a = f"\n    #v(0.3em) #h(1fr) #text(fill: red)[{answer_tx(n)}] #h(0.4em)" if key else ""
-            s += f"  question(renum: {n}, space-below: 0em)[\n    {prompt_tx(n)}{a}\n  ],\n"
+            s += f"  question(renum: {i}, space-below: 0em)[\n    {prompt_tx(n)}{a}\n  ],\n"
         s += ")\n\n"
     return s
 
@@ -337,6 +372,15 @@ s = slhead + vars_("Literal Equations by Type", class_name=CLASS) + STEPS_DEF + 
   #text(size: 24pt)[*The move:* #move]
 ]
 
+#let group-slide(heading, items) = align(horizon)[
+  #text(size: 40pt, weight: "bold")[#heading]
+  #v(0.5em)
+  #for it in items [
+    #text(size: 20pt)[*#it.at(0): #it.at(1)* #h(0.4em) _Look for:_ #it.at(2) #h(0.4em) _The move:_ #it.at(3)]
+    #v(0.35em)
+  ]
+]
+
 #align(center + horizon)[
   #text(size: 44pt, weight: "bold")[Literal Equations by Type]
   #v(0.4em)
@@ -345,15 +389,24 @@ s = slhead + vars_("Literal Equations by Type", class_name=CLASS) + STEPS_DEF + 
   #text(size: 24pt)[Solve each equation for the indicated variable.]
 ]
 """
-for ty in TYPES:
-    s += f'#pagebreak()\n#type-slide([{label(ty)}], [{ty["title"]}], [{ty["look"]}], [{ty["move"]}])\n'
-    for n in ty["probs"]:
+i = 0
+for g, nums in PRINT:
+    if len(g["types"]) == 1:
+        ty = TYPE[g["types"][0]]
+        s += (f'#pagebreak()\n#type-slide([{label(ty)}], [{mp.esc(g["name"]) or ty["title"]}], '
+              f'[{ty["look"]}], [{ty["move"]}])\n')
+    else:
+        items = ", ".join(f'([{label(TYPE[k])}], [{TYPE[k]["title"]}], [{TYPE[k]["look"]}], [{TYPE[k]["move"]}])'
+                          for k in g["types"])
+        s += f'#pagebreak()\n#group-slide([{mp.esc(mp.heading(g))}], ({items}))\n'
+    for n in nums:
+        i += 1
         pr = f"$display({EQ[n][0]})$; #h(0.5em) ${EQ[n][1]}$"
-        s += f"#pagebreak()\n#slide({n}, [{pr}])\n#pagebreak()\n"
+        s += f"#pagebreak()\n#slide({i}, [{pr}])\n#pagebreak()\n"
         if n in STEPS:
-            s += f"#worked-slide({n}, [{pr}], [\n{steps_tx(STEPS[n], args='last: auto, note-size: 0.7em,')}])\n"
+            s += f"#worked-slide({i}, [{pr}], [\n{steps_tx(STEPS[n], args='last: auto, note-size: 0.7em,')}])\n"
         else:
-            s += f"#slide({n}, [{pr}], answer: [{answer_tx(n)}])\n"
+            s += f"#slide({i}, [{pr}], answer: [{answer_tx(n)}])\n"
     s += "\n"
 write("lesson_1-4_literal_seq_slides.typ", s)
 

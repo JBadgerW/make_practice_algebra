@@ -15,8 +15,16 @@ guide, and the rules about which problems get worked out. Run it, then
 compile:
 
 ```sh
-python3 gen_sequence.py [--class NAME] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
+python3 gen_sequence.py [--class NAME] [--groups G ...] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
 ```
+
+`--groups` reorders, mixes, and renames the sections of the worksheet, key,
+and slides, with the same syntax as `make_practice.py` (see section 2):
+`python3 gen_sequence.py --groups 9 8 3+4="Warm-up" 1 2`. Problems are numbered
+in print order, so with a custom layout the numbers differ from the lesson
+numbers. A mixed group is shuffled; `--seed N` (default 0) picks the shuffle.
+The guide and all-solutions reference always stay in lesson order and lesson
+numbers. Without `--groups`, the output is the same as before.
 
 | Output | Contents |
 |---|---|

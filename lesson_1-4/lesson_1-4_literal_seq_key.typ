@@ -184,8 +184,8 @@
 #let worksheet-title = "Literal Equations by Type — Answer Key"
 #let version = "1"
 
-#let type-head(lbl, title, hint) = block(sticky: true, above: 1.1em, below: 0.7em)[
-  #text(weight: "bold", size: 13pt)[#lbl: #title] \
+#let type-head(heading, hint) = block(sticky: true, above: 1.1em, below: 0.7em)[
+  #text(weight: "bold", size: 13pt)[#heading] \
   #text(size: 10.5pt, style: "italic")[#hint]
 ]
 
@@ -194,7 +194,7 @@
 Solve each equation for the indicated variable. The problems are grouped by the kind of first move they need, from simplest to most involved.
 #v(0.2em)
 
-#type-head([Type 1], [One Step], [The unknown is tied to the rest by a single operation: $+$, $-$, $times$, or $div$. Undo that one operation on both sides.])
+#type-head([Type 1: One Step], [The unknown is tied to the rest by a single operation: $+$, $-$, $times$, or $div$. Undo that one operation on both sides.])
 #grid(
   columns: (1fr, 1fr),
   rows: 0.95in,
@@ -233,7 +233,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 2], [Add or Subtract, Then Divide], [No fractions. The unknown's term has other terms added to it or subtracted from it. Undo the adding or subtracting first, then divide by the unknown's coefficient.])
+#type-head([Type 2: Add or Subtract, Then Divide], [No fractions. The unknown's term has other terms added to it or subtracted from it. Undo the adding or subtracting first, then divide by the unknown's coefficient.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.1in,
@@ -256,7 +256,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 3], [Clear One Denominator], [One fraction bar (or a fraction coefficient like $1/3$), and no parentheses to distribute. Multiply both sides by the denominator; then add or subtract and divide as usual.])
+#type-head([Type 3: Clear One Denominator], [One fraction bar (or a fraction coefficient like $1/3$), and no parentheses to distribute. Multiply both sides by the denominator; then add or subtract and divide as usual.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.25in,
@@ -287,7 +287,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 4], [Distribute First], [The unknown is inside parentheses, with a number or letter multiplying the group. Distribute; then add or subtract like terms and divide.])
+#type-head([Type 4: Distribute First], [The unknown is inside parentheses, with a number or letter multiplying the group. Distribute; then add or subtract like terms and divide.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.5in,
@@ -318,7 +318,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 5], [Clear a Denominator, Then Distribute], [A fraction and a set of parentheses. Multiply both sides by the denominator first, then distribute and solve.])
+#type-head([Type 5: Clear a Denominator, Then Distribute], [A fraction and a set of parentheses. Multiply both sides by the denominator first, then distribute and solve.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.5in,
@@ -337,7 +337,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 6], [Clear Two Denominators], [Two different fractions in the equation. Multiply every term on both sides by both denominators, which clears both fractions at once.])
+#type-head([Type 6: Clear Two Denominators], [Two different fractions in the equation. Multiply every term on both sides by both denominators, which clears both fractions at once.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.5in,
@@ -352,7 +352,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 7], [Factor Out, Then Divide], [The unknown appears in two terms that are already together on one side. Factor the unknown out of those terms, then divide by what is left in the parentheses.])
+#type-head([Type 7: Factor Out, Then Divide], [The unknown appears in two terms that are already together on one side. Factor the unknown out of those terms, then divide by what is left in the parentheses.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.4in,
@@ -367,7 +367,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 8], [Gather, Factor Out, Divide], [The unknown appears on both sides of the equation. Add or subtract to get every term with the unknown on one side and everything else on the other; then factor out and divide.])
+#type-head([Type 8: Gather, Factor Out, Divide], [The unknown appears on both sides of the equation. Add or subtract to get every term with the unknown on one side and everything else on the other; then factor out and divide.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.6in,
@@ -390,7 +390,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 9], [Distribute, Gather, Factor Out, Divide], [Parentheses, and the unknown shows up in more than one term. Distribute first; then gather, factor out, and divide as in Type 8.])
+#type-head([Type 9: Distribute, Gather, Factor Out, Divide], [Parentheses, and the unknown shows up in more than one term. Distribute first; then gather, factor out, and divide as in Type 8.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.75in,
@@ -409,7 +409,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 10], [Clear Single-Term Denominators, Then Solve], [Fractions whose denominators are single numbers or letters. Multiply both sides by every denominator to clear the fractions; what is left is a Type 9 (or easier) equation.])
+#type-head([Type 10: Clear Single-Term Denominators, Then Solve], [Fractions whose denominators are single numbers or letters. Multiply both sides by every denominator to clear the fractions; what is left is a Type 9 (or easier) equation.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.85in,
@@ -428,7 +428,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Type 11], [Clear a Multi-Term Denominator], [A denominator that is a sum or difference, such as $(x - 1)$. Multiply both sides by the whole denominator, keeping its parentheses; then distribute and solve as in Type 9.])
+#type-head([Type 11: Clear a Multi-Term Denominator], [A denominator that is a sum or difference, such as $(x - 1)$. Multiply both sides by the whole denominator, keeping its parentheses; then distribute and solve as in Type 9.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.85in,
@@ -453,7 +453,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
 
 #v(0.6em)
 #align(center, text(weight: "bold", size: 14pt)[Special Cases])
-#type-head([Special Case A], [Watch the Sign], [The term with the unknown has a minus sign in front of it. Add that term to both sides so it is positive on the other side, then solve. (If you leave it where it is, divide by the negative coefficient, not the positive one.)])
+#type-head([Special Case A: Watch the Sign], [The term with the unknown has a minus sign in front of it. Add that term to both sides so it is positive on the other side, then solve. (If you leave it where it is, divide by the negative coefficient, not the positive one.)])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.2in,
@@ -468,7 +468,7 @@ Solve each equation for the indicated variable. The problems are grouped by the 
   ],
 )
 
-#type-head([Special Case B], [Finish with a Square Root], [The unknown is squared. Solve for the squared term as usual, then take the square root of both sides. These unknowns are lengths, so use the positive root.])
+#type-head([Special Case B: Finish with a Square Root], [The unknown is squared. Solve for the squared term as usual, then take the square root of both sides. These unknowns are lengths, so use the positive root.])
 #grid(
   columns: (1fr, 1fr),
   rows: 1.5in,

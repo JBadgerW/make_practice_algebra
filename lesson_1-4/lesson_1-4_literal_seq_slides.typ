@@ -226,6 +226,15 @@
   #text(size: 24pt)[*The move:* #move]
 ]
 
+#let group-slide(heading, items) = align(horizon)[
+  #text(size: 40pt, weight: "bold")[#heading]
+  #v(0.5em)
+  #for it in items [
+    #text(size: 20pt)[*#it.at(0): #it.at(1)* #h(0.4em) _Look for:_ #it.at(2) #h(0.4em) _The move:_ #it.at(3)]
+    #v(0.35em)
+  ]
+]
+
 #align(center + horizon)[
   #text(size: 44pt, weight: "bold")[Literal Equations by Type]
   #v(0.4em)

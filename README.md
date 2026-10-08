@@ -19,7 +19,7 @@ numerically with sympy before anything is written.
 
 ```sh
 # Rebuild the lesson set
-python3 gen_sequence.py [--class NAME] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
+python3 gen_sequence.py [--class NAME] [--groups G ...] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
 
 # Practice sets from the command line
 python3 make_practice.py --mix 3:6 8:4 A:2 --versions 3 --seed 12
