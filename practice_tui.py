@@ -35,7 +35,7 @@ j k  ↓ ↑   down / up (5j)             l + →  ^A  add one (3l adds 3)
 gg  G      first / last row (7G)      h - ←  ^X  take one away
 /text n N  search, next / previous    x  dd      set to zero
 ^D  ^U     half page down / up        i a Enter  type a new value
-Tab  ^W w  switch pane (^W h, ^W l)   D          zero every type
+Tab  ^W w  types > groups > preview   D          zero every type
                                       cc  s      erase, then type a value
                                       u  ^R      undo / redo
 PREVIEW                               .          repeat last change
@@ -48,6 +48,13 @@ COMMANDS                              :w         write sheets, keys, decks
 :seed [N]  :versions N  :clear        :e FILE.json  reopen a written set
 :style mixed|letters|formulas         :open [sheet|key|slides] [N]
 :set [no]shuffle [no]answers key=value    :title  :class  :name  :out  :N  :help
+
+GROUPS PANE (Tab once from types): the sections of the worksheet, in print order
+> <  move the group down / up (3> )   J  join with the group below (mixed)
+dd then p / P  pick up, drop below / above   S  split a mixed group apart
+i a Enter  rename the heading (empty = default)   s cc  erase, then type
+:groups 9 8 3+4=Warm-up 1  set it all at once    :groups  back to sequence order
+:rename TEXT  rename the group under the cursor
 
 Types 1-11 are the lesson's sequence; A and B are the special cases.
 Any key closes this help."""
@@ -73,11 +80,14 @@ class App:
         self.s = dict(counts={k: 0 for k in mp.KEYS}, seed=seed if seed is not None else random.randrange(10**6),
                       versions=mp.DEFAULTS["versions"], style=mp.DEFAULTS["style"],
                       shuffle=mp.DEFAULTS["shuffle"], title=mp.DEFAULTS["title"], **{"class": mp.DEFAULTS["class_name"]},
-                      out=mp.DEFAULTS["out"], name=mp.DEFAULTS["name"])
+                      out=mp.DEFAULTS["out"], name=mp.DEFAULTS["name"], groups=[])
         self.s["counts"].update(mix or {})
         self.s.update({k: v for k, v in settings.items() if v is not None})
         self.undo, self.redo = [], []
         self.row, self.focus, self.version = 0, "left", 0
+        self.pane = "left"              # which view the left column shows: left (types) or groups
+        self.grow = 0                   # cursor row in the groups view
+        self.held = None                # first type of a group picked up with dd
         self.answers = False
         self.pv_top = 0
         self.mode = "normal"            # normal, insert, command, search, help
@@ -225,7 +235,7 @@ class App:
     # -- preview -------------------------------------------------------
     def preview_key(self):
         return (tuple(sorted(self.mix().items())), self.s["versions"], self.s["seed"],
-                self.s["style"], self.s["shuffle"])
+                self.s["style"], self.s["shuffle"], tuple(tuple(g["types"]) for g in self.layout()))
 
     def stale(self):
         return self.sets_key != self.preview_key()
@@ -237,7 +247,7 @@ class App:
             return
         try:
             self.sets = mp.draw_versions(self.mix(), self.s["versions"], self.s["seed"],
-                                         self.s["style"], self.s["shuffle"])
+                                         self.s["style"], self.s["shuffle"], self.s["groups"])
         except RuntimeError as e:
             self.sets = None
             self.say(str(e), True)
@@ -257,14 +267,15 @@ class App:
         out = [(f"Version {self.version + 1}/{self.s['versions']} · {order} · "
                 f"answers {'on' if self.answers else 'off'} (za)"
                 + (" · gt next" if self.s["versions"] > 1 else ""), "dim"), ("", "plain")]
-        last = None
+        last, lay = None, self.layout()
         for i, p in enumerate(probs, 1):
-            if not self.s["shuffle"] and p["type"] != last:
-                ty = mp.TYPE[p["type"]]
+            if not self.s["shuffle"] and p["group"] != last:
+                g = lay[p["group"]]
                 if last is not None:
                     out.append(("", "plain"))
-                out.append((f"{mp.label(ty)}: {ty['title']}", "special" if ty.get("special") else "head"))
-                last = p["type"]
+                special = len(g["types"]) == 1 and mp.TYPE[g["types"][0]].get("special")
+                out.append((mp.heading(g), "special" if special else "head"))
+                last = p["group"]
             tag = "" if not self.s["shuffle"] else f"   [{p['type']}]"
             src = "  (formula)" if p.get("source") == "formula" else ""
             out.append((f"{i:>3}. {pretty(p['prompt'])}    for {pretty(p['target'])}{tag}{src}", "plain"))
@@ -281,7 +292,7 @@ class App:
         try:
             r = mp.build(self.mix(), self.s["versions"], self.s["seed"], self.s["style"],
                          self.s["shuffle"], self.s["title"], self.s["out"], self.s["name"], self.s["class"],
-                         sets=self.sets)
+                         sets=self.sets, groups=self.s["groups"])
         except (RuntimeError, OSError) as e:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
@@ -322,12 +333,13 @@ class App:
             cmd = json.loads(Path(path).read_text())["command"]
             a = parse_args(shlex.split(cmd)[2:])
             mix = mp.parse_mix(a.mix)
+            groups = mp.parse_groups(a.groups)
         except (OSError, ValueError, KeyError, SystemExit) as e:
             return self.say(f"E: can't read settings from {path}: {e}", True)
         def go():
             self.s["counts"] = {k: mix.get(k, 0) for k in mp.KEYS}
             self.s.update(seed=a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle,
-                          title=a.title, out=a.out, name=a.name, **{"class": a.class_name})
+                          title=a.title, out=a.out, name=a.name, groups=groups, **{"class": a.class_name})
         self.change(go)
         self.written = self.snapshot()
         self.say(f'"{path}" loaded: {self.total()} problems, seed {a.seed}')
@@ -360,6 +372,16 @@ class App:
             except ValueError as e:
                 return self.say(f"E: {e}", True)
             self.change(lambda: self.s.__setitem__("counts", {k: mix.get(k, 0) for k in mp.KEYS}))
+        elif cmd == "groups":
+            try:
+                self.set_groups(shlex.split(rest))
+            except ValueError as e:
+                self.say(f"E: {e}", True)
+        elif cmd == "rename":
+            if rest and self.layout():
+                self.rename(rest)
+            else:
+                self.say("usage: :rename NEW HEADING   (for the group under the groups cursor)", True)
         elif cmd == "clear":
             self.change(lambda: self.s.__setitem__("counts", {k: 0 for k in mp.KEYS}))
         elif cmd == "seed" and not rest:
@@ -402,6 +424,114 @@ class App:
             else:
                 return self.say(f"E518: Unknown option: {opt}", True)
 
+    # -- groups ------------------------------------------------------------
+    def layout(self):
+        return mp.layout(self.s["groups"], self.mix())
+
+    def grow_at(self):
+        return min(self.grow, max(0, len(self.layout()) - 1))
+
+    def edit_layout(self, fn):
+        """fn edits a copy of the layout in place; stored (and undoable) only if it changed."""
+        new = copy.deepcopy(self.layout())
+        fn(new)
+        if new != self.layout():
+            self.change(lambda: self.s.__setitem__("groups", new))
+            return True
+        return False
+
+    def move_group(self, n):
+        i = self.grow_at()
+        j = min(max(0, i + n), len(self.layout()) - 1)
+        if i == j:
+            return
+        def go(lay):
+            lay.insert(j, lay.pop(i))
+        self.edit_layout(go)
+        self.grow = j
+
+    def pick_up(self):
+        lay = self.layout()
+        if not lay:
+            return
+        self.held = lay[self.grow_at()]["types"][0]
+        self.say("group picked up: p drops it below the cursor, P above, Esc cancels")
+
+    def drop(self, below):
+        if self.held is None:
+            return self.say("nothing picked up: dd picks up the group under the cursor", True)
+        lay = self.layout()
+        src = next((i for i, g in enumerate(lay) if self.held in g["types"]), None)
+        dst = self.grow_at()
+        self.held = None
+        if src is None or src == dst:
+            return
+        target = lay[dst]
+        def go(new):
+            g = new.pop(src)
+            at = next(i for i, x in enumerate(new) if x["types"] == target["types"])
+            new.insert(at + (1 if below else 0), g)
+            self.grow = new.index(g)
+        self.edit_layout(go)
+
+    def join(self):
+        i = self.grow_at()
+        if i + 1 >= len(self.layout()):
+            return self.say("no group below to join", True)
+        def go(lay):
+            lay[i] = dict(types=lay[i]["types"] + lay.pop(i + 1)["types"], name="")
+        self.edit_layout(go)
+        self.say("joined (u to undo): its problems are shuffled together")
+
+    def split(self):
+        i = self.grow_at()
+        if len(self.layout()[i]["types"]) < 2:
+            return self.say("that group is already a single type", True)
+        def go(lay):
+            lay[i:i + 1] = [dict(types=[k], name="") for k in lay[i]["types"]]
+        self.edit_layout(go)
+
+    def rename(self, text):
+        text = text.strip()
+        i = self.grow_at()
+        def go(lay):
+            lay[i]["name"] = "" if text == mp.default_heading(lay[i]) else text
+        self.edit_layout(go)
+        self.say("heading reset to the default" if not text else f"renamed: {mp.heading(self.layout()[i])}")
+
+    def set_groups(self, tokens):
+        try:
+            groups = mp.parse_groups(tokens)
+        except ValueError as e:
+            return self.say(f"E: {e}", True)
+        self.change(lambda: self.s.__setitem__("groups", groups))
+        self.grow = 0
+
+    def key_groups(self, c, ch, n):
+        """Keys specific to the groups view. True if handled here."""
+        if c == "\x1b":
+            self.held = None
+            return False
+        if c == ">":
+            self.move_group(n)
+        elif c == "<":
+            self.move_group(-n)
+        elif c == "p":
+            self.drop(True)
+        elif c == "P":
+            self.drop(False)
+        elif c == "J":
+            self.join()
+        elif c == "S":
+            self.split()
+        elif c in ("i", "a", "s", "\n", "\r") or ch == curses.KEY_ENTER:
+            self.start_insert(clear=(c == "s"))
+        elif c in ("l", "h", "+", "-", "x", "D", ".", "\x01", "\x18") or ch in (curses.KEY_LEFT, curses.KEY_RIGHT):
+            self.say("groups: > < move, dd then p/P moves far, J joins, S splits, i renames", True)
+        else:
+            return False
+        return True
+
     def reroll(self):
         self.change(lambda: self.s.__setitem__("seed", random.randrange(10**6)))
         self.say(f"seed {self.s['seed']}")
@@ -438,7 +568,9 @@ class App:
             self.count = ""
             combo = p + c
             if combo == "gg":
-                if self.focus == "left":
+                if self.focus == "groups":
+                    self.grow = min((n or 1) - 1, max(0, len(self.layout()) - 1))
+                elif self.focus == "left":
                     self.row = (n or 1) - 1 if n else 0
                     self.row = min(self.row, len(ROWS) - 1)
                 else:
@@ -453,7 +585,7 @@ class App:
                 self.version = (self.version - (n or 1)) % self.s["versions"]
                 self.pv_top = 0
             elif combo == "dd":
-                self.zero()
+                self.pick_up() if self.focus == "groups" else self.zero()
             elif combo == "cc":
                 self.start_insert(clear=True)
             elif combo == "ZZ":
@@ -463,7 +595,7 @@ class App:
             elif combo == "za":
                 self.answers = not self.answers
             elif p == "\x17" and c in ("w", "\x17", "h", "l"):
-                self.focus = {"h": "left", "l": "preview"}.get(c, "preview" if self.focus == "left" else "left")
+                self.set_focus({"h": self.pane, "l": "preview"}.get(c) or self.next_focus())
             return
 
         if c.isdigit() and (c != "0" or self.count):
@@ -473,6 +605,8 @@ class App:
         had_count = bool(self.count)
         self.count = ""
 
+        if self.focus == "groups" and c and self.key_groups(c, ch, n):
+            return
         if c in "gdcZz\x17" and c:
             self.pending = c
             if had_count:
@@ -482,7 +616,10 @@ class App:
         elif c == "k" or ch == curses.KEY_UP:
             self.move(-n)
         elif c == "G":
-            if self.focus == "left":
+            if self.focus == "groups":
+                last = max(0, len(self.layout()) - 1)
+                self.grow = min(n - 1, last) if had_count else last
+            elif self.focus == "left":
                 self.row = min(n, len(ROWS)) - 1 if had_count else len(ROWS) - 1
             else:
                 self.pv_top = 10**6
@@ -527,14 +664,24 @@ class App:
         elif c == "?":
             self.mode = "help"
         elif c == "\t":
-            self.focus = "preview" if self.focus == "left" else "left"
+            self.set_focus(self.next_focus())
         elif c == "\x1b":
             pass
         elif c == "\x03":
             self.say("Type  :q!  and press Enter to quit")
 
+    def next_focus(self):
+        return {"left": "groups", "groups": "preview", "preview": "left"}[self.focus]
+
+    def set_focus(self, f):
+        self.focus = f
+        if f != "preview":
+            self.pane = f
+
     def move(self, n):
-        if self.focus == "left":
+        if self.focus == "groups":
+            self.grow = min(max(0, len(self.layout()) - 1), max(0, self.grow + n))
+        elif self.focus == "left":
             self.row = min(len(ROWS) - 1, max(0, self.row + n))
         else:
             self.scroll(n)
@@ -543,6 +690,12 @@ class App:
         self.pv_top = max(0, self.pv_top + n)
 
     def start_insert(self, clear=False):
+        if self.focus == "groups":
+            lay = self.layout()
+            if not lay:
+                return self.say("no groups yet: add some problems first", True)
+            self.mode, self.buf = "insert", "" if clear else mp.heading(lay[self.grow_at()])
+            return
         kind, key = ROWS[self.row]
         self.mode, self.buf = "insert", "" if clear else str(self.value(self.row))
 
@@ -553,7 +706,9 @@ class App:
         elif c in ("\n", "\r") or ch == curses.KEY_ENTER:
             mode, buf = self.mode, self.buf
             self.mode, self.buf = "normal", ""
-            if mode == "insert":
+            if mode == "insert" and self.focus == "groups":
+                self.rename(buf)
+            elif mode == "insert":
                 err = self.set_value(buf)
                 if err:
                     self.say(f"E: {err}", True)
@@ -636,7 +791,58 @@ class Screen:
         self.put(0, 0, " Literal Equations Practice", st["head"])
         self.put(0, w - 12, "? for help", st["dim"])
 
-        # left pane: build display lines, then scroll so the cursor shows
+        (self.groups_view if app.pane == "groups" else self.types_view)(app, body, LEFT_W)
+        for y in range(1, body + 1):
+            self.put(y, LEFT_W, "│", st["dim"])
+
+        # right pane
+        px, pw = LEFT_W + 2, w - LEFT_W - 3
+        pv = app.preview_lines()
+        app.pv_top = max(0, min(app.pv_top, len(pv) - body))
+        for y, (text, s) in enumerate(pv[app.pv_top:app.pv_top + body], 1):
+            self.put(y, px, text, st[s], pw)
+        where = ""
+        if len(pv) > body:
+            where = "Top" if app.pv_top == 0 else "Bot" if app.pv_top >= len(pv) - body else \
+                f"{100 * app.pv_top // (len(pv) - body)}%"
+        self.status(app, h, w, where)
+
+    def groups_view(self, app, body, LEFT_W):
+        st = self.st
+        lay = app.layout()
+        self.put(1, 1, "GROUPS  (printed top to bottom)", st["dim"] | curses.A_BOLD)
+        if app.s["shuffle"]:
+            self.put(2, 1, "order is shuffled: groups are ignored", st["err"])
+        elif not lay:
+            self.put(2, 1, "no problems yet: add some on the types pane", st["dim"])
+        cur = app.grow_at()
+        top = max(0, min(cur - (body - 3) // 2, len(lay) - (body - 3)))
+        counts = {i: sum(app.s["counts"][k] for k in g["types"]) for i, g in enumerate(lay)}
+        for y, (i, g) in enumerate(list(enumerate(lay))[top:top + body - 3], 3):
+            held = app.held is not None and app.held in g["types"]
+            text = f" {i + 1:>2}{'▸' if held else ' '} {mp.heading(g)}"
+            if g["name"]:
+                text += f"  [{'+'.join(g['types'])}]"
+            val = str(counts[i])
+            room = LEFT_W - 3
+            space = room - len(val) - 1
+            text = text if len(text) <= space else text[:space - 1] + "…"
+            row = text.ljust(space + 1) + val + " "
+            if i == cur:
+                self.put(y, 1, row, curses.A_REVERSE | (curses.A_BOLD if app.focus == "groups" else 0))
+            else:
+                mixed = len(g["types"]) > 1
+                self.put(y, 1, text, st["special"] if mixed else 0)
+                self.put(y, 1 + space + 1, val, st["count"])
+        if body >= 12:
+            hint = ("> < move  dd then p/P pick up and drop  J join with next  S split  "
+                    "i rename (empty = default)  Tab: preview")
+            for y, line in enumerate(textwrap.wrap(hint, LEFT_W - 3)[:body - 3 - min(len(lay), body - 3) - 1],
+                                     min(len(lay), body - 3) + 4):
+                self.put(y, 1, line, st["dim"])
+
+    def types_view(self, app, body, LEFT_W):
+        scr, st = self.scr, self.st
         lines = [("TYPES", None)] + [(None, i) for i in range(len(mp.KEYS))] + \
                 [("", None), ("SETTINGS", None)] + [(None, i) for i in range(len(mp.KEYS), len(ROWS))]
         cur = next(j for j, (_, i) in enumerate(lines) if i == app.row)
@@ -678,21 +884,9 @@ class Screen:
             hint = re.sub(r"\$([^$]*)\$", lambda m: pretty(m.group(1)), hint)
             for y, line in enumerate(textwrap.wrap(hint, LEFT_W - 3)[:free], len(lines) + 2):
                 self.put(y, 1, line, st["dim"])
-        for y in range(1, body + 1):
-            self.put(y, LEFT_W, "│", st["dim"])
 
-        # right pane
-        px, pw = LEFT_W + 2, w - LEFT_W - 3
-        pv = app.preview_lines()
-        app.pv_top = max(0, min(app.pv_top, len(pv) - body))
-        for y, (text, s) in enumerate(pv[app.pv_top:app.pv_top + body], 1):
-            self.put(y, px, text, st[s], pw)
-        where = ""
-        if len(pv) > body:
-            where = "Top" if app.pv_top == 0 else "Bot" if app.pv_top >= len(pv) - body else \
-                f"{100 * app.pv_top // (len(pv) - body)}%"
-
-        # status line
+    def status(self, app, h, w, where):
+        st = self.st
         mode = {"normal": "NORMAL", "insert": "INSERT", "command": "COMMAND",
                 "search": "SEARCH", "help": "HELP"}[app.mode]
         self.put(h - 2, 0, " " * (w - 1), curses.A_REVERSE)
@@ -702,7 +896,7 @@ class Screen:
                 f"{'  ·  [+]' if app.dirty() else ''}")
         self.put(h - 2, len(mode) + 2, info, curses.A_REVERSE)
         right = (f"{app.count}{app.pending.replace(chr(23), '^W')}  "
-                 f"{'preview ' + where if app.focus == 'preview' else 'types'} ")
+                 f"{'preview ' + where if app.focus == 'preview' else app.focus.replace('left', 'types')} ")
         self.put(h - 2, w - len(right) - 1, right, curses.A_REVERSE)
         if app.mode == "help":
             self.help(h, w)
@@ -776,6 +970,7 @@ def parse_args(argv):
     ap.add_argument("--seed", type=int)
     ap.add_argument("--style", choices=mp.STYLES, default=mp.DEFAULTS["style"])
     ap.add_argument("--shuffle", action="store_true")
+    ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP")
     ap.add_argument("--title", default=mp.DEFAULTS["title"])
     ap.add_argument("--out", default=mp.DEFAULTS["out"])
     ap.add_argument("--name", default=mp.DEFAULTS["name"])
@@ -786,9 +981,10 @@ def main():
     a = parse_args(sys.argv[1:])
     try:
         mix = mp.parse_mix(a.mix)
+        groups = mp.parse_groups(a.groups)
     except ValueError as e:
         sys.exit(str(e))
-    app = App(mix, a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle,
+    app = App(mix, a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle, groups=groups,
               title=a.title, out=a.out, name=a.name, **{"class": a.class_name})
     if a.file:
         app.load(a.file)

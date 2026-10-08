@@ -50,6 +50,7 @@ python3 make_practice.py [options]
 | `--seed S` | Same seed → same problems | random (printed) |
 | `--style` | `mixed`: about 30% real formulas. `letters`: made-up equations only. `formulas`: real formulas whenever the type has any left. | `mixed` |
 | `--shuffle` | Interleave the types, with no headings | grouped |
+| `--groups G ...` | Order and combine the headed sections (see below) | sequence order |
 | `--title TEXT` | Title on the worksheet and slides | Literal Equations Practice |
 | `--class NAME` | Class name in the worksheet and slide header | Algebra 1 |
 | `--out DIR` | Output folder, relative to the script's folder | `practice` |
@@ -69,6 +70,31 @@ python3 make_practice.py --mix all:1 --shuffle
 # Warm-up from real formulas
 python3 make_practice.py --mix 1:4 3:4 B:2 --style formulas
 ```
+
+### Ordering and combining groups
+
+Each headed section of a worksheet is a *group*. By default every type with
+problems is its own group, in the lesson's sequence. `--groups` sets the print
+order, and joins types into one mixed group with `+`:
+
+```sh
+# Hardest first, so the class works those together; easier ones for home
+python3 make_practice.py --mix 3:3 4:3 8:3 9:3 --groups 9 8 3 4
+
+# Types 3 and 4 mixed together under a heading you choose
+python3 make_practice.py --mix 3:3 4:3 8:3 --groups 3+4="Warm-up" 8
+```
+
+- A mixed group's problems are shuffled together, and numbering carries on
+  from group to group. Its default heading is *Mixed Practice (3, 4)*.
+- `=Name` replaces the heading of any group, mixed or not.
+- Types you leave out of `--groups` follow at the end in sequence order, and
+  types with no problems are ignored. A type can appear only once.
+- `--shuffle` ignores groups: everything is one mixed list.
+- On the slides, a single-type group gets its usual title slide. A mixed group
+  gets one title slide listing every type's *Look for* and *The move*.
+- The same seed draws the same problems whatever the group order, apart from
+  the shuffling inside mixed groups.
 
 **Guarantees:**
 - Problems never repeat within a run, across versions, or with the 50 lesson
@@ -101,6 +127,24 @@ code and seed as `:w`, so it shows exactly what will be written. The status
 line shows the mode, the totals, the seed, and `[+]` when there are
 unwritten changes.
 
+### Groups pane
+
+Press `Tab` once to turn the left column into the list of groups, in print
+order. The preview on the right follows every change.
+
+| Key | Action |
+|---|---|
+| `j` `k` `gg` `G` | Move the cursor |
+| `>` `<` | Move the group down / up (`3>` moves three places) |
+| `dd`, then `p` / `P` | Pick up a group, then drop it below / above the cursor. Use this for long moves. `Esc` cancels. |
+| `J` | Join the group with the one below it into a mixed group |
+| `S` | Split a mixed group back into single types |
+| `i` `a` `Enter` | Rename the heading, starting from the current text. Submit it empty to restore the default. `s` and `cc` start blank. |
+| `u` `Ctrl-R` | Undo / redo |
+
+Groups are saved with the set (as `--groups` in the stored command), so `:e`
+restores them. A type whose count is zero is left out of the layout.
+
 ### Keys
 
 **Moving**
@@ -112,7 +156,7 @@ unwritten changes.
 | `/text` `n` `N` | Search type names and settings; next / previous match |
 | `Ctrl-D` `Ctrl-U` | Half a page down / up (scrolls the preview when it has focus) |
 | `Ctrl-F` `Ctrl-B` | A full page down / up in the preview |
-| `Tab`, `Ctrl-W w` | Switch between panes. `Ctrl-W h` and `Ctrl-W l` pick one. |
+| `Tab`, `Ctrl-W w` | Cycle types → groups → preview. `Ctrl-W h` and `Ctrl-W l` pick one. |
 
 **Changing the row under the cursor.** These work whichever pane has focus.
 
@@ -151,6 +195,8 @@ through earlier commands.
 | `:clear` | Zero all counts |
 | `:seed` / `:seed N` | Pick a random seed / set it |
 | `:versions N` `:style X` `:order grouped` `:title TEXT` `:class NAME` `:name N` `:out DIR` | Set a setting |
+| `:groups 9 8 3+4=Warm-up 1` | Set the group order and mixes at once (`:groups` alone resets to sequence order) |
+| `:rename TEXT` | Rename the group under the groups cursor |
 | `:set shuffle` `noshuffle` `shuffle!` | Shuffle on / off / toggle |
 | `:set answers` `noanswers` `answers!` | Answers in the preview |
 | `:set key=value ...` | Set settings: `:set style=letters versions=3`. `title=` and `class=` take the rest of the line. |

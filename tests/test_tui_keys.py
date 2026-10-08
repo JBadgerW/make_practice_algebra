@@ -51,4 +51,49 @@ keys("D"); assert a.total()==0; keys("u"); assert a.total()==3
 keys(":q\n"); assert a.quit
 assert T.pretty("V = 1/3 pi r^2 h") == "V = (1/3)πr²h"
 assert T.pretty("x = (2 m + n)/(5 - m)") == "x = (2m + n)/(5 − m)"
+# ---- groups: reorder, join, split, rename
+g = T.App(seed=5)
+def gk(s):
+    for c in s: g.key(c)
+def order(): return ["+".join(x["types"]) for x in g.layout()]
+gk(":mix 3:2 4:2 8:2 9:2 A:1\n"); assert order() == ["3", "4", "8", "9", "A"] and g.s["groups"] == []
+gk("\t"); assert g.focus == "groups" and g.pane == "groups"
+gk(">"); assert order() == ["4", "3", "8", "9", "A"] and g.grow == 1, order()
+gk("<"); assert order() == ["3", "4", "8", "9", "A"]
+gk("2>"); assert order() == ["4", "8", "3", "9", "A"] and g.grow == 2
+gk("G"); assert g.grow == 4
+gk("dd"); assert g.held == "A"
+gk("gg"); gk("P"); assert order() == ["A", "4", "8", "3", "9"] and g.grow == 0, order()
+gk("u"); assert order() == ["4", "8", "3", "9", "A"], "undo a move"
+gk("\x12"); assert order()[0] == "A", "redo"
+gk("p"); assert g.err and "nothing picked up" in g.msg
+gk("jJ"); assert order() == ["A", "4+8", "3", "9"], order()
+gk("S"); assert order() == ["A", "4", "8", "3", "9"]
+gk("J"); gk("i"); assert g.mode == "insert" and g.buf == "Mixed Practice (4, 8)", g.buf
+gk("\x15Warm-up\n"); assert g.layout()[1]["name"] == "Warm-up"
+gk("i\x15\n"); assert g.layout()[1]["name"] == "", "empty resets"
+gk(":rename Hard ones\n"); assert mp.heading(g.layout()[1]) == "Hard ones"
+gk("gg"); gk("l"); assert g.err, "l does nothing in groups"
+gk("\t"); assert g.focus == "preview"; gk("\t"); assert g.focus == "left" and g.pane == "left"
+gk("\t\t^Ww"); assert g.focus in ("groups", "preview")
+g.set_focus("left")
+# counts changing under a layout: zeroed types vanish, new types append
+gk(":mix 3:1 4:1 8:1 9:1\n"); assert order() == ["4+8", "3", "9"], order()
+gk(":groups 9 8 3+4=Easy\n"); assert order() == ["9", "8", "3+4"] and g.layout()[2]["name"] == "Easy"
+gk(":groups 3 3\n"); assert g.err and "more than one" in g.msg
+gk(":groups\n"); assert order() == ["3", "4", "8", "9"]
+gk(":groups 9 8 3+4=Easy\n")
+g.refresh_preview()
+assert [p["group"] for p in g.sets[0]] == [0, 1, 2, 2], g.sets[0]
+assert sorted({p["group"] for p in g.sets[0]}) == [0, 1, 2], g.sets[0]
+assert [p["type"] for p in g.sets[0]][:2] == ["9", "8"]
+gk(f":out {OUT}\n:w\n"); assert not g.err, g.msg
+cmd = g.last_build["command"]; assert "--groups 9 8 3+4=Easy" in cmd, cmd
+h = T.App(); h.load(str(g.last_build["out"] / "literal_practice_v1.json"))
+assert h.s["groups"] == g.layout(), (h.s["groups"], g.layout())
+mixc = {"3": 2, "4": 2}
+a1 = mp.draw_versions(mixc, 1, 7)[0]; a2 = mp.draw_versions(mixc, 1, 7, groups=[])[0]
+assert a1 == a2, "default layout draws the same as before groups existed"
+assert mp.layout(mp.parse_groups(["3+4"]), {"3": 1}) == [dict(types=["3"], name="")]
+print("group tests passed")
 print("all key tests passed")
