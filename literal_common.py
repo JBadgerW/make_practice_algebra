@@ -113,11 +113,11 @@ head = head[:head.index(MARK)]
 slhead = (HERE / "templates/mixed_review_slides.typ").read_text()
 slhead = slhead[:slhead.index(MARK)]
 
-def vars_(title, version="1"):
+def vars_(title, version="1", class_name="Algebra 1"):
     return f'''{MARK}
 // ==================================================
 
-#let class-name = "Algebra 1"
+#let class-name = "{class_name}"
 #let worksheet-title = "{title}"
 #let version = "{version}"
 

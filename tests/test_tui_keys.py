@@ -31,6 +31,9 @@ keys("j"); keys("cc\n"); assert a.err and "empty" in a.msg, a.msg
 keys(":mix 1:2 A:1\n"); assert st() == {"1": 2, "A": 1}
 keys(":set noshuffle style=formulas\n"); assert a.s["style"]=="formulas" and not a.s["shuffle"], a.msg
 keys(":set title=Quiz 3 Review\n"); assert a.s["title"] == "Quiz 3 Review"
+assert a.s["class"] == "Algebra 1"
+keys(":class Geometry\n"); assert a.s["class"] == "Geometry"
+keys(":set class=Pre Algebra\n"); assert a.s["class"] == "Pre Algebra"
 keys(":versions 2\n"); assert a.s["versions"] == 2
 keys(":bogus\n"); assert a.msg.startswith("E492")
 keys(":mix 12:1\n"); assert a.err

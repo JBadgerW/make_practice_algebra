@@ -15,7 +15,7 @@ import make_practice as mp
 # ------------------------------------------------------------------
 # Rows in the left pane
 # ------------------------------------------------------------------
-SETTINGS = ["versions", "seed", "style", "order", "title", "name", "out"]
+SETTINGS = ["versions", "seed", "style", "order", "title", "class", "name", "out"]
 ROWS = [("count", k) for k in mp.KEYS] + [("set", s) for s in SETTINGS]
 ORDERS = ("grouped", "shuffled")
 SETTING_HINTS = {
@@ -24,6 +24,7 @@ SETTING_HINTS = {
     "style": "mixed: some real formulas.  letters: made-up equations only.  formulas: real formulas wherever a type has them. (h/l)",
     "order": "grouped: problems sit under type headings.  shuffled: types interleaved, no headings. (h/l)",
     "title": "The worksheet and slide title. i to edit.",
+    "class": "The class name in the worksheet and slide header (default Algebra 1). i to edit.",
     "name": "File prefix: NAME_v1.pdf, NAME_v1_key.pdf, NAME_v1_slides.pdf. i to edit.",
     "out": "Folder to write into, relative to this script's folder. i to edit.",
 }
@@ -46,7 +47,7 @@ COMMANDS                              :w         write sheets, keys, decks
 :mix all:2        two of every type   :q :q! ZQ  quit (:q! discards)
 :seed [N]  :versions N  :clear        :e FILE.json  reopen a written set
 :style mixed|letters|formulas         :open [sheet|key|slides] [N]
-:set [no]shuffle [no]answers key=value    :title  :name  :out  :N  :help
+:set [no]shuffle [no]answers key=value    :title  :class  :name  :out  :N  :help
 
 Types 1-11 are the lesson's sequence; A and B are the special cases.
 Any key closes this help."""
@@ -71,7 +72,7 @@ class App:
     def __init__(self, mix=None, seed=None, **settings):
         self.s = dict(counts={k: 0 for k in mp.KEYS}, seed=seed if seed is not None else random.randrange(10**6),
                       versions=mp.DEFAULTS["versions"], style=mp.DEFAULTS["style"],
-                      shuffle=mp.DEFAULTS["shuffle"], title=mp.DEFAULTS["title"],
+                      shuffle=mp.DEFAULTS["shuffle"], title=mp.DEFAULTS["title"], **{"class": mp.DEFAULTS["class_name"]},
                       out=mp.DEFAULTS["out"], name=mp.DEFAULTS["name"])
         self.s["counts"].update(mix or {})
         self.s.update({k: v for k, v in settings.items() if v is not None})
@@ -279,7 +280,7 @@ class App:
             self.refresh_preview()
         try:
             r = mp.build(self.mix(), self.s["versions"], self.s["seed"], self.s["style"],
-                         self.s["shuffle"], self.s["title"], self.s["out"], self.s["name"],
+                         self.s["shuffle"], self.s["title"], self.s["out"], self.s["name"], self.s["class"],
                          sets=self.sets)
         except (RuntimeError, OSError) as e:
             self.say(f"E: {e}".splitlines()[0], True)
@@ -326,7 +327,7 @@ class App:
         def go():
             self.s["counts"] = {k: mix.get(k, 0) for k in mp.KEYS}
             self.s.update(seed=a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle,
-                          title=a.title, out=a.out, name=a.name)
+                          title=a.title, out=a.out, name=a.name, **{"class": a.class_name})
         self.change(go)
         self.written = self.snapshot()
         self.say(f'"{path}" loaded: {self.total()} problems, seed {a.seed}')
@@ -363,7 +364,7 @@ class App:
             self.change(lambda: self.s.__setitem__("counts", {k: 0 for k in mp.KEYS}))
         elif cmd == "seed" and not rest:
             self.reroll()
-        elif cmd in ("seed", "versions", "style", "title", "name", "out", "order"):
+        elif cmd in ("seed", "versions", "style", "title", "class", "name", "out", "order"):
             err = self.set_value(rest, ROWS.index(("set", cmd)))
             if err:
                 self.say(f"E: {err}", True)
@@ -380,8 +381,8 @@ class App:
 
     def ex_set(self, rest):
         opts = rest.split()
-        for i, o in enumerate(opts):            # title=... keeps its spaces
-            if o.startswith("title="):
+        for i, o in enumerate(opts):            # title=/class= keep their spaces
+            if o.startswith(("title=", "class=")):
                 opts = opts[:i] + [" ".join(opts[i:])]
                 break
         for opt in opts:
@@ -778,6 +779,7 @@ def parse_args(argv):
     ap.add_argument("--title", default=mp.DEFAULTS["title"])
     ap.add_argument("--out", default=mp.DEFAULTS["out"])
     ap.add_argument("--name", default=mp.DEFAULTS["name"])
+    ap.add_argument("--class", dest="class_name", default=mp.DEFAULTS["class_name"], metavar="NAME")
     return ap.parse_args(argv)
 
 def main():
@@ -787,7 +789,7 @@ def main():
     except ValueError as e:
         sys.exit(str(e))
     app = App(mix, a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle,
-              title=a.title, out=a.out, name=a.name)
+              title=a.title, out=a.out, name=a.name, **{"class": a.class_name})
     if a.file:
         app.load(a.file)
         app.undo.clear()

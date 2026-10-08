@@ -51,6 +51,7 @@ python3 make_practice.py [options]
 | `--style` | `mixed`: about 30% real formulas. `letters`: made-up equations only. `formulas`: real formulas whenever the type has any left. | `mixed` |
 | `--shuffle` | Interleave the types, with no headings | grouped |
 | `--title TEXT` | Title on the worksheet and slides | Literal Equations Practice |
+| `--class NAME` | Class name in the worksheet and slide header | Algebra 1 |
 | `--out DIR` | Output folder, relative to the script's folder | `practice` |
 | `--name NAME` | File prefix | `literal_practice` |
 | `--no-compile` | Write `.typ` files only | compile |
@@ -149,10 +150,10 @@ through earlier commands.
 | `:mix 3:6 8:4 A:2` | Replace all counts (`all:N` works) |
 | `:clear` | Zero all counts |
 | `:seed` / `:seed N` | Pick a random seed / set it |
-| `:versions N` `:style X` `:order grouped` `:title TEXT` `:name N` `:out DIR` | Set a setting |
+| `:versions N` `:style X` `:order grouped` `:title TEXT` `:class NAME` `:name N` `:out DIR` | Set a setting |
 | `:set shuffle` `noshuffle` `shuffle!` | Shuffle on / off / toggle |
 | `:set answers` `noanswers` `answers!` | Answers in the preview |
-| `:set key=value ...` | Set settings: `:set style=letters versions=3`. `title=` takes the rest of the line. |
+| `:set key=value ...` | Set settings: `:set style=letters versions=3`. `title=` and `class=` take the rest of the line. |
 | `:e FILE.json` | Load the settings and seed from a written set |
 | `:open [sheet\|key\|slides] [N]` | Open version N's PDF (default: worksheet, version 1) |
 | `:N` | Go to row N |
