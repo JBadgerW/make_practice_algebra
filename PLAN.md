@@ -158,5 +158,11 @@ and `:w` still use the same data and the same functions.
    optional checker family), a registry in `sheets/banks/__init__.py`, and a
    tree in the left pane. Banks share sections and the no-repeat rule by
    family. Not yet: fixed banks on the `make_practice.py` command line.
-5. **A second family**, chosen by the teacher, ideally with a full-width
-   type.
+5. ✅ **A second family**: systems of three equations (`sheets/banks/systems.py`).
+   Decided with the teacher on 2026-10-09: types by first move (1
+   Back-Substitute, 2 Substitute First, 3 One Variable Missing, 4 Eliminate,
+   5 Eliminate and Scale; specials A No Solution, B Infinitely Many);
+   answers as `(x, y, z)` or words; integer solutions −9..9 with
+   coefficients to 7 and constants to 60; half width, 2.5in. Checked by
+   solving again with sympy; 1400 samples checked for their type's structure.
+   Also: `--mix BANK/ENTRY:N` on the command line.

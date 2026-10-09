@@ -50,11 +50,18 @@ def type_section(sheet, bank, entry):
         if fam == b.FAMILY and t in order and order.index(t) > order.index(typ):
             at = i
             break
-    sheet["sections"].insert(at, new_section(b.heading(typ), auto=tag))
+    ins = b.INSTRUCTIONS if b.INSTRUCTIONS != sheet["instructions"] else ""
+    sheet["sections"].insert(at, new_section(b.heading(typ), ins, auto=tag))
     return at
 
 def add(sheet, si, bank, entry, seed, at=None):
     """Draw a new item into section si (at index at, default the end). Returns it."""
+    b = banks.get(bank)
+    if not items(sheet) and sheet["instructions"] in [banks.get(n).INSTRUCTIONS for n in banks.names()]:
+        sheet["instructions"] = b.INSTRUCTIONS            # an empty sheet takes its first bank's instructions
+        for sec in sheet["sections"]:
+            if sec.get("auto") and sec["instructions"] == b.INSTRUCTIONS:
+                sec["instructions"] = ""
     seen = seen_of(sheet)
     it = new_item(bank, entry, seed, seen)
     its = sheet["sections"][si]["items"]

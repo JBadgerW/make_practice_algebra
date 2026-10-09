@@ -24,7 +24,7 @@ files in the project's banks/ folder (see fixed.py).
 import importlib
 from .. import ROOT
 
-NAMES = ("literal",)
+NAMES = ("literal", "systems")
 FIXED_DIR = ROOT / "banks"
 _fixed, _errors = {}, {}
 

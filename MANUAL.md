@@ -121,6 +121,17 @@ python3 make_practice.py --mix 3:3 4:3 8:3 --groups 3+4="Warm-up" 8
   - A student's correct answer may still be in a different but equivalent
     form.
 
+### Systems of three equations
+
+`--mix systems/4:3` draws from the `systems` bank (`systems/all:1` is one of
+each type); it mixes with literal entries on one sheet, each family in its own
+sections with its own instructions. Problems are built backward from an
+integer solution, then solved again by sympy to check the key. Every type is
+guarded so it needs its own move: a Type 5 never has a coefficient of 1 or −1,
+and no equation has a common factor that would turn it into a Type 4. In the
+terminal app, `i` edits a system as `eq1 ; eq2 ; eq3` (solved again), and `A`
+takes `(x, y, z)`, `no solution`, or `infinitely many solutions`.
+
 ## 3. The terminal app
 
 ```sh
@@ -367,7 +378,7 @@ Rules that keep templates honest:
 ## 6. Checking your changes
 
 ```sh
-python3 make_practice.py --selftest 100     # every type and every formula
+python3 make_practice.py --selftest 100     # every type of both families and every formula
 python3 tests/test_tui_keys.py              # TUI key handling
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 python3 gen_sequence.py                     # lesson set: answers and worked steps

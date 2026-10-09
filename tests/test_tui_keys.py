@@ -182,7 +182,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 banks._fixed["words"] = FixedBank(f)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "literal"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "literal"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -214,6 +214,36 @@ wk(f":out {OUT}\n:name words\n:w\n"); assert not w.err and "1 unchecked" in w.ms
 key = (Path(OUT) / "words_v1_key.typ").read_text()
 assert "A train goes $60$ miles" in key and "$13$ miles" in key and "#section-head[Rate Problems]" in key
 del banks._fixed["words"]
+
+# ---- systems of three equations: a second family
+y = T.App(seed=8); yk = driver(y)
+yk(":mix systems/1:2 systems/4:1 systems/A:1\n")
+assert y.sheet["title"] == "Systems of Three Equations Practice", y.sheet["title"]
+assert y.sheet["instructions"] == "Solve each system of equations."
+assert titles(y) == ["Type 1: Back-Substitute", "Type 4: Eliminate", "Special Case A: No Solution"]
+assert all(it["width"] == "half" and it["space"] == "2.5in" for it in sh.items(y.sheet))
+assert "⎧" in text(y) and "⎩" in text(y)
+yk("\t:3\n"); assert y.item()["entry"] == "4"
+yk("cc"); yk("x + y + z = 6 ; y + z = 5 ; z = 2\n")
+assert y.item()["problem"]["answer"] == "(1, 3, 2)" and y.item()["status"] == "checked", y.item()
+yk("A\x15(1, 3, 3)\n"); assert y.item()["status"] == "failed" and y.err
+yk("A\x15no solution\n"); assert y.item()["status"] == "failed"
+yk("A\x15(1, 3, 2)\n"); assert y.item()["status"] == "checked"
+yk("i\x15x + y = 1 ; 2x + 2y = 2 ; z = 4\n"); assert y.item()["problem"]["answer"] == "infinitely many solutions"
+yk("A\x15banana\n"); assert y.err and "(x, y, z)" in y.msg
+yk(":4\n"); assert y.item()["problem"]["answer"] == "no solution"
+yk(":versions 2\n"); assert len(y.item()["alts"]) == 1 and y.item()["alts"][0]["answer"] == "no solution"
+yk(":3\n"); assert y.item()["alts"] == [], "an edited system is the same in every version"
+yk(f":out {OUT}\n:name systems\n:w\n"); assert not y.err, y.msg
+key = (Path(OUT) / "systems_v1_key.typ").read_text()
+assert "mat(delim:" in key and "$(1, 3, 2)$" not in key and "infinitely many solutions" in key
+mixed = mp.draft(mp.parse_mix(["3:1", "systems/2:1"]), 1, 4)
+assert [s["instructions"] for s in mixed["sections"]] == ["", "Solve each system of equations."], \
+    "a second family's section carries its own instructions"
+try:
+    mp.parse_mix(["systems/9:1"]); raise AssertionError("bad entry accepted")
+except ValueError as e:
+    assert "1, 2, 3, 4, 5, A, B" in str(e)
 
 # ---- the empty sheet
 e = T.App(seed=1); ek = driver(e)

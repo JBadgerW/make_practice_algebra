@@ -20,7 +20,8 @@ Examples (run from this folder):
 
 --mix ENTRY:COUNT ... entries are 1-11, A, B (made-up equations), 1f-11f, Af, Bf
                       (real formulas), all (every made-up entry), allf (every
-                      formulas entry). Default all:2.
+                      formulas entry). Default all:2. Another bank's entries
+                      take its name: systems/4:3, systems/all:1.
 --versions N          N parallel versions: every drawn problem is redrawn in its slot
 --seed S              same seed -> same sheet (default: random, printed)
 --shuffle             one section with every problem shuffled, no headings
@@ -43,8 +44,13 @@ KEYS = [e["key"] for e in L.ENTRIES]                   # what --mix counts: 1, 1
 TYPE_KEYS = L.KEYS                                     # what --groups orders: 1, 2, ..., A, B
 
 def has_types(mix):
-    """The types with at least one problem in mix (whose keys are entries or types)."""
-    return {L.type_of(k) for k, n in mix.items() if n}
+    """The literal types with at least one problem in mix (whose keys are entries or types)."""
+    return {L.type_of(k) for k, n in mix.items() if n and "/" not in k}
+
+def split_key(k):
+    """A mix key -> (bank, entry): "3f" is the literal bank's; "systems/4" names its bank."""
+    bank, _, entry = k.rpartition("/")
+    return bank or BANK, entry
 
 # ------------------------------------------------------------------
 # Groups: the headed sections of a worksheet, in the order they print.
@@ -103,10 +109,24 @@ DEFAULTS = dict(versions=1, shuffle=False, title="Literal Equations Practice",
                 class_name="Algebra 1", out="practice", name="literal_practice")
 
 def parse_mix(tokens):
-    """["3:6", "3f:2", "all:1"] -> {"3": 7, "3f": 2, ...}; raises ValueError."""
+    """["3:6", "3f:2", "all:1", "systems/4:2"] -> {"3": 7, "3f": 2, ..., "systems/4": 2};
+    raises ValueError. BANK/ENTRY names another bank's entry; BANK/all is all of them."""
     mix = {}
     for tok in tokens:
         k, _, c = tok.partition(":")
+        if "/" in k:
+            bank, _, e = k.partition("/")
+            try:
+                b = banks.get(bank)
+            except KeyError:
+                raise ValueError(f"bad mix entry {tok!r}: no bank {bank!r} (banks: {', '.join(banks.names())})") from None
+            es = [x["key"] for x in b.ENTRIES] if e.lower() == "all" else [b.entry_key(e)] if b.entry_key(e) else None
+            if not c.isdigit() or not es:
+                raise ValueError(f"bad mix entry {tok!r}: use {bank}/ENTRY:COUNT with ENTRY in "
+                                 f"{', '.join(x['key'] for x in b.ENTRIES)}, or all")
+            for e in es:
+                mix[f"{bank}/{e}"] = mix.get(f"{bank}/{e}", 0) + int(c)
+            continue
         keys = ([e for e in KEYS if not e.endswith("f")] if k.lower() == "all" else
                 [e for e in KEYS if e.endswith("f")] if k.lower() == "allf" else
                 [L.entry_key(k)] if L.entry_key(k) else None)
@@ -128,8 +148,8 @@ def apply_style(mix, style):
     return out
 
 def ordered(mix):
-    """mix in entry order, without zero counts."""
-    return {k: mix[k] for k in KEYS if mix.get(k)}
+    """mix in entry order (the literal bank's, then the others as given), without zero counts."""
+    return {**{k: mix[k] for k in KEYS if mix.get(k)}, **{k: n for k, n in mix.items() if "/" in k and n}}
 
 def command_for(mix, versions, seed, shuffle=False, title=DEFAULTS["title"], out=DEFAULTS["out"],
                 name=DEFAULTS["name"], class_name=DEFAULTS["class_name"], groups=None):
@@ -155,8 +175,12 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     mix = ordered(mix)
     rng = random.Random(seed)
     seen = {}                                  # (the literal bank never draws the lesson's own 50)
-    drawn = [sh.new_item(BANK, k, rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
-    sheet = sh.new_sheet(title, class_name, L.INSTRUCTIONS, versions)
+    drawn = [sh.new_item(*split_key(k), rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
+    fams = {banks.get(it["bank"]).FAMILY for it in drawn}
+    first = banks.get(fams.pop()) if len(fams) == 1 else L       # one family: its instructions for the sheet
+    if title == DEFAULTS["title"] and first is not L:
+        title = f"{first.TITLE} Practice"
+    sheet = sh.new_sheet(title, class_name, first.INSTRUCTIONS, versions)
     sheet["sections"] = [dict(sh.new_section(), items=drawn)]
     (shuffle_all(sheet, rng) if shuffle else regroup(sheet, groups, rng))
     return sh.fill_versions(sheet, seen)
@@ -180,8 +204,20 @@ def regroup(sheet, groups, rng):
             rng.shuffle(sec["items"])
         secs.append(sec)
     others = [it for it in its if not any(it is m for m in mine)]
-    if others:
-        secs.append(dict(sh.new_section(), items=others))
+    names = banks.names()
+    def where(it):
+        b = banks.get(it["bank"])
+        return names.index(it["bank"]), [e["key"] for e in b.ENTRIES].index(it["entry"])
+    for it in sorted(others, key=where):                 # other banks: a section per type, in bank order
+        b = banks.get(it["bank"])
+        typ = b.type_of(it["entry"])
+        tag = f"{b.FAMILY}:{typ}"
+        sec = next((x for x in secs if x["auto"] == tag), None)
+        if sec is None:
+            ins = b.INSTRUCTIONS if b.INSTRUCTIONS != sheet["instructions"] else ""
+            sec = sh.new_section(b.heading(typ), ins, auto=tag)
+            secs.append(sec)
+        sec["items"].append(it)
     sheet["sections"] = secs
 
 def shuffle_all(sheet, rng):
@@ -284,7 +320,8 @@ def main():
     a = parser().parse_args()
     seed = a.seed if a.seed is not None else random.randrange(10**6)
     if a.selftest:
-        sys.exit(0 if selftest(a.selftest, seed) else 1)
+        from sheets.banks import systems
+        sys.exit(0 if selftest(a.selftest, seed) and systems.selftest(a.selftest, seed) else 1)
     try:
         if a.sheet:
             sheet = read_sheet(a.sheet)

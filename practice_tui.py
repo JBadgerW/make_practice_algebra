@@ -568,6 +568,11 @@ class App:
         def go():
             new = mp.draft(mix, self.sheet["versions"], self.rng.randrange(2**31))
             self.sheet["sections"] = new["sections"]
+            defaults = [banks.get(n) for n in banks.names()]
+            if self.sheet["instructions"] in [b.INSTRUCTIONS for b in defaults]:   # still a bank's default
+                self.sheet["instructions"] = new["instructions"]
+            if self.sheet["title"] in [mp.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults]:
+                self.sheet["title"] = new["title"]
         if self.change(go):
             self.cur = SHEET
             self.clamp()
@@ -609,7 +614,10 @@ class App:
             used = 0.0
             emit((0, f"{'─' * 6} page {page} (about here) {'─' * max(0, width - 30)}", "page", None))
         def prompt_h(it):
-            return FRAC_IN if "/" in sh.problem(it, v)["prompt"] else PLAIN_IN
+            b, p = banks.get(it["bank"]), sh.problem(it, v)
+            if hasattr(b, "height"):
+                return b.height(p)
+            return FRAC_IN if "/" in p["prompt"] else PLAIN_IN
         def fits(h):                                  # the last gap may hang off the page
             return used + h - (FRAC_IN - PLAIN_IN) - 0.05 <= PAGE_IN
 
@@ -650,7 +658,8 @@ class App:
                     b, p = banks.get(it["bank"]), sh.problem(it, v)
                     mark = {"failed": "✗", "unchecked": "?"}.get(it["status"], "")
                     num = f"{mark}{n}."
-                    body = textwrap.wrap(b.text(p), max(8, colw - len(num) - 1)) or [""]
+                    body = [w for part in b.text(p).split("\n")
+                            for w in textwrap.wrap(part, max(8, colw - len(num) - 1)) or [""]]
                     nstyle = {"failed": "err", "unchecked": "dim"}.get(it["status"], "plain")
                     cell = [[(x0, num, nstyle, tgt), (x0 + len(num) + 1, body[0], "plain", tgt)]]
                     cell += [[(x0 + len(num) + 1, l, "plain", tgt)] for l in body[1:]]

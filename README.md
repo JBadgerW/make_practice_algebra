@@ -24,6 +24,9 @@ python3 gen_sequence.py [--class NAME] [--groups G ...] && (cd lesson_1-4 && for
 # Practice sets from the command line (3f = real formulas of Type 3)
 python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 
+# Systems of three equations (another bank: name it before the entry)
+python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
+
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 practice_tui.py
@@ -50,11 +53,32 @@ details.
 | A | Special Case: Watch the Sign | 46–47 |
 | B | Special Case: Finish with a Square Root | 48–50 |
 
+### Systems of three equations
+
+A second family, in the `systems` bank, sorted the same way: by the first move.
+
+| Key | Type | Look for |
+|---|---|---|
+| 1 | Back-Substitute | One equation has a single variable, another just two |
+| 2 | Substitute First | One equation is already solved for a variable |
+| 3 | One Variable Missing | One equation has only two of the variables |
+| 4 | Eliminate | Every variable everywhere; some coefficients are 1 or −1 |
+| 5 | Eliminate and Scale | Every variable everywhere; no coefficient is 1 or −1 |
+| A | Special Case: No Solution | Left sides combine; constants don't |
+| B | Special Case: Infinitely Many Solutions | One equation is a combination of the other two |
+
+Solutions are integers from −9 to 9, coefficients at most 7 (or 12 in a
+combined equation), constants at most 60, and no equation has a common
+factor. Answers are ordered triples, `(2, −1, 3)`, or the words *no solution*
+or *infinitely many solutions*. Each system is half width with 2.5in of work
+space, its terms lined up in columns.
+
 ## Files
 
 | File | What it is |
 |---|---|
 | `sheets/` | The shared package: `sheet.py` (the worksheet document), `edit.py` (changes to a sheet), `writer.py` (worksheet, key, and slide Typst), `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles), `banks/` (the bank interface, the literal-equation generator, and fixed banks) |
+| `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
