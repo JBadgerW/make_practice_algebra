@@ -8,19 +8,23 @@ classroom form by answers.fmt(), and checked numerically before it is used.
 As a bank, every type has two entries: KEY draws made-up equations from the
 templates ("letters"), and KEYf draws from the real formulas ("formulas").
 """
-import json, random, re
+import functools, json, random, re
 from ... import ROOT
 from .types import TYPES, TYPE, KEYS, label
 from .templates import D, Redraw, need, TEMPLATES
 from .formulas import FORMULAS
 from .answers import solve, fmt, make
 
-def original_prompts():
+@functools.lru_cache(maxsize=None)
+def _lesson_prompts():
     try:
         bank = json.loads((ROOT / "lesson_1-4" / "lesson_1-4_literal_seq_bank.json").read_text())
-        return {(p["prompt"], p["target"]) for p in bank["problems"]}
+        return frozenset((p["prompt"], p["target"]) for p in bank["problems"])
     except (OSError, ValueError, KeyError):
-        return set()
+        return frozenset()
+
+def original_prompts():
+    return set(_lesson_prompts())
 
 def draw(typ, rng, style, seen, tries=400):
     pool = [f for f in FORMULAS if f[2] == typ and (f[0], f[1]) not in seen]
@@ -160,7 +164,55 @@ def pretty(s):
     return s.replace(" - ", " − ").replace("-", "−")
 
 def text(problem):
-    return f"{pretty(problem['prompt'])}    for {pretty(problem['target'])}"
+    """As the worksheet shows it: the equation, then the unknown."""
+    return f"{pretty(problem['prompt'])};  {pretty(problem['target'])}"
 
 def answer_text(problem):
     return pretty(problem["answer"])
+
+# ------------------------------------------------------------------
+# Hand editing. The text is Typst math, as stored: "R = s - 6 ; s".
+# ------------------------------------------------------------------
+def edit_text(problem):
+    return f"{problem['prompt']} ; {problem['target']}"
+
+def from_edit(text, old):
+    """A problem from edited text "equation ; unknown" (the unknown may be left
+    off to keep the old one). The answer is solved again when it can be; if
+    not, the old answer is kept. Returns (problem, status); raises ValueError."""
+    from ...check import side_diff, syms_of
+    eq, _, target = text.partition(";")
+    eq, target = " ".join(eq.split()), target.strip() or old["target"]
+    if eq.count("=") != 1:
+        raise ValueError("write one equation with a single =, then ; and the unknown")
+    try:
+        syms = syms_of(eq)
+    except Exception as e:
+        raise ValueError(f"can't read that equation: {e}") from None
+    if target not in syms:
+        raise ValueError(f"{target} isn't in the equation")
+    new = dict(old, prompt=eq, target=target, source="edited")
+    for root in (False, True):
+        try:
+            new["answer"] = f"{target} = {solve(eq, target, root=root)}"
+            break
+        except Exception:
+            continue
+    else:
+        new["answer"] = old["answer"] if old["target"] == target else f"{target} = ?"
+    return new, check(new)
+
+def answer_edit_text(problem):
+    return problem["answer"]
+
+def with_answer(problem, text):
+    """The problem with a hand-written answer; returns (problem, status)."""
+    text = " ".join(text.split())
+    if not text:
+        raise ValueError("the answer can't be empty")
+    if "=" not in text:
+        text = f"{problem['target']} = {text}"
+    elif text.partition("=")[0].strip() != problem["target"]:
+        raise ValueError(f"the answer is for {problem['target']}: write {problem['target']} = ..., or just the right side")
+    new = dict(problem, answer=text)
+    return new, check(new)

@@ -15,7 +15,22 @@ if pid == 0:
     os.environ["TERM"] = os.environ.get("TT", "xterm-256color")
     os.execvp("python3", ["python3", "practice_tui.py", "--seed", "12"])
 fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
-screen = pyte.Screen(cols, rows)
+class Screen(pyte.Screen):
+    """pyte lacks SU/SD (CSI S, CSI T), which ncurses uses on xterm to shift lines."""
+    def _scroll(self, n, down):
+        top, bottom = self.margins or (0, self.lines - 1)
+        y, x = self.cursor.y, self.cursor.x
+        self.cursor.y = top if down else bottom
+        for _ in range(n or 1):
+            self.reverse_index() if down else self.index()
+        self.cursor.y, self.cursor.x = y, x
+    def scroll_up(self, n=1, *args, **kwargs):
+        self._scroll(n, False)
+    def scroll_down(self, n=1, *args, **kwargs):
+        self._scroll(n, True)
+pyte.Stream.csi = dict(pyte.Stream.csi, S="scroll_up", T="scroll_down")
+
+screen = Screen(cols, rows)
 stream = pyte.ByteStream(screen)
 
 def pump(t):

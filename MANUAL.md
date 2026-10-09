@@ -123,102 +123,118 @@ python3 make_practice.py --mix 3:3 4:3 8:3 --groups 3+4="Warm-up" 8
 ## 3. The terminal app
 
 ```sh
-python3 practice_tui.py                                    # start empty
-python3 practice_tui.py --mix 3:6 8:4 --seed 12            # start from a mix
-python3 practice_tui.py practice/literal_practice.sheet.json  # reopen a set
+python3 practice_tui.py                                      # start empty
+python3 practice_tui.py --mix 3:6 8:4 --seed 12              # start from a draft
+python3 practice_tui.py practice/literal_practice.sheet.json # open a sheet
 ```
 
-It takes the same options as `make_practice.py`, apart from `--no-compile`
-and `--selftest`.
+It takes the same drafting options as `make_practice.py` (`--mix`,
+`--versions`, `--seed`, `--shuffle`, `--groups`, `--title`, `--class`,
+`--out`, `--name`). An older `NAME_v1.json` opens too: it is converted, and
+`:w` saves it as a sheet.
 
-**Screen.** The left pane lists the entries with their counts (`·` means
-zero): each type, then its *real formulas* row (`3f`), then the settings. Under the list is a hint for the row under the
-cursor. The right pane previews the problems. The preview uses the same
-code and seed as `:w`, so it shows exactly what will be written. The status
-line shows the mode, the totals, the seed, and `[+]` when there are
-unwritten changes.
+**Two panes.** On the left are the **types**: every entry with how many of
+it are on the sheet (`·` means none), then the settings, with a hint for the
+row under the cursor. On the right is **the sheet**, laid out like the page:
+the header, the instructions in italics, bold section titles, problems in
+one or two columns with their work space as blank lines, and a dashed line
+where a new page probably starts. `Tab` moves between the panes; the sheet
+widens to the whole screen while it has focus. `:w` writes exactly what the
+sheet shows.
 
-### Groups pane
+The status line shows the totals, how many answers fail their check or
+can't be checked, `[+]` when there are unwritten changes, and, on the sheet,
+what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
+1in of work space).
 
-Press `Tab` once to turn the left column into the list of groups, in print
-order. The preview on the right follows every change.
-
-| Key | Action |
-|---|---|
-| `j` `k` `gg` `G` | Move the cursor |
-| `>` `<` | Move the group down / up (`3>` moves three places) |
-| `dd`, then `p` / `P` | Pick up a group, then drop it below / above the cursor. Use this for long moves. `Esc` cancels. |
-| `J` | Join the group with the one below it into a mixed group |
-| `S` | Split a mixed group back into single types |
-| `i` `a` `Enter` | Rename the heading, starting from the current text. Submit it empty to restore the default. `s` and `cc` start blank. |
-| `u` `Ctrl-R` | Undo / redo |
-
-Groups are saved with the set (as `--groups` in the stored command), so `:e`
-restores them. A type whose count is zero is left out of the layout.
-
-### Keys
-
-**Moving**
+### The types pane
 
 | Keys | Action |
 |---|---|
-| `j` `k` / arrows | Down / up. A count repeats: `5j`. |
-| `gg` `G` | First / last row. `7G` or `7gg` goes to row 7. |
-| `/text` `n` `N` | Search type names and settings; next / previous match |
-| `Ctrl-D` `Ctrl-U` | Half a page down / up (scrolls the preview when it has focus) |
-| `Ctrl-F` `Ctrl-B` | A full page down / up in the preview |
-| `Tab`, `Ctrl-W w` | Cycle types → groups → preview. `Ctrl-W h` and `Ctrl-W l` pick one. |
+| `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search type names and settings. |
+| `l` `+` `→` `Ctrl-A` | Add one problem to the type's own section (made, in sequence order, if needed). `3l` adds three. On *versions*, adds a version. |
+| `L` | Add one where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
+| `h` `-` `←` `Ctrl-X` | Remove the last problem of that entry. A type's own section disappears when it's empty. |
+| `x` `dd` | Remove every problem of that entry (on *versions*, back to 1) |
+| `i` `a` `Enter`, `cc` `s` | Type a count or a setting (starting from the current value, or blank) |
+| `r` | Reroll every problem of that entry |
+| `D` | Clear the whole sheet |
 
-**Changing the row under the cursor.** These work whichever pane has focus.
+### The sheet pane
 
 | Keys | Action |
 |---|---|
-| `l` `+` `→` `Ctrl-A` | Add one; `3l` adds three. On *order*, switches between grouped and shuffled. |
-| `h` `-` `←` `Ctrl-X` | Take one away, or cycle back |
-| `x` `dd` | Set the count to 0 (on *versions*, back to 1) |
-| `i` `a` `Enter` | Type a new value, starting from the current one |
-| `cc` `s` | Erase the value, then type a new one |
-| `D` | Zero every type |
-| `u` `Ctrl-R` | Undo / redo (counts work: `3u`) |
-| `.` | Repeat the last change on the current row |
-| `r` | New random seed |
+| `j` `k` | Next / previous stop: the header, each section title, each problem |
+| `h` `l` | The other problem in the same row |
+| `]]` `[[` | Next / previous section title |
+| `gg` `G`, `5G` or `:5` | Top, bottom, problem 5 |
+| `r` `3r` | Reroll the problem (or the next three) |
+| `R` | Reroll its whole section. `:reroll` rerolls the sheet. |
+| `W` | Half / full width |
+| `+` `-` | Work space up or down a quarter inch (`3+`). `:space 2in` sets it (cm, mm, pt work too). |
+| `i` `a` `Enter` | Edit the problem: `equation ; unknown`, in Typst math as stored. The answer is solved again. |
+| `A` | Edit the answer (`m = ...`, or just the right side). It is checked at once. |
+| `dd` `x` | Cut the problem (`3dd`: three), or the whole section on its title |
+| `yy` | Copy the problem or section |
+| `p` `P` | Paste below / above. A cut pastes exactly what was cut; a copy (or pasting a second time) draws **new** problems of the same entries, width, and space, so nothing repeats. |
+| `J` `K` | Move the problem down / up (it crosses into the next section at an edge), or the section on its title |
+| `o` `O` | New section below / above, then type its title (empty: no header) |
+| `cS` `cI` | Edit the section's title / instructions. On the header: the sheet's title / instructions. |
+| `zM` `zR` | Fold to just the section titles (with counts) / unfold |
+
+On a section title, `W`, `+`, `-`, `:space`, and `:width` change every problem
+in the section; on the header, every problem on the sheet.
+
+**Checking.** Drawn problems are checked when they are drawn. An edited
+problem is solved again and checked. An answer you write is checked by
+substituting it into the problem. The sheet marks an answer that fails with
+a red `✗` and one that can't be checked with `?`; `:w` still writes them and
+reports how many. Nothing is marked on the PDF. Rerolling an edited problem
+makes it a drawn one again.
+
+**Versions.** Version 2, 3, ... redraw every drawn problem in its own slot;
+edited problems are the same in every version. `gt` `gT` show the versions.
+
+### Everywhere
+
+| Keys | Action |
+|---|---|
+| `u` `Ctrl-R` `.` | Undo, redo, repeat the last change (`3u`, `3.`) |
+| `Tab`, `Ctrl-W w` `h` `l` | Switch panes |
+| `za` `zs` | Answers on / off; compact (no work space) on / off |
+| `gt` `gT` | Next / previous version |
+| `?` | The keys |
 
 While typing a value: `Enter` accepts, `Esc` cancels, `Ctrl-U` erases the
 line, and `Ctrl-W` erases a word.
-
-**Preview**
-
-| Keys | Action |
-|---|---|
-| `za` | Show / hide answers |
-| `gt` `gT` | Next / previous version; `3gt` goes to version 3 |
 
 **Commands.** Type `:` and the command, then press Enter. `↑` and `↓` scroll
 through earlier commands.
 
 | Command | Action |
 |---|---|
-| `:w` | Write and compile every version |
+| `:w` | Write the sheet and every version's worksheet, key, and slides |
 | `:wq` `:x` `ZZ` | Write, then quit |
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |
 | `:q!` `ZQ` | Quit and discard |
-| `:mix 3:6 8:4 A:2 3f:2` | Replace all counts (`all:N` and `allf:N` work) |
-| `:clear` | Zero all counts |
-| `:seed` / `:seed N` | Pick a random seed / set it |
-| `:versions N` `:order grouped` `:title TEXT` `:class NAME` `:name N` `:out DIR` | Set a setting |
-| `:groups 9 8 3+4=Warm-up 1` | Set the group order and mixes at once (`:groups` alone resets to sequence order) |
-| `:rename TEXT` | Rename the group under the groups cursor |
-| `:set shuffle` `noshuffle` `shuffle!` | Shuffle on / off / toggle |
-| `:set answers` `noanswers` `answers!` | Answers in the preview |
-| `:set key=value ...` | Set settings: `:set versions=3 order=shuffled`. `title=` and `class=` take the rest of the line. |
-| `:e FILE.sheet.json` | Load the settings and seed of a written set. An older `NAME_vN.json` loads its settings, but its problems are drawn anew; `make_practice.py --sheet FILE` reprints the old problems. |
+| `:mix 3:6 3f:2 A:1` | Draft a new sheet (`all:N`, `allf:N` work). The title and settings stay. |
+| `:groups 9 8 3+4=Warm-up 1` | Sort the problems already on the sheet into sections by type, as with `--groups`. `:groups` alone: one section per type, in sequence order. |
+| `:shuffle` | Every problem in one shuffled section with no title |
+| `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |
+| `:space 1.5in`, `:width full` | Set work space or width (problem, section, or sheet, by where the cursor is) |
+| `:join` | Merge the section below into the cursor's section |
+| `:rename TEXT` | Retitle the cursor's section |
+| `:clear` | Clear the sheet |
+| `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting |
+| `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
+| `:e FILE.sheet.json` | Open a sheet |
 | `:open [sheet\|key\|slides] [N]` | Open version N's PDF (default: worksheet, version 1) |
-| `:N` | Go to row N |
+| `:N` | On the sheet: problem N. On the types pane: row N. |
 | `:help` or `?` | Show the keys |
 
 `Ctrl-C` doesn't quit (same as vim); use `:q!` instead. The app needs a
-terminal of at least 72×14. It works without color, and it shows more of
-each type name when the terminal is wider than 100 columns.
+terminal of at least 72×14. It works without color; italics show where the
+terminal supports them.
 
 ## 4. What gets written
 
@@ -250,11 +266,10 @@ has:
 | `space` | Work space below it, such as `1.25in` |
 | `problem` | Version 1: `type`, `prompt`, `target`, `answer`, `source` |
 | `alts` | Versions 2, 3, ... |
-| `edited`, `status` | Set by hand editing (coming); `status` is `checked`, `unchecked`, or `failed` |
+| `edited`, `status` | `edited` is set when you edit it by hand; `status` is `checked`, `unchecked`, or `failed` |
 
-You can edit `width`, `space`, titles, and instructions in the file, then
-print it again with `python3 make_practice.py --sheet FILE`. The terminal
-app will soon edit them directly (see `PLAN.md`).
+The terminal app edits all of this. You can also edit the file by hand and
+print it again with `python3 make_practice.py --sheet FILE`.
 
 Prompts and answers are stored as Typst math. Paste one into a Typst file
 as `$display(...)$`.

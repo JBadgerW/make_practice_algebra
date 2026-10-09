@@ -1,7 +1,8 @@
 """The worksheet document: what gets saved, edited, and written.
 
     Sheet   dict(format, title, class_name, instructions, versions, command, sections)
-    Section dict(title, instructions, items)       an empty title prints no header
+    Section dict(title, instructions, items, auto) an empty title prints no header;
+                                                   auto "bank:type" marks a type's own section
     Item    dict(bank, entry, seed, width, space, problem, alts, edited, status)
 
 An item's problem is version 1. For a generated item (it has a seed and was
@@ -21,8 +22,8 @@ def new_sheet(title, class_name="Algebra 1", instructions="", versions=1):
     return dict(format=FORMAT, title=title, class_name=class_name, instructions=instructions,
                 versions=versions, command=None, sections=[])
 
-def new_section(title="", instructions=""):
-    return dict(title=title, instructions=instructions, items=[])
+def new_section(title="", instructions="", auto=""):
+    return dict(title=title, instructions=instructions, items=[], auto=auto)
 
 def items(sheet):
     return [it for sec in sheet["sections"] for it in sec["items"]]

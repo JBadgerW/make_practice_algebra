@@ -1,110 +1,187 @@
 """Drive practice_tui.App with scripted keys (no terminal needed).
-Run from literal_sequence/:  python3 tests/test_tui_keys.py"""
+Run from the project folder:  python3 tests/test_tui_keys.py"""
 import sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import practice_tui as T, make_practice as mp
+from sheets import sheet as sh, edit as E
 OUT = tempfile.mkdtemp(prefix="practice_tui_test_")
-a = T.App(seed=12)
-def keys(s):
-    for c in s: a.key(c)
-def st(): return {k:v for k,v in a.s["counts"].items() if v}
-keys("4j"); assert a.row == 4
-keys("3l"); assert st() == {"3": 3}, st()
-keys("2j6l"); assert st() == {"3": 3, "4": 6}
-keys("k2l"); assert st() == {"3": 3, "3f": 2, "4": 6}; keys("x"); assert "3f" not in st(); keys("j")
-keys("h"); assert a.s["counts"]["4"] == 5
-keys("."); assert a.s["counts"]["4"] == 4, "repeat"
-keys("u"); assert a.s["counts"]["4"] == 5, "undo"
-keys("\x12"); assert a.s["counts"]["4"] == 4, "redo"
-keys("dd"); assert a.s["counts"]["4"] == 0
-keys("\x01\x01"); assert a.s["counts"]["4"] == 2, "ctrl-a"
-keys("gg"); assert a.row == 0
-keys("G"); assert a.row == len(T.ROWS)-1
-keys("5G"); assert a.row == 4
-keys("/square\n"); assert T.ROWS[a.row] == ("count","B"), a.row
-keys("n"); assert T.ROWS[a.row] == ("count","Bf"), a.row
-keys("/seed\n"); assert T.ROWS[a.row] == ("set","seed")
-keys("cc99\n"); assert a.s["seed"] == 99
-keys("k"); keys("i\x153\n"); assert a.s["versions"] == 3, a.s["versions"]
-keys("jjl"); assert a.s["shuffle"]
-keys("j"); keys("cc\n"); assert a.err and "empty" in a.msg, a.msg
-keys(":mix 1:2 A:1\n"); assert st() == {"1": 2, "A": 1}
-keys(":set noshuffle\n"); assert not a.s["shuffle"], a.msg
-keys(":set style=formulas\n"); assert a.err and "E518" in a.msg, a.msg
-keys(":mix 1:2 A:1 3f:1\n"); assert st() == {"1": 2, "A": 1, "3f": 1}
-keys(":mix 1:2 A:1\n")
-keys(":set title=Quiz 3 Review\n"); assert a.s["title"] == "Quiz 3 Review"
-assert a.s["class"] == "Algebra 1"
-keys(":class Geometry\n"); assert a.s["class"] == "Geometry"
-keys(":set class=Pre Algebra\n"); assert a.s["class"] == "Pre Algebra"
-keys(":versions 2\n"); assert a.s["versions"] == 2
+
+def driver(app):
+    def keys(s):
+        for c in s:
+            app.key(c)
+    return keys
+def counts(app):
+    return {k: n for k in mp.KEYS if (n := E.count(app.sheet, "literal", k))}
+def titles(app):
+    return [s["title"] for s in app.sheet["sections"]]
+def prompts(app):
+    return [it["problem"]["prompt"] for it in sh.items(app.sheet)]
+def text(app, width=80):
+    lines, _ = app.render(width)
+    return "\n".join("".join(t for _, t, _, _ in l) for l in lines)
+
+# ---- the types pane: counts make sections in sequence order
+a = T.App(seed=12); keys = driver(a)
+keys("4j"); assert T.ROWS[a.row] == ("count", "3")
+keys("3l"); assert counts(a) == {"3": 3}, counts(a)
+keys("2j6l"); assert counts(a) == {"3": 3, "4": 6}
+keys("k2l"); assert counts(a) == {"3": 3, "3f": 2, "4": 6}
+assert titles(a) == [mp.L.heading("3"), mp.L.heading("4")], titles(a)
+keys("x"); assert "3f" not in counts(a); keys("j")
+keys("h"); assert counts(a)["4"] == 5
+keys("."); assert counts(a)["4"] == 4, "repeat"
+keys("u"); assert counts(a)["4"] == 5, "undo"
+keys("\x12"); assert counts(a)["4"] == 4, "redo"
+keys("dd"); assert "4" not in counts(a) and titles(a) == [mp.L.heading("3")], "an emptied type section goes"
+keys("gg"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
+keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
+keys("G"); assert a.row == len(T.ROWS) - 1
+keys("/square\n"); assert T.ROWS[a.row] == ("count", "B")
+keys("n"); assert T.ROWS[a.row] == ("count", "Bf")
+keys("i2\n"); assert counts(a)["Bf"] == 2, "typed count"
+before = prompts(a)
+keys("r"); assert prompts(a) != before and counts(a)["Bf"] == 2, "r rerolls the entry"
+keys("/versions\n"); keys("l"); assert a.sheet["versions"] == 2
+assert all(len(it["alts"]) == 1 for it in sh.items(a.sheet)), "versions are drawn for every problem"
+keys("/title\n"); keys("cc\n"); assert a.err and "empty" in a.msg, a.msg
+keys(":set title=Quiz 3 Review\n"); assert a.sheet["title"] == "Quiz 3 Review"
+keys(":class Geometry\n"); assert a.sheet["class_name"] == "Geometry"
+keys(":instructions Show your work.\n"); assert a.sheet["instructions"] == "Show your work."
+keys(":set compact answers\n"); assert a.compact and a.answers
+keys(":set nocompact noanswers\n"); assert not a.compact and not a.answers
+keys(":set style=formulas\n"); assert a.err and "E518" in a.msg
 keys(":bogus\n"); assert a.msg.startswith("E492")
 keys(":mix 12:1\n"); assert a.err
 keys(":q\n"); assert a.msg.startswith("E37") and not a.quit
-a.refresh_preview(); assert a.sheet["versions"] == 2 and len(T.sh.items(a.sheet)) == 3
-assert all(len(it["alts"]) == 1 for it in T.sh.items(a.sheet)), "parallel versions"
-assert [T.mp.L.type_of(it["entry"]) for it in T.sh.items(a.sheet)] == ["1", "1", "A"]
-keys("za"); assert a.answers
-keys("gt"); assert a.version == 1
+
+# ---- :mix drafts a new sheet; the sheet pane moves, rerolls, and edits
+keys(":mix 1:3 3:2 9:1\n"); assert counts(a) == {"1": 3, "3": 2, "9": 1}, counts(a)
+keys("\t"); assert a.focus == "preview" and a.cur == (0, 0), a.cur
+keys("l"); assert a.cur == (0, 1), "l: right column"
+keys("l"); assert a.cur == (0, 1), "no third column"
+keys("h"); assert a.cur == (0, 0)
+keys("j"); assert a.cur == (0, 1)
+keys("j"); assert a.cur == (0, 2)
+keys("j"); assert a.cur == (1, -1), "j stops on a section header"
+keys("[["); assert a.cur == (0, -1)
+keys("]]"); assert a.cur == (1, -1)
+keys("gg"); assert a.cur == T.SHEET
+keys("5G"); assert a.cur == (1, 1), a.cur
+keys(":1\n"); assert a.cur == (0, 0)
+
+p0 = a.item()["problem"]["prompt"]; others = prompts(a)[1:]
+keys("r"); assert a.item()["problem"]["prompt"] != p0 and prompts(a)[1:] == others, "r rerolls just this one"
+assert len(a.item()["alts"]) == 1
+keys("u"); assert a.item()["problem"]["prompt"] == p0
+sec1 = [it["problem"]["prompt"] for it in a.sheet["sections"][1]["items"]]
+sec0 = [it["problem"]["prompt"] for it in a.sheet["sections"][0]["items"]]
+keys("R"); assert [it["problem"]["prompt"] for it in a.sheet["sections"][0]["items"]] != sec0 and \
+    [it["problem"]["prompt"] for it in a.sheet["sections"][1]["items"]] == sec1, "R rerolls only its section"
+keys("]]"); keys("R")
+assert [it["problem"]["prompt"] for it in a.sheet["sections"][1]["items"]] != sec1, "R rerolls the section"
+keys("gg"); old = prompts(a); keys(":reroll\n")
+assert all(x != y for x, y in zip(old, prompts(a))), ":reroll rerolls everything"
+assert len(set(prompts(a))) == len(prompts(a)), "no repeats"
+
+keys(":1\n"); keys("W"); assert a.item()["width"] == "full"
+keys("+"); assert a.item()["space"] == "1in", a.item()["space"]
+keys("3-"); assert a.item()["space"] == "0.25in"
+keys(":space 2in\n"); assert a.item()["space"] == "2in"
+keys(":space wide\n"); assert a.err
+keys("]]"); keys(":width full\n")
+assert all(it["width"] == "full" for it in a.sheet["sections"][1]["items"]), ":width on a header sets the section"
+keys("u")
+
+# editing: the prompt is solved again; a hand-written answer is checked
+keys(":1\n"); keys("cc"); assert a.mode == "insert" and a.buf == ""
+keys("a x + b = c ; x\n"); assert a.item()["problem"]["answer"] == "x = (c - b)/a" and a.item()["status"] == "checked"
+assert a.item()["edited"] and a.item()["alts"] == []
+keys("A"); assert a.buf == "x = (c - b)/a"
+keys("\x15x = (c + b)/a\n"); assert a.item()["status"] == "failed" and a.err, a.msg
+assert "✗1." in text(a), "a failing answer is marked"
+assert a.statuses() == (0, 1)
+keys("A\x15(c - b)/a\n"); assert a.item()["status"] == "checked" and a.item()["problem"]["answer"] == "x = (c - b)/a"
+keys("i\x15q = r\n"); assert a.err and "single =" not in a.msg and a.item()["problem"]["prompt"] == "a x + b = c"
+keys("r"); assert not a.item()["edited"], "rerolling an edited problem draws it again"
+
+# sections: new, rename, instructions, move, cut and paste, join
+keys("gg"); keys("o"); assert a.mode == "insert" and a.cur == (0, -1)
+keys("Warm-up\n"); assert titles(a)[0] == "Warm-up"
+keys("cI"); keys("Do these first.\n"); assert a.sheet["sections"][0]["instructions"] == "Do these first."
+assert "(empty" in text(a)
+keys("j"); assert a.cur == (1, -1), "an empty section has no problems to stop on"
+keys("j"); first = a.item()["problem"]["prompt"]
+keys("dd"); assert first not in prompts(a) and a.reg["cut"]
+keys("[["); keys("[["); keys("p"); assert a.sheet["sections"][0]["items"][0]["problem"]["prompt"] == first, "cut + paste moves it"
+keys("p"); assert len(a.sheet["sections"][0]["items"]) == 2 and \
+    a.sheet["sections"][0]["items"][1]["problem"]["prompt"] != first, "pasting again draws a new one"
+keys("yy"); keys("P"); assert len(a.sheet["sections"][0]["items"]) == 3
+assert len(set(prompts(a))) == len(prompts(a)), "copies are redrawn, never duplicated"
+keys("gg"); keys("j"); keys("J"); assert titles(a)[1] == "Warm-up", "J moves a section down"
+keys("K"); assert titles(a)[0] == "Warm-up"
+keys("j"); p = a.item()["problem"]["prompt"]; keys("3J")
+assert a.cur[0] == 1 and a.item()["problem"]["prompt"] == p, "J moves a problem, across sections"
+keys(":1\n"); keys(":join\n"); assert titles(a)[0] == "Warm-up" and len(a.sheet["sections"][0]["items"]) >= 5
+keys("u")
+keys("zM"); assert a.folded and a.cur[1] == -1
+assert all(t[1] == -1 for t in a.targets()), "folded: only headers"
+assert "problems" in text(a)
+keys("zR"); assert not a.folded
+keys("/Warm\n"); assert a.cur == (0, -1)
+
+# L adds the type under the types cursor where the sheet cursor is
+keys(":1\n"); n0 = len(a.sheet["sections"][0]["items"])
+keys("\t"); assert a.focus == "left"
+keys("gg"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
+assert [it["entry"] for it in a.sheet["sections"][0]["items"]][1:3] == ["1", "1"]
+
+# groups and shuffle rearrange what is there, drawing nothing
+keep = sorted(prompts(a))
+keys(":groups 9 3+1=Mixed\n"); assert titles(a) == [mp.L.heading("9"), "Mixed"], titles(a)
+assert sorted(prompts(a)) == keep
+keys(":shuffle\n"); assert titles(a) == [""] and sorted(prompts(a)) == keep
+keys(":groups\n"); assert titles(a) == [mp.L.heading("1"), mp.L.heading("3"), mp.L.heading("9")]
+
+# the drawing: header, two columns, versions, answers
+keys(":versions 2\n:title Quiz 3 Review\n")
+t = text(a)
+assert "Quiz 3 Review" in t and "Name ____" in t and "Ver: 1" in t and "Show your work." in t
+lines, _ = a.render(80)
+row = next(l for l in lines if l and l[0][1] == "1.")
+assert any(x > 30 for x, *_ in row), "two half-width problems share a line"
+keys("gt"); assert a.version == 1 and "Ver: 2" in text(a)
 keys("gt"); assert a.version == 0
-keys("2gt"); assert a.version == 1
+keys("za"); assert a.answers and " = " in text(a)
+
+# write, then reopen exactly
 keys(f":out {OUT}\n")
-keys(":w\n"); assert not a.err and not a.dirty()
-written = T.sh.load(a.last_build["out"] / "literal_practice.sheet.json")
-assert written["sections"] == a.sheet["sections"], "preview must equal what :w wrote"
-assert written["title"] == "Quiz 3 Review" and written["class_name"] == "Pre Algebra"
-b = T.App(); b.load(str(a.last_build["out"] / "literal_practice.sheet.json")); assert b.s == a.s, (b.s, a.s)
-keys("D"); assert a.total()==0; keys("u"); assert a.total()==3
+keys(":w\n"); assert not a.err and not a.dirty(), a.msg
+written = sh.load(a.last_build["out"] / "literal_practice.sheet.json")
+assert written["sections"] == a.sheet["sections"], ":w writes exactly what the sheet pane shows"
+assert written["command"].endswith("literal_practice.sheet.json")
+b = T.App(); b.load(str(a.last_build["out"] / "literal_practice.sheet.json"))
+assert b.sheet["sections"] == a.sheet["sections"] and b.s["name"] == "literal_practice" and not b.dirty()
+keys("D"); assert a.total() == 0; keys("u"); assert a.total() > 0
 keys(":q\n"); assert a.quit
+
 assert T.pretty("V = 1/3 pi r^2 h") == "V = (1/3)πr²h"
 assert T.pretty("x = (2 m + n)/(5 - m)") == "x = (2m + n)/(5 − m)"
-# ---- groups: reorder, join, split, rename
-g = T.App(seed=5)
-def gk(s):
-    for c in s: g.key(c)
-def order(): return ["+".join(x["types"]) for x in g.layout()]
-gk(":mix 3:2 4:2 8:2 9:2 A:1\n"); assert order() == ["3", "4", "8", "9", "A"] and g.s["groups"] == []
-gk("\t"); assert g.focus == "groups" and g.pane == "groups"
-gk(">"); assert order() == ["4", "3", "8", "9", "A"] and g.grow == 1, order()
-gk("<"); assert order() == ["3", "4", "8", "9", "A"]
-gk("2>"); assert order() == ["4", "8", "3", "9", "A"] and g.grow == 2
-gk("G"); assert g.grow == 4
-gk("dd"); assert g.held == "A"
-gk("gg"); gk("P"); assert order() == ["A", "4", "8", "3", "9"] and g.grow == 0, order()
-gk("u"); assert order() == ["4", "8", "3", "9", "A"], "undo a move"
-gk("\x12"); assert order()[0] == "A", "redo"
-gk("p"); assert g.err and "nothing picked up" in g.msg
-gk("jJ"); assert order() == ["A", "4+8", "3", "9"], order()
-gk("S"); assert order() == ["A", "4", "8", "3", "9"]
-gk("J"); gk("i"); assert g.mode == "insert" and g.buf == "Mixed Practice (4, 8)", g.buf
-gk("\x15Warm-up\n"); assert g.layout()[1]["name"] == "Warm-up"
-gk("i\x15\n"); assert g.layout()[1]["name"] == "", "empty resets"
-gk(":rename Hard ones\n"); assert mp.heading(g.layout()[1]) == "Hard ones"
-gk("gg"); gk("l"); assert g.err, "l does nothing in groups"
-gk("\t"); assert g.focus == "preview"; gk("\t"); assert g.focus == "left" and g.pane == "left"
-gk("\t\t^Ww"); assert g.focus in ("groups", "preview")
-g.set_focus("left")
-# counts changing under a layout: zeroed types vanish, new types append
-gk(":mix 3:1 4:1 8:1 9:1\n"); assert order() == ["4+8", "3", "9"], order()
-gk(":groups 9 8 3+4=Easy\n"); assert order() == ["9", "8", "3+4"] and g.layout()[2]["name"] == "Easy"
-gk(":groups 3 3\n"); assert g.err and "more than one" in g.msg
-gk(":groups\n"); assert order() == ["3", "4", "8", "9"]
-gk(":groups 9 8 3+4=Easy\n")
-g.refresh_preview()
-secs = g.sheet["sections"]
-assert [s["title"] for s in secs] == [mp.L.heading("9"), mp.L.heading("8"), "Easy"], [s["title"] for s in secs]
-assert [len(s["items"]) for s in secs] == [1, 1, 2]
-assert sorted(it["entry"] for it in secs[2]["items"]) == ["3", "4"]
-gk(f":out {OUT}\n:w\n"); assert not g.err, g.msg
-cmd = g.last_build["sheet"]["command"]; assert "--groups 9 8 3+4=Easy" in cmd, cmd
-h = T.App(); h.load(str(g.last_build["out"] / "literal_practice.sheet.json"))
-assert h.s["groups"] == g.layout(), (h.s["groups"], g.layout())
+
+# ---- the empty sheet
+e = T.App(seed=1); ek = driver(e)
+assert "No problems yet" in text(e)
+ek("\t"); assert e.cur == T.SHEET
+ek("r"); assert e.err
+ek("p"); assert e.err and "nothing to paste" in e.msg
+ek(":w\n"); assert e.err
+
+# ---- drafting from the command line keeps working
 mixc = {"3": 2, "4": 2}
 a1 = mp.draft(mixc, 1, 7); a2 = mp.draft(mixc, 1, 7, groups=[])
 assert a1 == a2, "no groups means the default layout"
 assert mp.draft(mixc, 2, 7)["sections"][0]["items"][0]["problem"] == a1["sections"][0]["items"][0]["problem"], \
     "adding versions doesn't change version 1"
 assert mp.layout(mp.parse_groups(["3+4"]), {"3": 1}) == [dict(types=["3"], name="")]
-print("group tests passed")
 print("all key tests passed")

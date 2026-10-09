@@ -142,12 +142,17 @@ and `:w` still use the same data and the same functions.
    `.sheet.json`, a reader for old practice JSON, the refined-template
    writer, statuses. `make_practice.py --mix ...` drafts a sheet. Output
    changes on purpose here: compile and inspect the PDFs.
-3. **Preview becomes the editor.** Rendering, cursor, rerolls, width and
-   space, sections, inline editing, tests.
-4. **Bank browser.** Tree, import, fixed banks, lesson 1-4 as a bank.
    Done as: `sheets/sheet.py`, `sheets/writer.py`, the bank interface in
    `sheets/banks/__init__.py`. Key answers float in the work space so key and
    sheet break pages alike. Lesson 1-4 output is still byte-identical (it
    keeps the old template until it becomes a fixed bank in phase 4).
+3. ✅ **Preview becomes the editor.** Rendering, cursor, rerolls, width and
+   space, sections, inline editing, tests.
+   Done as: `sheets/edit.py` (every change, no UI) and a rewritten
+   `practice_tui.py`. Departures from the plan above: `l` adds to the type's
+   own section and `L` adds at the sheet cursor; `yy` + `p` draws new
+   problems rather than duplicating; the groups pane is gone (`:groups`,
+   `:join`, `J`/`K` on titles, and `zM` cover it).
+4. **Bank browser.** Tree, import, fixed banks, lesson 1-4 as a bank.
 5. **A second family**, chosen by the teacher, ideally with a full-width
    type.

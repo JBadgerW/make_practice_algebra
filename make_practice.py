@@ -157,19 +157,37 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     seen = {BANK: set(L.initial_seen())}       # never the lesson's own 50
     drawn = [sh.new_item(BANK, k, rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
     sheet = sh.new_sheet(title, class_name, L.INSTRUCTIONS, versions)
-    if shuffle:
-        rng.shuffle(drawn)
-        sec = sh.new_section()
-        sec["items"] = drawn
-        sheet["sections"].append(sec)
-    else:
-        for g in layout(groups, mix):
-            sec = sh.new_section(heading(g))
-            sec["items"] = [it for it in drawn if L.type_of(it["entry"]) in g["types"]]
-            if len(g["types"]) > 1:
-                rng.shuffle(sec["items"])
-            sheet["sections"].append(sec)
+    sheet["sections"] = [dict(sh.new_section(), items=drawn)]
+    (shuffle_all(sheet, rng) if shuffle else regroup(sheet, groups, rng))
     return sh.fill_versions(sheet, seen)
+
+def regroup(sheet, groups, rng):
+    """Put every problem on the sheet into sections by type, following
+    layout(groups, ...): a type's own section, or a mixed one (shuffled).
+    Problems keep their order within a type. Nothing is redrawn."""
+    its = sh.items(sheet)
+    mine = [it for it in its if it["bank"] == BANK]
+    mix = {}
+    for it in mine:
+        mix[it["entry"]] = mix.get(it["entry"], 0) + 1
+    secs = []
+    for g in layout(groups, mix):
+        sec = sh.new_section(heading(g), auto=f"{BANK}:{g['types'][0]}" if len(g["types"]) == 1 else "")
+        sec["items"] = sorted((it for it in mine if L.type_of(it["entry"]) in g["types"]),
+                              key=lambda it: KEYS.index(it["entry"]))       # stable: letters, then formulas
+        if len(g["types"]) > 1:
+            rng.shuffle(sec["items"])
+        secs.append(sec)
+    others = [it for it in its if it["bank"] != BANK]
+    if others:
+        secs.append(dict(sh.new_section(), items=others))
+    sheet["sections"] = secs
+
+def shuffle_all(sheet, rng):
+    """One untitled section with every problem, shuffled."""
+    its = sh.items(sheet)
+    rng.shuffle(its)
+    sheet["sections"] = [dict(sh.new_section(), items=its)]
 
 # ------------------------------------------------------------------
 # Reading an older practice .json (written before sheets existed)
@@ -192,7 +210,8 @@ def from_practice_json(path):
     sheet = sh.new_sheet(a.title, a.class_name, L.INSTRUCTIONS, len(vs))
     sheet["command"] = d["command"]
     lay = layout(parse_groups(a.groups), {p["type"]: 1 for p in probs})
-    secs = [sh.new_section()] if a.shuffle else [sh.new_section(heading(g)) for g in lay]
+    secs = [sh.new_section()] if a.shuffle else \
+        [sh.new_section(heading(g), auto=f"{BANK}:{g['types'][0]}" if len(g["types"]) == 1 else "") for g in lay]
     for i, p in enumerate(probs):
         e = ENTRY[p["type"] + ("f" if p.get("source") == "formula" else "")]
         clean = lambda q: {k: q[k] for k in ("type", "prompt", "target", "answer", "source") if k in q}
