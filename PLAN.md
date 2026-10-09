@@ -153,6 +153,10 @@ and `:w` still use the same data and the same functions.
    own section and `L` adds at the sheet cursor; `yy` + `p` draws new
    problems rather than duplicating; the groups pane is gone (`:groups`,
    `:join`, `J`/`K` on titles, and `zM` cover it).
-4. **Bank browser.** Tree, import, fixed banks, lesson 1-4 as a bank.
+4. ✅ **Bank browser.** Tree, import, fixed banks, lesson 1-4 as a bank.
+   Done as: `sheets/banks/fixed.py` (JSON banks in `banks/`, with an
+   optional checker family), a registry in `sheets/banks/__init__.py`, and a
+   tree in the left pane. Banks share sections and the no-repeat rule by
+   family. Not yet: fixed banks on the `make_practice.py` command line.
 5. **A second family**, chosen by the teacher, ideally with a full-width
    type.

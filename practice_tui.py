@@ -4,8 +4,10 @@
     python3 practice_tui.py --mix 3:6 8:4 --seed 12
     python3 practice_tui.py practice/literal_practice.sheet.json   # reopen a sheet
 
-The left pane holds a count for every entry (each type's made-up equations,
-and its real formulas: 3 and 3f) plus the settings. The right pane is the
+The left pane is a tree of problem banks: the literal-equation generator
+(each type's made-up equations and its real formulas: 3 and 3f) and the
+fixed banks in banks/ (written problems, such as the lesson's fifty), then
+the settings. l adds a problem; o opens a bank or a type. The right pane is the
 sheet itself, laid out like the page: Tab into it to move through the
 problems, reroll them, change their width and work space, edit them, and
 cut, copy, and paste them between sections. :w writes exactly what it shows.
@@ -17,13 +19,11 @@ import make_practice as mp
 from sheets import sheet as sh, edit as E, banks
 from sheets.banks.literal import pretty
 
-BANK = mp.BANK
-
 # ------------------------------------------------------------------
-# Rows in the left pane
+# Rows in the left pane: ("bank", name), ("count", (bank, entry)),
+# ("problem", (bank, id)) under an open type of a fixed bank, ("set", key)
 # ------------------------------------------------------------------
 SETTINGS = ["versions", "title", "class", "instructions", "name", "out"]
-ROWS = [("count", k) for k in mp.KEYS] + [("set", s) for s in SETTINGS]
 SETTING_HINTS = {
     "versions": "How many parallel versions to write (h/l, or i to type one): each drawn problem is redrawn in its slot; edited problems stay. Each version gets its own worksheet, key, and slides.",
     "title": "The worksheet and slide title. i to edit.",
@@ -34,15 +34,15 @@ SETTING_HINTS = {
 }
 
 HELP = """\
-TYPES PANE                          THE SHEET (Tab to it; it widens)
+BANKS PANE                          THE SHEET (Tab to it; it widens)
 j k gg G  move   /text n N  search  j k  h l    next/prev; left/right
 l + ^A  add to the type's section   ]] [[       next / previous section
 L  add at the sheet cursor (3L)     gg G  5G    top, bottom; problem 5
 h - ^X  remove the last one         r 3r R      reroll it / 3 / section
 x dd  remove all   D  clear sheet   W           half / full width
 i a cc  type a count or a setting   + -         work space ±0.25in
-r  reroll every one of this entry   i  A        edit problem / answer
-                                    dd yy p P   cut, copy (redraws), paste
+r  reroll all of this type          i  A        edit problem / answer
+o  open a bank or a type's list     dd yy p P   cut, copy (redraws), paste
 EVERYWHERE                          J K         move problem or section
 u ^R .   undo, redo, repeat         o O  cS cI  new section; title, instr.
 Tab ^W w switch panes               zM zR       fold to sections / unfold
@@ -53,7 +53,7 @@ COMMANDS
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
 :title :class :instructions :versions :name :out  :set [no]compact
-Types 1-11: the lesson's sequence. A, B: special cases. 3f: real formulas."""
+Types 1-11, A, B: the lesson's sequence. 3f: real formulas. banks/: fixed."""
 
 SHEET = (-1, -1)                       # the sheet cursor on the header (title, instructions)
 # For the page-break estimate, measured from the refined template in Typst
@@ -71,7 +71,9 @@ class App:
         self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"], mp.L.INSTRUCTIONS),
                       out=out or mp.DEFAULTS["out"], name=name or mp.DEFAULTS["name"])
         self.undo, self.redo = [], []
-        self.row, self.focus, self.version = 0, "left", 0
+        self.row, self.focus, self.version = 1, "left", 0
+        self.open = {mp.BANK}           # banks open in the tree
+        self.open_types = set()         # (bank, type) of fixed banks showing their problems
         self.cur = SHEET
         self.answers = self.compact = self.folded = False
         self.pv_top = 0
@@ -87,6 +89,8 @@ class App:
         self.last_build = None
         self.quit = False
         self.clamp()
+        if banks.errors():
+            self.say("E: " + "; ".join(banks.errors()), True)
 
     @property
     def sheet(self):
@@ -99,12 +103,61 @@ class App:
     def total(self):
         return len(sh.items(self.sheet))
 
+    def rows(self, everything=False):
+        """The left pane's rows, as shown (or with every bank and type open)."""
+        out = []
+        for name in banks.names():
+            out.append(("bank", name))
+            if everything or name in self.open:
+                b = banks.get(name)
+                for e in b.ENTRIES:
+                    out.append(("count", (name, e["key"])))
+                    if getattr(b, "FIXED", False) and (everything or (name, e["key"]) in self.open_types):
+                        out += [("problem", (name, p["id"])) for p in b.PROBLEMS if p["type"] == e["key"]]
+        return out + [("set", k) for k in SETTINGS]
+
+    def rid(self, row=None):
+        """The id of a row (default: the cursor's)."""
+        rows = self.rows()
+        return rows[min(self.row if row is None else row, len(rows) - 1)]
+
     def value(self, row):
-        kind, key = ROWS[row]
+        kind, key = self.rid(row)
+        if kind == "bank":
+            return sum(1 for it in sh.items(self.sheet) if it["bank"] == key)
         if kind == "count":
-            return E.count(self.sheet, BANK, key)
+            return E.count(self.sheet, *key)
+        if kind == "problem":
+            return E.where_problem(self.sheet, *key) is not None
         return {"versions": self.sheet["versions"], "title": self.sheet["title"], "class": self.sheet["class_name"],
                 "instructions": self.sheet["instructions"]}.get(key, self.s.get(key))
+
+    def toggle_open(self, rid=None):
+        """o: open or close the bank, or the fixed bank's type, under the cursor."""
+        kind, key = rid or self.rid()
+        if kind == "bank":
+            self.open ^= {key}
+        elif kind in ("count", "problem"):
+            bank = key[0]
+            b = banks.get(bank)
+            if not getattr(b, "FIXED", False):
+                return self.say("o lists the problems of a fixed bank's type; this bank draws new ones", True)
+            typ = key[1] if kind == "count" else b.PROBLEM[key[1]]["type"]
+            self.open_types ^= {(bank, typ)}
+            rid = ("count", (bank, typ))
+        else:
+            return
+        rows = self.rows()
+        self.row = rows.index(rid) if rid in rows else min(self.row, len(rows) - 1)
+
+    def fold_banks(self, close):
+        here = self.rid()
+        self.open = set() if close else set(banks.names())
+        if close:
+            self.open_types = set()
+        rows = self.rows()
+        bank = here[1] if here[0] == "bank" else here[1][0] if here[0] != "set" else None
+        self.row = rows.index(here) if here in rows else rows.index(("bank", bank)) if bank else len(rows) - 1
 
     def dirty(self):
         return self.written != self.snapshot()
@@ -137,13 +190,19 @@ class App:
 
     # -- the types pane --------------------------------------------------
     def bump(self, n, row=None):
-        row = self.row if row is None else row
-        kind, key = ROWS[row]
+        kind, key = self.rid(row)
         if kind == "count":
             if n > 0:
-                self.change(lambda: E.set_count(self.sheet, BANK, key, E.count(self.sheet, BANK, key) + n, self.seeds()))
+                self.change(lambda: E.set_count(self.sheet, *key, E.count(self.sheet, *key) + n, self.seeds()))
             else:
-                self.change(lambda: E.remove_last(self.sheet, BANK, key, -n))
+                self.change(lambda: E.remove_last(self.sheet, *key, -n))
+        elif kind == "problem":
+            if n > 0:
+                self.change(lambda: E.add_problem(self.sheet, *key))
+            else:
+                self.change(lambda: E.remove_problem(self.sheet, *key))
+        elif kind == "bank":
+            return self.say("o opens the bank; l on a type adds a problem", True)
         elif key == "versions":
             self.set_versions(self.sheet["versions"] + n)
         else:
@@ -159,19 +218,26 @@ class App:
         self.version = min(self.version, n - 1)
 
     def zero(self, row=None):
-        kind, key = ROWS[self.row if row is None else row]
+        kind, key = self.rid(row)
         if kind == "count":
-            self.change(lambda: E.remove_last(self.sheet, BANK, key, 10**6))
+            self.change(lambda: E.remove_last(self.sheet, *key, 10**6))
+        elif kind == "problem":
+            self.change(lambda: E.remove_problem(self.sheet, *key))
+        elif kind == "bank":
+            b = key
+            self.change(lambda: [E.remove_last(self.sheet, b, e["key"], 10**6) for e in banks.get(b).ENTRIES])
         elif key == "versions":
             self.set_versions(1)
         else:
-            return self.say("x and dd only zero counts and versions", True)
+            return self.say("x and dd only remove problems and reset versions", True)
         self.last_change = lambda: self.zero()
 
     def set_value(self, text, row=None):
         """Apply typed text to a row; returns an error string or None."""
-        kind, key = ROWS[self.row if row is None else row]
+        kind, key = self.rid(row)
         text = text.strip()
+        if kind in ("bank", "problem"):
+            return "type a count on a type's row"
         if kind == "count" or key == "versions":
             if not text.isdigit():
                 return f"{'count' if kind == 'count' else key} must be a whole number"
@@ -181,7 +247,7 @@ class App:
                     return "versions must be 1-26"
                 self.set_versions(n)
             else:
-                self.change(lambda: E.set_count(self.sheet, BANK, key, n, self.seeds()))
+                self.change(lambda: E.set_count(self.sheet, *key, n, self.seeds()))
         elif key in ("title", "class", "instructions"):
             if not text and key != "instructions":
                 return f"{key} can't be empty"
@@ -197,27 +263,30 @@ class App:
         return None
 
     def add_here(self, n):
-        """L: add n of the entry under the types cursor where the sheet cursor is."""
-        kind, key = ROWS[self.row]
-        if kind != "count":
-            return self.say("L adds the type under the cursor to the sheet cursor's section", True)
+        """L: add n of the type (or the one problem) under the tree cursor where the sheet cursor is."""
+        kind, key = self.rid()
+        if kind not in ("count", "problem"):
+            return self.say("L adds the type or problem under the cursor where the sheet cursor is", True)
         def go():
             si, ii = self.cur
-            if si < 0:
-                si = 0 if self.sheet["sections"] else E.type_section(self.sheet, BANK, key)
+            if si < 0 and not self.sheet["sections"]:
+                self.sheet["sections"].append(sh.new_section())
+            si = max(si, 0)
             at = ii + 1 if ii >= 0 else None
+            if kind == "problem":
+                return E.add_problem(self.sheet, *key, si, at)
             for k in range(n):
-                E.add(self.sheet, si, BANK, key, next(self.seeds()), None if at is None else at + k)
+                E.add(self.sheet, si, *key, next(self.seeds()), None if at is None else at + k)
         if self.change(go):
-            self.say(f"added {n} of {key} to “{self.sheet['sections'][max(0, self.cur[0])]['title'] or 'untitled'}”")
+            self.say(f"added to “{self.sheet['sections'][max(0, self.cur[0])]['title'] or 'untitled'}”")
         self.last_change = lambda: self.add_here(n)
 
     def reroll_entry(self):
-        kind, key = ROWS[self.row]
-        if kind != "count":
+        kind, key = self.rid()
+        if kind not in ("count", "bank"):
             return
-        ps = [p for p in E.positions(self.sheet)
-              if self.sheet["sections"][p[0]]["items"][p[1]]["entry"] == key]
+        mine = lambda it: it["bank"] == key if kind == "bank" else (it["bank"], it["entry"]) == key
+        ps = [p for p in E.positions(self.sheet) if mine(self.sheet["sections"][p[0]]["items"][p[1]])]
         if self.change(lambda: E.reroll(self.sheet, ps, self.seeds())):
             self.say(f"{len(ps)} rerolled")
 
@@ -611,7 +680,8 @@ class App:
         if not it:
             return f"section {si + 1}"
         n = E.positions(self.sheet).index(self.cur) + 1
-        return f"#{n} {it['entry']} {it['width']} {it['space']}" + ("" if it["status"] == "checked" else f" {it['status']}")
+        src = it["entry"] if it["bank"] == mp.BANK else f"{it['bank']}:{it['entry']}"
+        return f"#{n} {src} {it['width']} {it['space']}" + ("" if it["status"] == "checked" else f" {it['status']}")
 
     # -- files ---------------------------------------------------------
     def write(self):
@@ -691,7 +761,7 @@ class App:
         if line.isdigit():
             if self.focus == "preview":
                 return self.go_problem(int(line))
-            self.row = min(len(ROWS), max(1, int(line))) - 1
+            self.row = min(len(self.rows()), max(1, int(line))) - 1
             return
         cmd, _, rest = line.partition(" ")
         rest = rest.strip()
@@ -739,7 +809,7 @@ class App:
         elif cmd == "clear":
             self.clear()
         elif cmd in ("versions", "title", "class", "instructions", "name", "out"):
-            err = self.set_value(rest, ROWS.index(("set", cmd)))
+            err = self.set_value(rest, self.rows().index(("set", cmd)))
             if err:
                 self.say(f"E: {err}", True)
         elif cmd in ("set", "se"):
@@ -767,9 +837,9 @@ class App:
             elif "=" in opt:
                 k, _, v = opt.partition("=")
                 k = k.strip()
-                if ("set", k) not in ROWS:
+                if k not in SETTINGS:
                     return self.say(f"E518: Unknown option: {k}", True)
-                err = self.set_value(v, ROWS.index(("set", k)))
+                err = self.set_value(v, self.rows().index(("set", k)))
                 if err:
                     return self.say(f"E: {err}", True)
             else:
@@ -787,17 +857,34 @@ class App:
                 if ql in self.target_text(t).lower():
                     self.cur = t
                     return self.say(f"/{q}")
-        else:
-            n = len(ROWS)
-            for i in range(1, n + 1):
-                r = (self.row + step * i) % n
-                kind, key = ROWS[r]
-                text = (f"{key} {mp.label(mp.TYPE[mp.L.type_of(key)])} {mp.ENTRY[key]['title']}"
-                        if kind == "count" else key).lower()
-                if ql in text:
-                    self.row = r
+        else:                                   # every row of every bank, opening what it finds
+            rows, here = self.rows(everything=True), self.rid()
+            i = rows.index(here) if here in rows else 0
+            for k in range(1, len(rows) + 1):
+                rid = rows[(i + step * k) % len(rows)]
+                if ql in self.row_text(rid).lower():
+                    kind, key = rid
+                    if kind != "set":
+                        self.open.add(key if kind == "bank" else key[0])
+                    if kind == "problem":
+                        self.open_types.add((key[0], banks.get(key[0]).PROBLEM[key[1]]["type"]))
+                    self.row = self.rows().index(rid)
                     return self.say(f"/{q}")
         self.say(f"E486: Pattern not found: {q}", True)
+
+    def row_text(self, rid):
+        """What / searches on a left-pane row."""
+        kind, key = rid
+        if kind == "bank":
+            return f"{key} {banks.get(key).TITLE}"
+        if kind == "count":
+            b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
+            hint = b.hint(b.type_of(key[1])) if hasattr(b, "hint") else None
+            return f"{key[1]} {e['title']} {hint[0] if hint else ''}"
+        if kind == "problem":
+            b = banks.get(key[0])
+            return f"{key[1]} {b.text(b.problem(key[1]))}"
+        return key
 
     def target_text(self, t):
         si, ii = t
@@ -833,7 +920,7 @@ class App:
                 if sheet:
                     self.go_problem(n) if n else self.go(-10**6)
                 else:
-                    self.row = min((n or 1) - 1, len(ROWS) - 1)
+                    self.row = min((n or 1) - 1, len(self.rows()) - 1)
             elif combo == "gt":
                 self.version = min(n, self.sheet["versions"]) - 1 if n else (self.version + 1) % self.sheet["versions"]
             elif combo == "gT":
@@ -856,6 +943,8 @@ class App:
                 self.answers = not self.answers
             elif combo == "zs":
                 self.compact = not self.compact
+            elif combo in ("zM", "zR") and not sheet:
+                self.fold_banks(combo == "zM")
             elif combo in ("zM", "zR"):
                 self.folded = combo == "zM"
                 if self.folded and self.cur[1] >= 0:
@@ -889,7 +978,7 @@ class App:
             if sheet:
                 self.go_problem(n) if had_count else self.go(10**6)
             else:
-                self.row = min(n, len(ROWS)) - 1 if had_count else len(ROWS) - 1
+                self.row = min(n, len(self.rows())) - 1 if had_count else len(self.rows()) - 1
         elif c in ("\x04", "\x15", "\x06", "\x02") or ch in (curses.KEY_NPAGE, curses.KEY_PPAGE):
             big = c in ("\x06", "\x02") or ch in (curses.KEY_NPAGE, curses.KEY_PPAGE)
             d = (1 if c in ("\x04", "\x06") or ch == curses.KEY_NPAGE else -1) * n * (10 if big else 5)
@@ -902,6 +991,8 @@ class App:
             self.bump(-n)
         elif c == "L":
             self.add_here(n)
+        elif c == "o":
+            self.toggle_open()
         elif c == "x":
             self.zero()
         elif c == "D":
@@ -982,7 +1073,7 @@ class App:
             self.cur = next(t for t in self.targets() if t[1] >= 0)
 
     def move_row(self, n):
-        self.row = min(len(ROWS) - 1, max(0, self.row + n))
+        self.row = min(len(self.rows()) - 1, max(0, self.row + n))
 
     # -- typing a value ------------------------------------------------
     def start_edit(self, what, buf=None):
@@ -991,7 +1082,8 @@ class App:
         kind, ref = what
         if buf is None:
             if kind == "row":
-                buf = str(self.value(ref))
+                v = self.value(ref)
+                buf = "" if isinstance(v, bool) else str(v)
             elif kind in ("title", "instructions"):
                 obj = self.sheet if ref < 0 else self.sheet["sections"][ref]
                 buf = obj[kind]
@@ -1028,8 +1120,8 @@ class App:
     def edit_label(self):
         kind, ref = self.editing
         if kind == "row":
-            k, key = ROWS[ref]
-            return f"{'count of ' + key if k == 'count' else key}: "
+            k, key = self.rid(ref)
+            return f"{'count of ' + key[1] if k == 'count' else key}: "
         if kind in ("title", "instructions"):
             return f"{'sheet' if ref < 0 else 'section'} {kind}: "
         return {"problem": "problem (equation ; unknown): ", "answer": "answer: "}[kind]
@@ -1154,28 +1246,46 @@ class Screen:
 
     def types_view(self, app, body, LEFT_W):
         st = self.st
-        nk = len(mp.KEYS)
-        lines = [("TYPES", None)] + [(None, i) for i in range(nk)] + \
-                [("", None), ("SETTINGS", None)] + [(None, i) for i in range(nk, len(ROWS))]
+        rows = app.rows()
+        nset = len(SETTINGS)
+        lines = [("BANKS", None)] + [(None, i) for i in range(len(rows) - nset)] + \
+                [("", None), ("SETTINGS", None)] + [(None, i) for i in range(len(rows) - nset, len(rows))]
+        app.row = min(app.row, len(rows) - 1)
         cur = next(j for j, (_, i) in enumerate(lines) if i == app.row)
         top = max(0, min(cur - body // 2, len(lines) - body))
+        room = LEFT_W - 3
         for y, (hdr, i) in enumerate(lines[top:top + body], 1):
             if hdr is not None:
                 self.put(y, 1, hdr, st["dim"] | curses.A_BOLD)
                 continue
-            kind, key = ROWS[i]
-            if kind == "count":
-                ty = mp.TYPE[mp.L.type_of(key)]
+            kind, key = rows[i]
+            attr_t = 0
+            if kind == "bank":
+                b = banks.get(key)
+                size = f" ({len(b.PROBLEMS)})" if getattr(b, "FIXED", False) else ""
+                text = f"{'▾' if key in app.open else '▸'} {b.TITLE}{size}"
                 n = app.value(i)
-                text = (f" {key:>3}    real formulas" if mp.ENTRY[key]["kind"] == "formulas"
-                        else f" {key:>3}  {ty['title']}")
-                val = str(n) if n else "·"
-                attr_v = st["count"] if n else st["dim"]
-                attr_t = st["special"] if ty.get("special") else 0
+                val, attr_v, attr_t = (str(n) if n else "·"), (st["count"] if n else st["dim"]), curses.A_BOLD
+            elif kind == "count":
+                b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
+                if getattr(b, "FIXED", False):
+                    arrow = "▾" if key in app.open_types else "▸"
+                    text = f"  {arrow}{key[1]:>3}  {e['title']} ({e['count']})"
+                elif e.get("kind") == "formulas":
+                    text = f"   {key[1]:>3}    real formulas"
+                else:
+                    text = f"   {key[1]:>3}  {e['title']}"
+                n = app.value(i)
+                val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
+                attr_t = st["special"] if b.special(b.type_of(key[1])) else 0
+            elif kind == "problem":
+                b = banks.get(key[0])
+                on = app.value(i)
+                text = f"       {key[1]:>3}. {b.text(b.problem(key[1]))}"
+                val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
             else:
                 text, val = f" {key}", str(app.value(i)) or "(none)"
-                attr_v, attr_t = st["count"], 0
-            room = LEFT_W - 3
+                attr_v = st["count"]
             val = val if len(val) <= room - 14 else val[:room - 15] + "…"
             space = room - len(val) - 1                # always a gap before the value
             text = text if len(text) <= space else text[:space - 1] + "…"
@@ -1187,15 +1297,29 @@ class Screen:
                 self.put(y, 1 + space + 1, val, attr_v)
         free = body - min(len(lines), body) - 1
         if free >= 3:
-            kind, key = ROWS[app.row]
-            if kind == "count":
-                ty = mp.TYPE[mp.L.type_of(key)]
-                hint = f"Look for: {ty['look']}  The move: {ty['move']}"
-            else:
-                hint = SETTING_HINTS[key]
-            hint = re.sub(r"\$([^$]*)\$", lambda m: pretty(m.group(1)), hint)
-            for y, line in enumerate(textwrap.wrap(hint, LEFT_W - 3)[:free], len(lines) + 2):
-                self.put(y, 1, line, st["dim"])
+            self.hint(app, rows[app.row], len(lines) + 2, free, LEFT_W)
+
+    def hint(self, app, rid, y0, free, LEFT_W):
+        """Under the tree, if there's room: what the row under the cursor is."""
+        kind, key = rid
+        if kind == "bank":
+            b = banks.get(key)
+            hint = (f"{b.TITLE}: written problems. o opens it; o on a type lists its problems. l on a type adds one "
+                    f"at random; l on a problem adds that one." if getattr(b, "FIXED", False) else
+                    f"{b.TITLE}: draws new problems. o opens or closes it. l on a type adds one.")
+        elif kind == "count":
+            b = banks.get(key[0])
+            h = b.hint(b.type_of(key[1]))
+            hint = f"Look for: {h[2]}  The move: {h[3]}" if h else b.ENTRY[key[1]]["title"]
+        elif kind == "problem":
+            b = banks.get(key[0])
+            p = b.problem(key[1])
+            hint = f"Answer: {b.answer_text(p)}.  l adds it, h removes it, L puts it at the sheet cursor."
+        else:
+            hint = SETTING_HINTS[key]
+        hint = re.sub(r"\$([^$]*)\$", lambda m: pretty(m.group(1)), hint)
+        for y, line in enumerate(textwrap.wrap(hint, LEFT_W - 3)[:free], y0):
+            self.put(y, 1, line, self.st["dim"])
 
     def status(self, app, h, w, where):
         st = self.st

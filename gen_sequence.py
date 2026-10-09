@@ -254,6 +254,15 @@ bank = {
 }
 (OUT / "lesson_1-4_literal_seq_bank.json").write_text(json.dumps(bank, indent=1))
 
+# The same fifty as a fixed bank for the worksheet editor (sheets/banks/fixed.py)
+(HERE / "banks").mkdir(exist_ok=True)
+(HERE / "banks" / "lesson_1-4.json").write_text(json.dumps({
+    "format": 1, "name": "lesson_1-4", "title": "Lesson 1-4", "family": "literal",
+    "types": [{"key": t["key"], "title": t["title"], "space": t["work"]} for t in TYPES],
+    "problems": [{"id": str(n), "type": TYPE_OF[n]["key"], "prompt": EQ[n][0], "target": EQ[n][1],
+                  "answer": f"{EQ[n][1]} = {EQ[n][2][EQ[n][1]]}"} for n in seq],
+}, indent=1, ensure_ascii=False) + "\n")
+
 # ------------------------------------------------------------------
 # Typst
 # ------------------------------------------------------------------

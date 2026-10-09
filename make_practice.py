@@ -32,7 +32,7 @@ Examples (run from this folder):
 import argparse, json, random, re, shlex, shutil, subprocess, sys
 from pathlib import Path
 from sheets import ROOT as HERE
-from sheets import sheet as sh, writer
+from sheets import sheet as sh, writer, banks
 from sheets.typst import esc
 from sheets.banks import literal as L
 from sheets.banks.literal import TYPE, label, selftest
@@ -154,7 +154,7 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     layout(groups, mix), and a mixed section's problems are shuffled."""
     mix = ordered(mix)
     rng = random.Random(seed)
-    seen = {BANK: set(L.initial_seen())}       # never the lesson's own 50
+    seen = {}                                  # (the literal bank never draws the lesson's own 50)
     drawn = [sh.new_item(BANK, k, rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
     sheet = sh.new_sheet(title, class_name, L.INSTRUCTIONS, versions)
     sheet["sections"] = [dict(sh.new_section(), items=drawn)]
@@ -166,19 +166,20 @@ def regroup(sheet, groups, rng):
     layout(groups, ...): a type's own section, or a mixed one (shuffled).
     Problems keep their order within a type. Nothing is redrawn."""
     its = sh.items(sheet)
-    mine = [it for it in its if it["bank"] == BANK]
+    typ = lambda it: banks.get(it["bank"]).type_of(it["entry"])
+    mine = [it for it in its if banks.get(it["bank"]).FAMILY == BANK and typ(it) in TYPE_KEYS]
     mix = {}
     for it in mine:
-        mix[it["entry"]] = mix.get(it["entry"], 0) + 1
+        mix[typ(it)] = mix.get(typ(it), 0) + 1
     secs = []
     for g in layout(groups, mix):
         sec = sh.new_section(heading(g), auto=f"{BANK}:{g['types'][0]}" if len(g["types"]) == 1 else "")
-        sec["items"] = sorted((it for it in mine if L.type_of(it["entry"]) in g["types"]),
-                              key=lambda it: KEYS.index(it["entry"]))       # stable: letters, then formulas
+        sec["items"] = sorted((it for it in mine if typ(it) in g["types"]),     # stable: lesson, letters, formulas
+                              key=lambda it: (it["bank"] == BANK, KEYS.index(it["entry"]) if it["entry"] in KEYS else 0))
         if len(g["types"]) > 1:
             rng.shuffle(sec["items"])
         secs.append(sec)
-    others = [it for it in its if it["bank"] != BANK]
+    others = [it for it in its if not any(it is m for m in mine)]
     if others:
         secs.append(dict(sh.new_section(), items=others))
     sheet["sections"] = secs

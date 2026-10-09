@@ -73,7 +73,8 @@ def selftest(n, seed):
 # ------------------------------------------------------------------
 # The bank interface (see sheets/banks/__init__.py)
 # ------------------------------------------------------------------
-NAME = "literal"
+NAME = FAMILY = "literal"
+FIXED = False
 TITLE = "Literal Equations"
 INSTRUCTIONS = "Solve each equation for the indicated variable."
 

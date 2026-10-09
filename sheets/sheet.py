@@ -8,8 +8,8 @@
 An item's problem is version 1. For a generated item (it has a seed and was
 not edited by hand) alts holds versions 2, 3, ...: the same entry redrawn
 from seeds derived from the item's own seed, so versions are parallel.
-Edited items, and items with no seed (imported, or from a fixed bank),
-print the same problem in every version.
+Edited items, items from a fixed bank, and items with no seed (imported
+from an older file) print the same problem in every version.
 """
 import json, random
 from pathlib import Path
@@ -29,22 +29,41 @@ def items(sheet):
     return [it for sec in sheet["sections"] for it in sec["items"]]
 
 def _draw(bank, entry, seed, seen):
+    """Draw from a bank, avoiding what's on the sheet (seen[family]) and what the
+    bank itself excludes; the new problem joins seen[family]."""
+    b = banks.get(bank)
+    on = seen.setdefault(b.FAMILY, set())
     random.seed(seed)                       # the numeric checks, so a seed always gives the same problem
-    return banks.get(bank).generate(entry, random.Random(seed), seen.setdefault(bank, set()))
+    p = b.generate(entry, random.Random(seed), on | b.initial_seen())
+    on.add(b.seen_key(p))
+    return p
+
+def drawn_status(bank, p):
+    """Generators check what they draw; a fixed bank's problem is checked now."""
+    b = banks.get(bank)
+    return b.check(p) if getattr(b, "FIXED", False) else "checked"
 
 def new_item(bank, entry, seed, seen):
-    """A freshly drawn item. seen: dict bank -> no-repeat set (see seen_of)."""
+    """A freshly drawn item. seen: dict family -> no-repeat set (see seen_of)."""
     e = banks.get(bank).ENTRY[entry]
+    p = _draw(bank, entry, seed, seen)
     return dict(bank=bank, entry=entry, seed=seed, width=e["width"], space=e["space"],
-                problem=_draw(bank, entry, seed, seen), alts=[], edited=False, status="checked")
+                problem=p, alts=[], edited=False, status=drawn_status(bank, p))
+
+def fixed_item(bank, pid):
+    """An item holding one particular problem of a fixed bank."""
+    b = banks.get(bank)
+    p = b.problem(pid)
+    e = b.ENTRY[p["type"]]
+    return dict(bank=bank, entry=e["key"], seed=None, width=e["width"], space=e["space"],
+                problem=p, alts=[], edited=False, status=b.check(p))
 
 def seen_of(sheet):
-    """dict bank -> the no-repeat keys of every problem on the sheet, plus each bank's exclusions."""
+    """dict family -> the no-repeat keys of every problem on the sheet."""
     seen = {}
     for it in items(sheet):
         b = banks.get(it["bank"])
-        s = seen.setdefault(it["bank"], set(b.initial_seen()))
-        s.update(b.seen_key(p) for p in [it["problem"], *it["alts"]])
+        seen.setdefault(b.FAMILY, set()).update(b.seen_key(p) for p in [it["problem"], *it["alts"]])
     return seen
 
 def fill_versions(sheet, seen=None):
@@ -52,12 +71,13 @@ def fill_versions(sheet, seen=None):
     seen = seen_of(sheet) if seen is None else seen
     n = sheet["versions"] - 1
     for it in items(sheet):
-        if it["edited"]:
+        if it["edited"] or getattr(banks.get(it["bank"]), "FIXED", False):
             it["alts"] = []
         del it["alts"][n:]
     for v in range(2, n + 2):                # version-major, so the draw order never depends on n
         for it in items(sheet):
-            if it["seed"] is not None and not it["edited"] and len(it["alts"]) < v - 1:
+            if it["seed"] is not None and not it["edited"] and len(it["alts"]) < v - 1 \
+                    and not getattr(banks.get(it["bank"]), "FIXED", False):
                 try:
                     alt = _draw(it["bank"], it["entry"], f"{it['seed']}:v{v}", seen)
                 except RuntimeError:            # nothing new left (a small pool): repeat version 1

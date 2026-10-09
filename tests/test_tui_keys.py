@@ -24,7 +24,7 @@ def text(app, width=80):
 
 # ---- the types pane: counts make sections in sequence order
 a = T.App(seed=12); keys = driver(a)
-keys("4j"); assert T.ROWS[a.row] == ("count", "3")
+keys("4j"); assert a.rid() == ("count", ("literal", "3")), a.rid()
 keys("3l"); assert counts(a) == {"3": 3}, counts(a)
 keys("2j6l"); assert counts(a) == {"3": 3, "4": 6}
 keys("k2l"); assert counts(a) == {"3": 3, "3f": 2, "4": 6}
@@ -35,11 +35,11 @@ keys("."); assert counts(a)["4"] == 4, "repeat"
 keys("u"); assert counts(a)["4"] == 5, "undo"
 keys("\x12"); assert counts(a)["4"] == 4, "redo"
 keys("dd"); assert "4" not in counts(a) and titles(a) == [mp.L.heading("3")], "an emptied type section goes"
-keys("gg"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
+keys("ggj"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
 keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
-keys("G"); assert a.row == len(T.ROWS) - 1
-keys("/square\n"); assert T.ROWS[a.row] == ("count", "B")
-keys("n"); assert T.ROWS[a.row] == ("count", "Bf")
+keys("G"); assert a.row == len(a.rows()) - 1
+keys("/square\n"); assert a.rid() == ("count", ("literal", "B")), a.rid()
+keys("n"); assert a.rid() == ("count", ("literal", "Bf")), a.rid()
 keys("i2\n"); assert counts(a)["Bf"] == 2, "typed count"
 before = prompts(a)
 keys("r"); assert prompts(a) != before and counts(a)["Bf"] == 2, "r rerolls the entry"
@@ -134,7 +134,7 @@ keys("/Warm\n"); assert a.cur == (0, -1)
 # L adds the type under the types cursor where the sheet cursor is
 keys(":1\n"); n0 = len(a.sheet["sections"][0]["items"])
 keys("\t"); assert a.focus == "left"
-keys("gg"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
+keys("ggj"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
 assert [it["entry"] for it in a.sheet["sections"][0]["items"]][1:3] == ["1", "1"]
 
 # groups and shuffle rearrange what is there, drawing nothing
@@ -168,6 +168,52 @@ keys(":q\n"); assert a.quit
 
 assert T.pretty("V = 1/3 pi r^2 h") == "V = (1/3)πr²h"
 assert T.pretty("x = (2 m + n)/(5 - m)") == "x = (2m + n)/(5 − m)"
+
+# ---- banks: the tree, a fixed bank, and a bank of plain Typst problems
+import json
+from sheets import banks
+from sheets.banks.fixed import FixedBank
+f = Path(OUT) / "words.json"
+f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
+    "types": [{"key": "rate", "title": "Rate Problems", "width": "full", "space": "2in"}],
+    "problems": [{"id": "w1", "type": "rate", "prompt": "A train goes $60$ miles in $1.5$ hours. How fast?",
+                  "answer": "$40$ mph", "text": "A train goes 60 miles in 1.5 hours. How fast?"},
+                 {"id": "w2", "type": "rate", "prompt": "Pat walks $3$ miles in $1$ hour. How far in $4$?",
+                  "answer": "$12$ miles"}]}))
+banks._fixed["words"] = FixedBank(f)
+w = T.App(seed=3); wk = driver(w)
+assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "literal"), ("bank", "lesson_1-4"), ("bank", "words")]
+lesson = w.rows().index(("bank", "lesson_1-4"))
+wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
+wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
+wk("3j"); assert w.rid() == ("count", ("lesson_1-4", "3")), w.rid()
+wk("o"); assert ("problem", ("lesson_1-4", "13")) in w.rows()
+wk("j"); assert w.rid() == ("problem", ("lesson_1-4", "13"))
+wk("l"); assert E.where_problem(w.sheet, "lesson_1-4", "13") and w.value(w.row) is True
+wk("l"); assert w.err and "already" in w.msg
+wk("k2l"); assert E.count(w.sheet, "lesson_1-4", "3") == 3
+wk("/Clear One\n"); assert w.rid() == ("count", ("literal", "3")), w.rid()
+wk("2l"); assert titles(w) == [mp.L.heading("3")], "the lesson and the generator share Type 3's section"
+assert len(set(prompts(w))) == 5
+wk(":versions 2\n")
+lesson_items = [it for it in sh.items(w.sheet) if it["bank"] == "lesson_1-4"]
+assert all(it["alts"] == [] for it in lesson_items) and all(it["status"] == "checked" for it in lesson_items)
+assert all(len(it["alts"]) == 1 for it in sh.items(w.sheet) if it["bank"] == "literal")
+wk("/A train\n"); assert w.rid() == ("problem", ("words", "w1")) and "words" in w.open
+wk("l"); assert titles(w)[-1] == "Rate Problems"
+it = w.sheet["sections"][-1]["items"][0]
+assert it["width"] == "full" and it["space"] == "2in" and it["status"] == "unchecked"
+wk("\t"); wk("G"); assert w.item() is it and "?" in text(w)
+wk("r"); assert w.item()["problem"]["id"] == "w2", "rerolling a fixed problem swaps in another"
+wk("r"); assert w.item()["problem"]["id"] == "w1", "and back: w1 is no longer on the sheet"
+wk("yy"); wk("p"); assert w.item()["problem"]["id"] == "w2", "a copy draws the bank's other problem"
+wk("p"); assert w.err and "no unused" in w.msg, "and then there are none left"
+wk("u"); wk("G"); assert w.item()["problem"]["id"] == "w1"
+wk("A\x15$13$ miles\n"); assert w.item()["problem"]["answer"] == "$13$ miles" and w.item()["status"] == "unchecked"
+wk(f":out {OUT}\n:name words\n:w\n"); assert not w.err and "1 unchecked" in w.msg, w.msg
+key = (Path(OUT) / "words_v1_key.typ").read_text()
+assert "A train goes $60$ miles" in key and "$13$ miles" in key and "#section-head[Rate Problems]" in key
+del banks._fixed["words"]
 
 # ---- the empty sheet
 e = T.App(seed=1); ek = driver(e)

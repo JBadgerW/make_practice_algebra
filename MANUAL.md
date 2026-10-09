@@ -34,6 +34,7 @@ numbers. Without `--groups`, the output is the same as before.
 | `lesson_1-4_literal_seq_guide` | For each type: Look for, The move, and a worked example; the special cases are worked in full, with a "Watch out" note |
 | `lesson_1-4_literal_seq_all_solutions` | The textbook equations and the 50 lesson equations, each solved for every variable |
 | `lesson_1-4_literal_seq_bank.json` | Everything above as data |
+| `../banks/lesson_1-4.json` | The fifty as a fixed bank for the terminal app (section 5) |
 
 The script stops with an error if an answer or a worked step fails its
 numeric check. It also stops if the types don't cover problems 1–50 exactly
@@ -133,9 +134,10 @@ It takes the same drafting options as `make_practice.py` (`--mix`,
 `--out`, `--name`). An older `NAME_v1.json` opens too: it is converted, and
 `:w` saves it as a sheet.
 
-**Two panes.** On the left are the **types**: every entry with how many of
-it are on the sheet (`·` means none), then the settings, with a hint for the
-row under the cursor. On the right is **the sheet**, laid out like the page:
+**Two panes.** On the left are the **banks**, as a tree: each bank, its types
+with how many of each are on the sheet (`·` means none), and, for a fixed
+bank, the problems of a type you open (`●` marks one on the sheet). Then the
+settings, and a hint for the row under the cursor. On the right is **the sheet**, laid out like the page:
 the header, the instructions in italics, bold section titles, problems in
 one or two columns with their work space as blank lines, and a dashed line
 where a new page probably starts. `Tab` moves between the panes; the sheet
@@ -147,18 +149,23 @@ can't be checked, `[+]` when there are unwritten changes, and, on the sheet,
 what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
 1in of work space).
 
-### The types pane
+### The banks pane
 
 | Keys | Action |
 |---|---|
-| `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search type names and settings. |
-| `l` `+` `→` `Ctrl-A` | Add one problem to the type's own section (made, in sequence order, if needed). `3l` adds three. On *versions*, adds a version. |
-| `L` | Add one where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
-| `h` `-` `←` `Ctrl-X` | Remove the last problem of that entry. A type's own section disappears when it's empty. |
-| `x` `dd` | Remove every problem of that entry (on *versions*, back to 1) |
+| `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search every bank (type names, and the text of fixed problems), opening what they find, and the settings. |
+| `o` | Open or close a bank; on a fixed bank's type, list its problems. `zM` `zR` close or open every bank. |
+| `l` `+` `→` `Ctrl-A` | On a type: add one problem to the type's own section (made, in sequence order, if needed); `3l` adds three. From a fixed bank, it is an unused problem picked at random. On a problem: add that problem. On *versions*: add a version. |
+| `L` | Add one (or that problem) where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
+| `h` `-` `←` `Ctrl-X` | Remove the last problem of that type, or that problem. A type's own section disappears when it's empty. |
+| `x` `dd` | Remove every problem of that type (or bank) (on *versions*, back to 1) |
 | `i` `a` `Enter`, `cc` `s` | Type a count or a setting (starting from the current value, or blank) |
-| `r` | Reroll every problem of that entry |
+| `r` | Reroll every problem of that type (or bank) |
 | `D` | Clear the whole sheet |
+
+A bank's types share sections with its family: Type 3 problems from the
+lesson bank and from the generator go into the same *Type 3* section, and
+the sheet never holds the same problem twice.
 
 ### The sheet pane
 
@@ -275,6 +282,36 @@ Prompts and answers are stored as Typst math. Paste one into a Typst file
 as `$display(...)$`.
 
 ## 5. Adding problems
+
+**A fixed bank.** Put a JSON file in `banks/`; the terminal app lists it
+under its title. Problems you write are fixed: they print the same in every
+version, and rerolling one swaps in another unused problem of its type.
+
+```json
+{
+ "format": 1,
+ "name": "quiz_bank",
+ "title": "Quiz Bank",
+ "family": "literal",
+ "types": [{"key": "3", "title": "Clear One Denominator", "space": "1in"}],
+ "problems": [{"id": "q1", "type": "3", "prompt": "A = 1/2 b h", "target": "b",
+               "answer": "b = (2 A)/h"}]
+}
+```
+
+- `family` (optional) names a generator bank. With `literal`, problems give
+  `prompt` and `target` in Typst math and an `answer` like `b = ...`. Each
+  answer is checked, an edited problem is solved again, types `1`-`11`, `A`,
+  `B` take the lesson's names and hints, and the problems share sections with
+  (and never repeat) the generator's.
+- Without a family, `prompt` and `answer` are any Typst markup (text, `$math$`,
+  `#parts`, ...), with optional plain `text` and `answer_text` for the terminal.
+  These answers can't be checked, so they show `?`.
+- A type may set `width` (`half` or `full`, default `half`), `space` (default
+  `1in`), `look` and `move` (hints on the slides), and `special`.
+- A file that can't be read is reported when the app starts.
+
+`gen_sequence.py` writes the lesson's fifty as `banks/lesson_1-4.json`.
 
 **A real formula.** Add a line to `FORMULAS` in `sheets/banks/literal/formulas.py`:
 

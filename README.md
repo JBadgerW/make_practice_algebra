@@ -54,12 +54,13 @@ details.
 
 | File | What it is |
 |---|---|
-| `sheets/` | The shared package: `sheet.py` (the worksheet document), `edit.py` (changes to a sheet), `writer.py` (worksheet, key, and slide Typst), `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles), `banks/` (problem banks) |
+| `sheets/` | The shared package: `sheet.py` (the worksheet document), `edit.py` (changes to a sheet), `writer.py` (worksheet, key, and slide Typst), `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles), `banks/` (the bank interface, the literal-equation generator, and fixed banks) |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `practice_tui.py` | Terminal worksheet editor (vim keys) |
 | `tests/` | `test_tui_keys.py` (no terminal needed) and `screen_test.py` (draws the real screen; needs `pyte`) |
+| `banks/` | Fixed banks: written problems as JSON, browsed and added in the terminal app (`lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`) |
 | `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |

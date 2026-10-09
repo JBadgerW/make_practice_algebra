@@ -6,7 +6,7 @@ for the teacher, and leave the sheet as it was.
 """
 import copy, re
 from . import banks
-from .sheet import new_item, new_section, items, seen_of, fill_versions, _draw
+from .sheet import new_item, fixed_item, new_section, items, seen_of, fill_versions, drawn_status, _draw
 
 SPACE_STEP = 0.25                       # inches, for + and -
 UNITS = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4, "pt": 1 / 72}
@@ -26,21 +26,28 @@ def length(x):
 # Adding and removing by entry (the types pane)
 # ------------------------------------------------------------------
 def auto_tag(bank, entry):
-    return f"{bank}:{banks.get(bank).type_of(entry)}"
+    b = banks.get(bank)
+    return f"{b.FAMILY}:{b.type_of(entry)}"
+
+def type_order(bank):
+    """The family's types in order, then any of the bank's own."""
+    b = banks.get(bank)
+    fam = banks.get(b.FAMILY)
+    return list(dict.fromkeys([fam.type_of(e["key"]) for e in fam.ENTRIES] + [b.type_of(e["key"]) for e in b.ENTRIES]))
 
 def type_section(sheet, bank, entry):
-    """The index of the entry's type section, made (in the bank's type order) if needed."""
+    """The index of the entry's type section (shared by its family), made in type order if needed."""
     tag = auto_tag(bank, entry)
     for i, sec in enumerate(sheet["sections"]):
         if sec.get("auto") == tag:
             return i
     b = banks.get(bank)
     typ = b.type_of(entry)
-    order = list(dict.fromkeys(b.type_of(e["key"]) for e in b.ENTRIES))
+    order = type_order(bank)
     at = len(sheet["sections"])
     for i, sec in enumerate(sheet["sections"]):
-        bk, _, t = sec.get("auto", "").partition(":")
-        if bk == bank and t in order and order.index(t) > order.index(typ):
+        fam, _, t = sec.get("auto", "").partition(":")
+        if fam == b.FAMILY and t in order and order.index(t) > order.index(typ):
             at = i
             break
     sheet["sections"].insert(at, new_section(b.heading(typ), auto=tag))
@@ -49,7 +56,6 @@ def type_section(sheet, bank, entry):
 def add(sheet, si, bank, entry, seed, at=None):
     """Draw a new item into section si (at index at, default the end). Returns it."""
     seen = seen_of(sheet)
-    seen.setdefault(bank, set(banks.get(bank).initial_seen()))
     it = new_item(bank, entry, seed, seen)
     its = sheet["sections"][si]["items"]
     its.insert(len(its) if at is None else at, it)
@@ -58,6 +64,34 @@ def add(sheet, si, bank, entry, seed, at=None):
 
 def count(sheet, bank, entry):
     return sum(1 for it in items(sheet) if it["bank"] == bank and it["entry"] == entry)
+
+def where_problem(sheet, bank, pid):
+    """The position of a fixed bank's problem on the sheet, or None."""
+    b = banks.get(bank)
+    key = b.seen_key(b.problem(pid))
+    for si, sec in enumerate(sheet["sections"]):
+        for ii, it in enumerate(sec["items"]):
+            ib = banks.get(it["bank"])
+            if ib.FAMILY == b.FAMILY and not it["edited"] and ib.seen_key(it["problem"]) == key:
+                return si, ii
+    return None
+
+def add_problem(sheet, bank, pid, si=None, at=None):
+    """Add one particular problem of a fixed bank (to its type's section unless si
+    is given). Raises ValueError if it's already on the sheet."""
+    if where_problem(sheet, bank, pid):
+        raise ValueError(f"problem {pid} is already on the sheet")
+    it = fixed_item(bank, pid)
+    si = type_section(sheet, bank, it["entry"]) if si is None else si
+    its = sheet["sections"][si]["items"]
+    its.insert(len(its) if at is None else at, it)
+    return it
+
+def remove_problem(sheet, bank, pid):
+    pos = where_problem(sheet, bank, pid)
+    if pos:
+        del sheet["sections"][pos[0]]["items"][pos[1]]
+        drop_empty_auto(sheet)
 
 def drop_empty_auto(sheet):
     """Type sections that lost their last problem go; sections the teacher made stay."""
@@ -94,8 +128,8 @@ def reroll(sheet, positions, seeds):
         for si, ii in positions:
             it = sheet["sections"][si]["items"][ii]
             seed = next(seeds)
-            it.update(seed=seed, problem=_draw(it["bank"], it["entry"], seed, seen), alts=[],
-                      edited=False, status="checked")
+            p = _draw(it["bank"], it["entry"], seed, seen)
+            it.update(seed=seed, problem=p, alts=[], edited=False, status=drawn_status(it["bank"], p))
         fill_versions(sheet, seen)
     except RuntimeError:
         sheet["sections"] = before
