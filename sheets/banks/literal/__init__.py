@@ -18,7 +18,7 @@ from .answers import solve, fmt, make
 @functools.lru_cache(maxsize=None)
 def _lesson_prompts():
     try:
-        bank = json.loads((ROOT / "lesson_1-4" / "lesson_1-4_literal_seq_bank.json").read_text())
+        bank = json.loads((ROOT / "banks" / "lesson_1-4.json").read_text())   # written by gen_sequence.py
         return frozenset((p["prompt"], p["target"]) for p in bank["problems"])
     except (OSError, ValueError, KeyError):
         return frozenset()
