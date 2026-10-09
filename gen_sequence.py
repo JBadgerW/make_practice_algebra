@@ -9,8 +9,9 @@ sympy before any Typst is emitted. Run from this folder:
 import argparse, json, random
 from pathlib import Path
 import make_practice as mp
-from literal_common import (TYPES, label, to_sympy, side_diff, syms_of, holds,
-                            MARK, head, slhead, vars_)
+from sheets.banks.literal import TYPES, label
+from sheets.check import to_sympy, side_diff, syms_of, holds
+from sheets.typst import MARK, head, slhead, vars_
 
 ap = argparse.ArgumentParser(description="Write the lesson 1-4 set into lesson_1-4/.")
 ap.add_argument("--class", dest="class_name", default="Algebra 1", metavar="NAME",

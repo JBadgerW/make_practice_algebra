@@ -34,18 +34,20 @@ their classroom. Ease of building comes second.
 ## 2. Read first, in this order
 
 1. `README.md` and `MANUAL.md`: what exists and how it's used.
-2. `literal_common.py`: `TYPES` (the classification data), plus the
-   Typst-to-sympy parser `to_sympy` and the numeric checker `holds`.
-3. `make_practice.py`, read top to bottom:
-   - the templates (`D`, `need`, `t*_*`, `TEMPLATES`) and `FORMULAS`;
-   - `solve`, `fmt`, `poly_tx`, `terms`: the answer formatter;
-   - `make` (solve + check), `draw`, `draw_versions`, `build`: the API;
+2. `PLAN.md`: the agreed plan; it overrides this file where they differ.
+3. `sheets/check.py`: the Typst-to-sympy parser `to_sympy` and the numeric
+   checker `holds`. `sheets/banks/literal/`: `TYPES` (the classification
+   data), the templates (`D`, `need`, `t*_*`, `TEMPLATES`), `FORMULAS`,
+   `solve`/`fmt`/`poly_tx`/`terms` (the answer formatter), `make` (solve +
+   check), and `draw`.
+4. `make_practice.py`, read top to bottom:
+   - `draw_versions`, `build`: the API;
    - `worksheet`, `slides`: Typst output.
-4. `practice_tui.py`: `App` holds all the state and key handling, and has no
+5. `practice_tui.py`: `App` holds all the state and key handling, and has no
    curses in it. `Screen` draws. `run` is the loop.
-5. `gen_sequence.py`: the fixed lesson set, with hand-written worked steps
+6. `gen_sequence.py`: the fixed lesson set, with hand-written worked steps
    that are checked step by step.
-6. `tests/`: `test_tui_keys.py` and `screen_test.py`.
+7. `tests/`: `test_tui_keys.py` and `screen_test.py`.
 
 Then run everything in section 7 to record a baseline before you change
 anything.

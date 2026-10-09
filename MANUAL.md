@@ -40,7 +40,7 @@ numeric check. It also stops if the types don't cover problems 1–50 exactly
 once, in order.
 
 **Editing the lesson.** The type names, hints, problem ranges, and worksheet
-spacing are in `TYPES` in `literal_common.py`. The equations are in `EQ`,
+spacing are in `TYPES` in `sheets/banks/literal/types.py`. The equations are in `EQ`,
 and the worked steps are in `STEPS`, `ALT`, `NOTICE`, and `PITFALL`, all in
 `gen_sequence.py`. A worked step is `("equation", "note")`. The first
 equation must be the problem itself, and the last must be `target = answer`.
@@ -233,7 +233,7 @@ as `$display(...)$`.
 
 ## 5. Adding problems
 
-**A real formula.** Add a line to `FORMULAS` in `make_practice.py`:
+**A real formula.** Add a line to `FORMULAS` in `sheets/banks/literal/formulas.py`:
 
 ```python
 ("I = p r t", "p", "1"),        # equation, variable to solve for, type
@@ -255,7 +255,7 @@ def t8_f(d):
     return f"{a} {x} + {k} = {b} {x}", x
 ```
 
-Add it to that type's list in `TEMPLATES`. The helpers:
+Add it to that type's list in `TEMPLATES` (`sheets/banks/literal/templates.py`). The helpers:
 
 | Helper | Gives you |
 |---|---|

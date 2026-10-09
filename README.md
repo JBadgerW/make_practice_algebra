@@ -53,14 +53,16 @@ details.
 
 | File | What it is |
 |---|---|
-| `literal_common.py` | Shared code: the type definitions, Typst-to-sympy parsing and numeric checks, and the Typst preambles |
+| `sheets/` | The shared package: `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles) |
+| `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
-| `make_practice.py` | Practice generator: templates, the formula pool, the solver and answer formatter, Typst output, and the command line |
+| `make_practice.py` | Practice generator: groups, Typst output, and the command line |
 | `practice_tui.py` | Terminal app over `make_practice.py` |
 | `tests/` | `test_tui_keys.py` (no terminal needed) and `screen_test.py` (draws the real screen; needs `pyte`) |
 | `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |
+| `PLAN.md` | The agreed plan for turning this into a general worksheet editor |
 | `EXTENDING.md` | A brief for an LLM (or a person) turning this into a general worksheet builder |
 
 ## Requirements
