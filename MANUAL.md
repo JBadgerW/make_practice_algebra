@@ -53,16 +53,16 @@ python3 make_practice.py [options]
 
 | Option | Meaning | Default |
 |---|---|---|
-| `--mix TYPE:COUNT ...` | How many problems of each type. Types are `1`–`11`, `A`, `B`, or `all`. Repeated entries add up: `all:1 3:2` gives three of Type 3 and one of everything else. | `all:2` |
-| `--versions N` | Number of different versions | 1 |
-| `--seed S` | Same seed → same problems | random (printed) |
-| `--style` | `mixed`: about 30% real formulas. `letters`: made-up equations only. `formulas`: real formulas whenever the type has any left. | `mixed` |
-| `--shuffle` | Interleave the types, with no headings | grouped |
+| `--mix ENTRY:COUNT ...` | How many problems of each entry. `1`–`11`, `A`, `B` are made-up equations of that type; `1f`, `3f`, `Bf`, ... are real formulas of that type. `all` means every made-up entry and `allf` every formulas entry. Repeated entries add up: `all:1 3:2` gives three of Type 3 and one of everything else. | `all:2` |
+| `--versions N` | Number of parallel versions: each problem is redrawn in its own slot, so version 2's problem 5 is the same type as version 1's | 1 |
+| `--seed S` | Same seed → same sheet | random (printed) |
+| `--shuffle` | One section with every problem shuffled, no headings | grouped |
 | `--groups G ...` | Order and combine the headed sections (see below) | sequence order |
 | `--title TEXT` | Title on the worksheet and slides | Literal Equations Practice |
 | `--class NAME` | Class name in the worksheet and slide header | Algebra 1 |
 | `--out DIR` | Output folder, relative to the script's folder | `practice` |
 | `--name NAME` | File prefix | `literal_practice` |
+| `--sheet FILE` | Print a saved `.sheet.json` again, or convert an older `NAME_v1.json` set (with its other versions) and print it in the current style | |
 | `--no-compile` | Write `.typ` files only | compile |
 | `--selftest N` | Draw N problems of every type, check them all, then check every formula | |
 
@@ -76,7 +76,7 @@ python3 make_practice.py --mix 2:2 3:2 4:2 8:2 A:1 --versions 3 --title "Quiz 1-
 python3 make_practice.py --mix all:1 --shuffle
 
 # Warm-up from real formulas
-python3 make_practice.py --mix 1:4 3:4 B:2 --style formulas
+python3 make_practice.py --mix 1f:4 3f:4 Bf:2
 ```
 
 ### Ordering and combining groups
@@ -99,14 +99,17 @@ python3 make_practice.py --mix 3:3 4:3 8:3 --groups 3+4="Warm-up" 8
 - Types you leave out of `--groups` follow at the end in sequence order, and
   types with no problems are ignored. A type can appear only once.
 - `--shuffle` ignores groups: everything is one mixed list.
+- A type's made-up and formulas entries (`3` and `3f`) share its group.
 - On the slides, a single-type group gets its usual title slide. A mixed group
   gets one title slide listing every type's *Look for* and *The move*.
 - The same seed draws the same problems whatever the group order, apart from
-  the shuffling inside mixed groups.
+  the shuffling inside mixed groups. Adding versions never changes version 1.
 
 **Guarantees:**
 - Problems never repeat within a run, across versions, or with the 50 lesson
-  problems.
+  problems. The one exception: a formulas entry with a small pool (Type 9 has
+  one formula the lesson doesn't use) repeats its formula in later versions
+  rather than fail. Type 7's only formula is a lesson problem, so there is no `7f`.
 - Every answer is solved by sympy, written out in classroom form, and checked
   numerically.
 - **Answer forms:**
@@ -122,14 +125,14 @@ python3 make_practice.py --mix 3:3 4:3 8:3 --groups 3+4="Warm-up" 8
 ```sh
 python3 practice_tui.py                                    # start empty
 python3 practice_tui.py --mix 3:6 8:4 --seed 12            # start from a mix
-python3 practice_tui.py practice/literal_practice_v1.json  # reopen a set
+python3 practice_tui.py practice/literal_practice.sheet.json  # reopen a set
 ```
 
 It takes the same options as `make_practice.py`, apart from `--no-compile`
 and `--selftest`.
 
-**Screen.** The left pane lists the types with their counts (`·` means
-zero), then the settings. Under the list is a hint for the row under the
+**Screen.** The left pane lists the entries with their counts (`·` means
+zero): each type, then its *real formulas* row (`3f`), then the settings. Under the list is a hint for the row under the
 cursor. The right pane previews the problems. The preview uses the same
 code and seed as `:w`, so it shows exactly what will be written. The status
 line shows the mode, the totals, the seed, and `[+]` when there are
@@ -170,7 +173,7 @@ restores them. A type whose count is zero is left out of the layout.
 
 | Keys | Action |
 |---|---|
-| `l` `+` `→` `Ctrl-A` | Add one; `3l` adds three. On *style* and *order*, cycles to the next choice. |
+| `l` `+` `→` `Ctrl-A` | Add one; `3l` adds three. On *order*, switches between grouped and shuffled. |
 | `h` `-` `←` `Ctrl-X` | Take one away, or cycle back |
 | `x` `dd` | Set the count to 0 (on *versions*, back to 1) |
 | `i` `a` `Enter` | Type a new value, starting from the current one |
@@ -199,16 +202,16 @@ through earlier commands.
 | `:wq` `:x` `ZZ` | Write, then quit |
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |
 | `:q!` `ZQ` | Quit and discard |
-| `:mix 3:6 8:4 A:2` | Replace all counts (`all:N` works) |
+| `:mix 3:6 8:4 A:2 3f:2` | Replace all counts (`all:N` and `allf:N` work) |
 | `:clear` | Zero all counts |
 | `:seed` / `:seed N` | Pick a random seed / set it |
-| `:versions N` `:style X` `:order grouped` `:title TEXT` `:class NAME` `:name N` `:out DIR` | Set a setting |
+| `:versions N` `:order grouped` `:title TEXT` `:class NAME` `:name N` `:out DIR` | Set a setting |
 | `:groups 9 8 3+4=Warm-up 1` | Set the group order and mixes at once (`:groups` alone resets to sequence order) |
 | `:rename TEXT` | Rename the group under the groups cursor |
 | `:set shuffle` `noshuffle` `shuffle!` | Shuffle on / off / toggle |
 | `:set answers` `noanswers` `answers!` | Answers in the preview |
-| `:set key=value ...` | Set settings: `:set style=letters versions=3`. `title=` and `class=` take the rest of the line. |
-| `:e FILE.json` | Load the settings and seed from a written set |
+| `:set key=value ...` | Set settings: `:set versions=3 order=shuffled`. `title=` and `class=` take the rest of the line. |
+| `:e FILE.sheet.json` | Load the settings and seed of a written set. An older `NAME_vN.json` loads its settings, but its problems are drawn anew; `make_practice.py --sheet FILE` reprints the old problems. |
 | `:open [sheet\|key\|slides] [N]` | Open version N's PDF (default: worksheet, version 1) |
 | `:N` | Go to row N |
 | `:help` or `?` | Show the keys |
@@ -219,14 +222,39 @@ each type name when the terminal is wider than 100 columns.
 
 ## 4. What gets written
 
-For each version N, in the output folder:
+In the output folder:
 
 | File | Contents |
 |---|---|
-| `NAME_vN.typ` / `.pdf` | Worksheet with the Name/Date/Ver header and workspace sized by type |
-| `NAME_vN_key.typ` / `.pdf` | The same, with answers in red |
-| `NAME_vN_slides.typ` / `.pdf` | Title slide, a title slide per type (grouped only), then a problem slide and an answer slide for each problem |
-| `NAME_vN.json` | The command, seed, version, and every problem (`type`, `prompt`, `target`, `answer`, `source`) |
+| `NAME.sheet.json` | The sheet: every section and problem of every version (see below) |
+| `NAME_vN.typ` / `.pdf` | Version N's worksheet, in the style of `templates/refined_template.typ` |
+| `NAME_vN_key.typ` / `.pdf` | The same, with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does. |
+| `NAME_vN_slides.typ` / `.pdf` | Title slide, a title slide per section (grouped only), then a problem slide and an answer slide for each problem |
+
+**The worksheet.** The header, the instructions block, then each section:
+its bold heading (with italic instructions, if it has any), then its problems
+in rows. Two half-width problems share a row; a full-width problem gets a row
+of its own; a half-width problem with no partner sits alone. Each problem has
+its own work space below it. Problems are numbered through the whole sheet.
+
+**The sheet file.** `NAME.sheet.json` is the document itself: a title, class,
+instructions, number of versions, the command that drafted it, and a list of
+sections. Each section has a `title`, `instructions`, and `items`. Each item
+has:
+
+| Field | Meaning |
+|---|---|
+| `bank`, `entry` | Where it came from: `literal`, `3f` |
+| `seed` | Its own seed. Versions 2, 3, ... are redrawn from it. |
+| `width` | `half` or `full` |
+| `space` | Work space below it, such as `1.25in` |
+| `problem` | Version 1: `type`, `prompt`, `target`, `answer`, `source` |
+| `alts` | Versions 2, 3, ... |
+| `edited`, `status` | Set by hand editing (coming); `status` is `checked`, `unchecked`, or `failed` |
+
+You can edit `width`, `space`, titles, and instructions in the file, then
+print it again with `python3 make_practice.py --sheet FILE`. The terminal
+app will soon edit them directly (see `PLAN.md`).
 
 Prompts and answers are stored as Typst math. Paste one into a Typst file
 as `$display(...)$`.

@@ -1,31 +1,50 @@
 """Make practice worksheets, answer keys, and slide decks of literal equations,
 drawn by type (the same Types 1-11 and Special Cases A-B as the lesson).
 
-Each type has a set of templates that build a fresh equation from random
-letters and numbers, plus a pool of real formulas sorted by type. Templates
-only write the *equation*: the answer is solved by sympy, written out in
-classroom form by fmt() below, and checked numerically before it is used.
+Each type has two entries: 3 draws made-up equations from templates, and 3f
+draws real formulas of that type. Every answer is solved by sympy, written
+in classroom form, and checked numerically before it is used.
+
+A run first drafts a *sheet* (sheets/sheet.py): sections of problems, each
+problem with its own seed, width, and work space. The sheet is saved as
+NAME.sheet.json beside the PDFs, and the worksheet, key, and slides of every
+version are printed from it.
 
 Examples (run from this folder):
     python3 make_practice.py --mix 3:6 8:4 A:2 --versions 3 --seed 12
     python3 make_practice.py --mix all:2 --shuffle
-    python3 make_practice.py --mix 1:10 --style formulas
+    python3 make_practice.py --mix 1f:6 3f:4         # real formulas
+    python3 make_practice.py --sheet practice/literal_practice.sheet.json   # print a saved sheet again
     python3 make_practice.py --selftest 200        # stress-test every type
     python3 practice_tui.py                        # the same, interactively (vim keys)
 
---mix TYPE:COUNT ...  types are 1-11, A, B, or "all" (default all:2)
---versions N          N different versions (default 1)
---seed S              same seed -> same problems (default: random, printed)
---style               mixed (default), letters (made-up equations only),
-                      or formulas (real formulas where the type has them)
---shuffle             interleave the types instead of grouping them
+--mix ENTRY:COUNT ... entries are 1-11, A, B (made-up equations), 1f-11f, Af, Bf
+                      (real formulas), all (every made-up entry), allf (every
+                      formulas entry). Default all:2.
+--versions N          N parallel versions: every drawn problem is redrawn in its slot
+--seed S              same seed -> same sheet (default: random, printed)
+--shuffle             one section with every problem shuffled, no headings
+--groups G ...        section order and mixed sections: 9 8 3+4=Warm-up 1
+--sheet FILE          print a saved .sheet.json (or an older practice .json) again
 --out DIR, --name N   output folder (default ./practice) and file prefix
 --no-compile          write .typ files only
 """
 import argparse, json, random, re, shlex, shutil, subprocess, sys
+from pathlib import Path
 from sheets import ROOT as HERE
-from sheets.typst import head, slhead, vars_, esc
-from sheets.banks.literal import TYPE, KEYS, label, draw, original_prompts, selftest
+from sheets import sheet as sh, writer
+from sheets.typst import esc
+from sheets.banks import literal as L
+from sheets.banks.literal import TYPE, label, selftest
+
+BANK = L.NAME
+ENTRY = L.ENTRY
+KEYS = [e["key"] for e in L.ENTRIES]                   # what --mix counts: 1, 1f, 2, 2f, ...
+TYPE_KEYS = L.KEYS                                     # what --groups orders: 1, 2, ..., A, B
+
+def has_types(mix):
+    """The types with at least one problem in mix (whose keys are entries or types)."""
+    return {L.type_of(k) for k, n in mix.items() if n}
 
 # ------------------------------------------------------------------
 # Groups: the headed sections of a worksheet, in the order they print.
@@ -33,23 +52,23 @@ from sheets.banks.literal import TYPE, KEYS, label, draw, original_prompts, self
 # several types make a mixed section.  An empty name means "use the default".
 # ------------------------------------------------------------------
 def default_layout(mix):
-    return [dict(types=[k], name="") for k in KEYS if mix.get(k)]
+    have = has_types(mix)
+    return [dict(types=[k], name="") for k in TYPE_KEYS if k in have]
 
 def layout(groups, mix):
     """The groups actually printed: those of `groups` that still have problems,
     then every other type with problems as its own group, in sequence order."""
-    out, seen = [], set()
+    out, seen, have = [], set(), has_types(mix)
     for g in groups or []:
-        ts = [k for k in g["types"] if mix.get(k) and k not in seen]
+        ts = [k for k in g["types"] if k in have and k not in seen]
         seen.update(ts)
         if ts:
             out.append(dict(types=ts, name=g.get("name", "")))
-    return out + [dict(types=[k], name="") for k in KEYS if mix.get(k) and k not in seen]
+    return out + [dict(types=[k], name="") for k in TYPE_KEYS if k in have and k not in seen]
 
 def default_heading(g):
     if len(g["types"]) == 1:
-        ty = TYPE[g["types"][0]]
-        return f'{label(ty)}: {ty["title"]}'
+        return L.heading(g["types"][0])
     return f'Mixed Practice ({", ".join(g["types"])})'
 
 def heading(g):
@@ -62,9 +81,10 @@ def parse_groups(tokens):
         spec, _, name = tok.partition("=")
         ks = []
         for k in spec.split("+"):
-            k = k.upper() if k.lower() in ("a", "b") else k.lower()
-            if k not in KEYS:
-                raise ValueError(f"bad group {tok!r}: use types {', '.join(KEYS)} joined by +, e.g. 3+4 or 3+4=Name")
+            e = L.entry_key(k)
+            if e is None:
+                raise ValueError(f"bad group {tok!r}: use types {', '.join(TYPE_KEYS)} joined by +, e.g. 3+4 or 3+4=Name")
+            k = L.type_of(e)
             if k in seen:
                 raise ValueError(f"type {k} is in more than one group")
             seen.add(k)
@@ -77,126 +97,46 @@ def group_token(g):
 
 
 # ------------------------------------------------------------------
-# Typst output
+# Drafting a sheet from a recipe
 # ------------------------------------------------------------------
-def problem_tx(p):
-    return f"$display({p['prompt']})$; #h(0.3em) ${p['target']}$"
-
-def worksheet(probs, version, key, grouped, title, cmd, class_name="Algebra 1", lay=None):
-    s = f"// Generated by: {cmd}\n" + head + vars_(title + (" — Answer Key" if key else ""), version, class_name)
-    s += """#let type-head(txt) = block(sticky: true, above: 1.1em, below: 0.6em,
-  text(weight: "bold", size: 12.5pt)[#txt])
-
-#first-page-header(class-name, worksheet-title, version: version)
-#v(-2.2em)
-Solve each equation for the indicated variable.
-#v(0.2em)
-
-"""
-    lay = lay or default_layout({p["type"]: 1 for p in probs})
-    groups = [[p for p in probs if p.get("group") == i] for i in range(len(lay))] if grouped else [probs]
-    n = 0
-    for i, g in enumerate(groups):
-        if not g:
-            continue
-        if grouped:
-            s += f'#type-head([{esc(heading(lay[i]))}])\n'
-        s += "#grid(\n  columns: (1fr, 1fr),\n  column-gutter: 1em,\n"
-        for p in g:
-            n += 1
-            a = f"\n    #v(0.3em) #h(1fr) #text(fill: red)[$display({p['answer']})$] #h(0.4em)" if key else ""
-            s += (f"  block(height: {TYPE[p['type']]['space']}in, question(renum: {n}, space-below: 0em)[\n"
-                  f"    {problem_tx(p)}{a}\n  ]),\n")
-        s += ")\n\n"
-    return s
-
-def slides(probs, version, grouped, title, cmd, class_name="Algebra 1", lay=None):
-    s = f"// Generated by: {cmd}\n" + slhead + vars_(title, version, class_name) + f"""
-#let slide(n, prob, answer: none) = {{
-  align(left)[#text(size: 30pt, weight: "bold")[Problem #n]]
-  v(1.5em)
-  align(center)[
-    #text(size: 34pt)[#prob]
-    #if answer != none [
-      #v(0.8em)
-      #text(fill: red, size: 34pt)[#answer]
-    ]
-  ]
-}}
-
-#let type-slide(lbl, title, look, move) = align(horizon)[
-  #text(size: 24pt, fill: luma(90))[#lbl]
-  #v(-0.3em)
-  #text(size: 40pt, weight: "bold")[#title]
-  #v(0.6em)
-  #text(size: 24pt)[*Look for:* #look]
-  #v(0.2em)
-  #text(size: 24pt)[*The move:* #move]
-]
-
-#let group-slide(heading, items) = align(horizon)[
-  #text(size: 40pt, weight: "bold")[#heading]
-  #v(0.5em)
-  #for it in items [
-    #text(size: {20 if len(lay or []) and max(len(g["types"]) for g in lay) <= 4 else 17}pt)[*#it.at(0): #it.at(1)* #h(0.4em) _Look for:_ #it.at(2) #h(0.4em) _The move:_ #it.at(3)]
-    #v(0.35em)
-  ]
-]
-
-#align(center + horizon)[
-  #text(size: 44pt, weight: "bold")[{title}]
-  #v(0.4em)
-  #text(size: 28pt)[Version {version}]
-  #v(0.2em)
-  #text(size: 24pt)[Solve each equation for the indicated variable.]
-]
-"""
-    last = None
-    lay = lay or default_layout({p["type"]: 1 for p in probs})
-    for n, p in enumerate(probs, 1):
-        if grouped and p.get("group") != last:
-            last = p.get("group")
-            g = lay[last]
-            if len(g["types"]) == 1:
-                ty = TYPE[g["types"][0]]
-                s += (f'#pagebreak()\n#type-slide([{label(ty)}], [{esc(g["name"]) or ty["title"]}], '
-                      f'[{ty["look"]}], [{ty["move"]}])\n')
-            else:
-                items = ", ".join(f'([{label(TYPE[k])}], [{TYPE[k]["title"]}], [{TYPE[k]["look"]}], [{TYPE[k]["move"]}])'
-                                  for k in g["types"])
-                s += f'#pagebreak()\n#group-slide([{esc(heading(g))}], ({items}))\n'
-        pr = f"$display({p['prompt']})$; #h(0.5em) ${p['target']}$"
-        s += f"#pagebreak()\n#slide({n}, [{pr}])\n"
-        s += f"#pagebreak()\n#slide({n}, [{pr}], answer: [$display({p['answer']})$])\n"
-    return s
-
-# ------------------------------------------------------------------
-# API (used by the command line below and by practice_tui.py)
-# ------------------------------------------------------------------
-DEFAULTS = dict(versions=1, style="mixed", shuffle=False, title="Literal Equations Practice",
-                class_name="Algebra 1",
-                out="practice", name="literal_practice")
-STYLES = ("mixed", "letters", "formulas")
+DEFAULTS = dict(versions=1, shuffle=False, title="Literal Equations Practice",
+                class_name="Algebra 1", out="practice", name="literal_practice")
 
 def parse_mix(tokens):
-    """["3:6", "A:2", "all:1"] -> {"3": 7, "A": 3, ...}; raises ValueError."""
+    """["3:6", "3f:2", "all:1"] -> {"3": 7, "3f": 2, ...}; raises ValueError."""
     mix = {}
     for tok in tokens:
         k, _, c = tok.partition(":")
-        k = k.upper() if k.lower() in ("a", "b") else k.lower()
-        if not c.isdigit() or (k not in KEYS and k != "all"):
-            raise ValueError(f"bad mix entry {tok!r}: use TYPE:COUNT with TYPE in {', '.join(KEYS)} or all")
-        for key in (KEYS if k == "all" else [k]):
+        keys = ([e for e in KEYS if not e.endswith("f")] if k.lower() == "all" else
+                [e for e in KEYS if e.endswith("f")] if k.lower() == "allf" else
+                [L.entry_key(k)] if L.entry_key(k) else None)
+        if not c.isdigit() or not keys:
+            raise ValueError(f"bad mix entry {tok!r}: use ENTRY:COUNT with ENTRY in "
+                             f"{', '.join(KEYS)}, all, or allf")
+        for key in keys:
             mix[key] = mix.get(key, 0) + int(c)
     return mix
 
-def command_for(mix, versions, seed, style="mixed", shuffle=False, title=DEFAULTS["title"],
-                out=DEFAULTS["out"], name=DEFAULTS["name"], class_name=DEFAULTS["class_name"], groups=None):
-    """The make_practice.py command line that reproduces a set exactly."""
-    c = ["python3 make_practice.py", "--mix", *[f"{k}:{n}" for k, n in mix.items() if n],
+def apply_style(mix, style):
+    """Old --style: formulas moved counts to the formulas entries; mixed and letters keep made-up ones."""
+    if style != "formulas":
+        return mix
+    out = {}
+    for k, n in mix.items():
+        f = k + "f" if not k.endswith("f") and k + "f" in ENTRY else k
+        out[f] = out.get(f, 0) + n
+    return out
+
+def ordered(mix):
+    """mix in entry order, without zero counts."""
+    return {k: mix[k] for k in KEYS if mix.get(k)}
+
+def command_for(mix, versions, seed, shuffle=False, title=DEFAULTS["title"], out=DEFAULTS["out"],
+                name=DEFAULTS["name"], class_name=DEFAULTS["class_name"], groups=None):
+    """The make_practice.py command line that drafts and writes a sheet exactly."""
+    mix = ordered(mix)
+    c = ["python3 make_practice.py", "--mix", *[f"{k}:{n}" for k, n in mix.items()],
          "--versions", str(versions), "--seed", str(seed)]
-    if style != "mixed":
-        c += ["--style", style]
     if shuffle:
         c.append("--shuffle")
     lay = layout(groups, mix)
@@ -207,58 +147,88 @@ def command_for(mix, versions, seed, style="mixed", shuffle=False, title=DEFAULT
             c += [f"--{'class' if opt == 'class_name' else opt}", shlex.quote(val)]
     return " ".join(c)
 
-def draw_versions(mix, versions, seed, style="mixed", shuffle=False, groups=None):
-    """The problem lists for each version. Depends only on these arguments.
-    Each problem gets "group": its index in layout(groups, mix) (0 when shuffled)."""
-    lay = layout(groups, mix)
-    where = {k: i for i, g in enumerate(lay) for k in g["types"]}
-    random.seed(seed)                     # the numeric checks
+def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["title"],
+          class_name=DEFAULTS["class_name"]):
+    """A new sheet from a recipe. Depends only on these arguments.
+    Each problem gets its own seed from the run's seed; sections follow
+    layout(groups, mix), and a mixed section's problems are shuffled."""
+    mix = ordered(mix)
     rng = random.Random(seed)
-    seen = original_prompts()             # don't repeat the lesson's own 50
-    sets = []
-    for _ in range(versions):
-        probs = [draw(k, rng, style, seen) for k in KEYS for _ in range(mix.get(k, 0))]
-        if shuffle:
-            rng.shuffle(probs)
-            for p in probs:
-                p["group"] = 0
-        else:
-            for p in probs:
-                p["group"] = where[p["type"]]
-            ordered = []
-            for i, g in enumerate(lay):
-                sub = [p for p in probs if p["group"] == i]
-                if len(g["types"]) > 1:          # a mixed group is shuffled after all drawing,
-                    rng.shuffle(sub)             # so a plain layout draws exactly what it always did
-                ordered += sub
-            probs = ordered
-        sets.append(probs)
-    return sets
+    seen = {BANK: set(L.initial_seen())}       # never the lesson's own 50
+    drawn = [sh.new_item(BANK, k, rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
+    sheet = sh.new_sheet(title, class_name, L.INSTRUCTIONS, versions)
+    if shuffle:
+        rng.shuffle(drawn)
+        sec = sh.new_section()
+        sec["items"] = drawn
+        sheet["sections"].append(sec)
+    else:
+        for g in layout(groups, mix):
+            sec = sh.new_section(heading(g))
+            sec["items"] = [it for it in drawn if L.type_of(it["entry"]) in g["types"]]
+            if len(g["types"]) > 1:
+                rng.shuffle(sec["items"])
+            sheet["sections"].append(sec)
+    return sh.fill_versions(sheet, seen)
 
-def build(mix, versions=1, seed=None, style="mixed", shuffle=False, title=DEFAULTS["title"],
-          out=DEFAULTS["out"], name=DEFAULTS["name"], class_name=DEFAULTS["class_name"],
-          compile=True, sets=None, groups=None):
-    """Write (and compile) worksheet, key, slides, and JSON for every version.
-    Pass sets from draw_versions() with the same arguments to skip redrawing.
-    Returns dict(seed, out, files, compiled, sets, command); raises RuntimeError."""
-    if seed is None:
-        seed = random.randrange(10**6)
-    if not any(mix.values()):
-        raise RuntimeError("no problems: every type has a count of 0")
-    sets = sets or draw_versions(mix, versions, seed, style, shuffle, groups)
-    lay = layout(groups, mix)
-    cmd = command_for(mix, versions, seed, style, shuffle, title, out, name, class_name, groups)
+# ------------------------------------------------------------------
+# Reading an older practice .json (written before sheets existed)
+# ------------------------------------------------------------------
+def from_practice_json(path):
+    """A sheet holding exactly the problems of an older NAME_vN.json and its sibling versions."""
+    path = Path(path)
+    d = json.loads(path.read_text())
+    a = parser().parse_args(shlex.split(d["command"])[2:])
+    m = re.fullmatch(r"(.*)_v\d+\.json", path.name)
+    if not m:
+        raise ValueError(f"{path.name}: expected a name like NAME_v1.json")
+    vs, v = [], 1
+    while (f := path.with_name(f"{m.group(1)}_v{v}.json")).exists():
+        vs.append(json.loads(f.read_text())["problems"])
+        v += 1
+    if not vs:
+        raise ValueError(f"{path.name}: no NAME_v1.json beside it")
+    probs = vs[0]
+    sheet = sh.new_sheet(a.title, a.class_name, L.INSTRUCTIONS, len(vs))
+    sheet["command"] = d["command"]
+    lay = layout(parse_groups(a.groups), {p["type"]: 1 for p in probs})
+    secs = [sh.new_section()] if a.shuffle else [sh.new_section(heading(g)) for g in lay]
+    for i, p in enumerate(probs):
+        e = ENTRY[p["type"] + ("f" if p.get("source") == "formula" else "")]
+        clean = lambda q: {k: q[k] for k in ("type", "prompt", "target", "answer", "source") if k in q}
+        it = dict(bank=BANK, entry=e["key"], seed=None, width=e["width"], space=e["space"],
+                  problem=clean(p), alts=[clean(other[i]) for other in vs[1:]], edited=False,
+                  status=L.check(p))
+        secs[0 if a.shuffle else p["group"]]["items"].append(it)
+    sheet["sections"] = secs
+    return sheet
+
+def read_sheet(path):
+    """A .sheet.json, or an older practice .json converted; raises ValueError or OSError."""
+    try:
+        return sh.load(path)
+    except ValueError:
+        return from_practice_json(path)
+
+# ------------------------------------------------------------------
+# Writing
+# ------------------------------------------------------------------
+def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
+    """Write NAME.sheet.json and, for every version, the worksheet, key, and
+    slides (compiled when typst is found).
+    Returns dict(out, files, compiled, sheet); raises RuntimeError."""
+    if not sh.items(sheet):
+        raise RuntimeError("no problems: the sheet is empty")
     outp = HERE / out                     # an absolute out stays absolute
     outp.mkdir(parents=True, exist_ok=True)
     typst = shutil.which("typst") if compile else None
-    written = []
-    for v, probs in enumerate(sets, 1):
-        base = f"{name}_v{v}"
-        files = {f"{base}.typ": worksheet(probs, str(v), False, not shuffle, title, cmd, class_name, lay),
-                 f"{base}_key.typ": worksheet(probs, str(v), True, not shuffle, title, cmd, class_name, lay),
-                 f"{base}_slides.typ": slides(probs, str(v), not shuffle, title, cmd, class_name, lay)}
-        (outp / f"{base}.json").write_text(json.dumps(
-            {"command": cmd, "seed": seed, "version": v, "problems": probs}, indent=1))
+    sh.save(sheet, outp / f"{name}.sheet.json")
+    written = [f"{name}.sheet.json"]
+    for v in range(sheet["versions"]):
+        base = f"{name}_v{v + 1}"
+        files = {f"{base}.typ": writer.worksheet(sheet, v),
+                 f"{base}_key.typ": writer.worksheet(sheet, v, key=True),
+                 f"{base}_slides.typ": writer.slides(sheet, v)}
         for fname, text in files.items():
             (outp / fname).write_text(text)
             if typst:
@@ -266,17 +236,18 @@ def build(mix, versions=1, seed=None, style="mixed", shuffle=False, title=DEFAUL
                 if r.returncode:
                     raise RuntimeError(f"typst failed on {fname}:\n{r.stderr}")
             written.append(fname)
-    return dict(seed=seed, out=outp, files=written, compiled=bool(typst), sets=sets, command=cmd)
+    return dict(out=outp, files=written, compiled=bool(typst), sheet=sheet)
 
 # ------------------------------------------------------------------
 # Command line
 # ------------------------------------------------------------------
-def main():
+def parser():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--mix", nargs="+", default=["all:2"], metavar="TYPE:COUNT")
+    ap.add_argument("--mix", nargs="+", default=["all:2"], metavar="ENTRY:COUNT")
     ap.add_argument("--versions", type=int, default=DEFAULTS["versions"])
     ap.add_argument("--seed", type=int)
-    ap.add_argument("--style", choices=STYLES, default=DEFAULTS["style"])
+    ap.add_argument("--style", choices=("mixed", "letters", "formulas"), default="mixed",
+                    help=argparse.SUPPRESS)           # old commands: formulas means the 3f entries
     ap.add_argument("--shuffle", action="store_true")
     ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP",
                     help="print sections in this order; join types with +, rename with =: 9 8 3+4=Warm-up 1")
@@ -284,19 +255,29 @@ def main():
     ap.add_argument("--out", default=DEFAULTS["out"])
     ap.add_argument("--name", default=DEFAULTS["name"])
     ap.add_argument("--class", dest="class_name", default=DEFAULTS["class_name"], metavar="NAME")
+    ap.add_argument("--sheet", metavar="FILE", help="print a saved .sheet.json (or older practice .json) again")
     ap.add_argument("--no-compile", action="store_true")
     ap.add_argument("--selftest", type=int, metavar="N")
-    a = ap.parse_args()
+    return ap
 
+def main():
+    a = parser().parse_args()
     seed = a.seed if a.seed is not None else random.randrange(10**6)
     if a.selftest:
         sys.exit(0 if selftest(a.selftest, seed) else 1)
     try:
-        r = build(parse_mix(a.mix), a.versions, seed, a.style, a.shuffle, a.title, a.out, a.name,
-                  a.class_name, compile=not a.no_compile, groups=parse_groups(a.groups))
-    except (ValueError, RuntimeError) as e:
+        if a.sheet:
+            sheet = read_sheet(a.sheet)
+        else:
+            mix, groups = apply_style(parse_mix(a.mix), a.style), parse_groups(a.groups)
+            sheet = draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name)
+            sheet["command"] = command_for(mix, a.versions, seed, a.shuffle, a.title, a.out, a.name,
+                                           a.class_name, groups)
+        r = build(sheet, a.out, a.name, compile=not a.no_compile)
+    except (ValueError, RuntimeError, OSError) as e:
         sys.exit(str(e))
-    print(f"seed {seed}: {sum(len(s) for s in r['sets'][:1])} problems x {a.versions} version(s) -> {r['out']}")
+    n = len(sh.items(sheet))
+    print(("" if a.sheet else f"seed {seed}: ") + f"{n} problems x {sheet['versions']} version(s) -> {r['out']}")
     print("  " + "\n  ".join(r["files"]) + ("" if r["compiled"] else "\n  (not compiled)"))
 
 if __name__ == "__main__":

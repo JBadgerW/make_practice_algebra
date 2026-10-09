@@ -2,26 +2,28 @@
 
     python3 practice_tui.py                       # start empty
     python3 practice_tui.py --mix 3:6 8:4 --seed 12
-    python3 practice_tui.py practice/literal_practice_v1.json   # reopen a set
+    python3 practice_tui.py practice/literal_practice.sheet.json   # reopen a set
 
-The left pane holds a count for every type plus the settings; the right pane
-previews exactly the problems :w will write (same seed, same draw). Press ?
-inside for the full key list.
+The left pane holds a count for every entry (each type's made-up equations,
+and its real formulas: 3 and 3f) plus the settings; the right pane previews
+exactly the sheet :w will write (same seed, same draw). Press ? inside for
+the full key list.
 """
 import copy, curses, json, os, random, re, shlex, subprocess, sys, textwrap
 from pathlib import Path
 import make_practice as mp
+from sheets import sheet as sh, banks
+from sheets.banks.literal import pretty
 
 # ------------------------------------------------------------------
 # Rows in the left pane
 # ------------------------------------------------------------------
-SETTINGS = ["versions", "seed", "style", "order", "title", "class", "name", "out"]
+SETTINGS = ["versions", "seed", "order", "title", "class", "name", "out"]
 ROWS = [("count", k) for k in mp.KEYS] + [("set", s) for s in SETTINGS]
 ORDERS = ("grouped", "shuffled")
 SETTING_HINTS = {
-    "versions": "How many different versions to write (h/l, or i to type one). Each version gets its own worksheet, key, and slides.",
+    "versions": "How many parallel versions to write (h/l, or i to type one): each problem is redrawn in its slot. Each version gets its own worksheet, key, and slides.",
     "seed": "The same seed always draws the same problems. r picks a new one; i types one in.",
-    "style": "mixed: some real formulas.  letters: made-up equations only.  formulas: real formulas wherever a type has them. (h/l)",
     "order": "grouped: problems sit under type headings.  shuffled: types interleaved, no headings. (h/l)",
     "title": "The worksheet and slide title. i to edit.",
     "class": "The class name in the worksheet and slide header (default Algebra 1). i to edit.",
@@ -45,8 +47,8 @@ gt  gT     next / prev version (3gt)
 COMMANDS                              :w         write sheets, keys, decks
 :mix 3:6 8:4 A:2  set the counts      :wq :x ZZ  write, then quit
 :mix all:2        two of every type   :q :q! ZQ  quit (:q! discards)
-:seed [N]  :versions N  :clear        :e FILE.json  reopen a written set
-:style mixed|letters|formulas         :open [sheet|key|slides] [N]
+:seed [N]  :versions N  :clear        :e FILE.sheet.json  reopen
+:mix 3f:4 allf:1  real formulas       :open [sheet|key|slides] [N]
 :set [no]shuffle [no]answers key=value    :title  :class  :name  :out  :N  :help
 
 GROUPS PANE (Tab once from types): the sections of the worksheet, in print order
@@ -57,20 +59,8 @@ i a Enter  rename the heading (empty = default)   s cc  erase, then type
 :rename TEXT  rename the group under the cursor
 
 Types 1-11 are the lesson's sequence; A and B are the special cases.
+A row ending in f (3f) draws real formulas of that type.
 Any key closes this help."""
-
-def pretty(s):
-    """Typst math -> readable terminal text: a y - b y -> ay − by, pi -> π."""
-    s = re.sub(r"\b(\d+)/(\d+) ", r"(\1/\2)", s)                     # 1/3 B h -> (1/3)B h
-    s = re.sub(r"\bsqrt\(", "√(", s)
-    s = re.sub(r"\bell\b", "ℓ", s)
-    s = re.sub(r"\bpi\b", "π", s)
-    s = re.sub(r"\^(\d)", lambda m: "⁰¹²³⁴⁵⁶⁷⁸⁹"[int(m.group(1))], s)
-    s = re.sub(r"_(\d)", lambda m: "₀₁₂₃₄₅₆₇₈₉"[int(m.group(1))], s)
-    s = re.sub(r"_([aehiklmnoprstuvx])\b",
-               lambda m: dict(zip("aehiklmnoprstuvx", "ₐₑₕᵢₖₗₘₙₒₚᵣₛₜᵤᵥₓ"))[m.group(1)], s)
-    s = re.sub(r"(?<=[\w)²³ℓπ₀-₉ₐ-ₜ]) (?=[\w(ℓπ√])", "", s)           # juxtaposition
-    return s.replace(" - ", " − ").replace("-", "−")
 
 # ------------------------------------------------------------------
 # State and editing (no curses here, so it can be driven by tests)
@@ -78,7 +68,7 @@ def pretty(s):
 class App:
     def __init__(self, mix=None, seed=None, **settings):
         self.s = dict(counts={k: 0 for k in mp.KEYS}, seed=seed if seed is not None else random.randrange(10**6),
-                      versions=mp.DEFAULTS["versions"], style=mp.DEFAULTS["style"],
+                      versions=mp.DEFAULTS["versions"],
                       shuffle=mp.DEFAULTS["shuffle"], title=mp.DEFAULTS["title"], **{"class": mp.DEFAULTS["class_name"]},
                       out=mp.DEFAULTS["out"], name=mp.DEFAULTS["name"], groups=[])
         self.s["counts"].update(mix or {})
@@ -99,7 +89,7 @@ class App:
         self.cmd_hist, self.hist_i = [], 0
         self.written = None             # snapshot at the last :w
         self.last_build = None
-        self.sets, self.sets_key = None, None
+        self.sheet, self.sheet_key = None, None
         self.quit = False
 
     # -- values --------------------------------------------------------
@@ -144,9 +134,6 @@ class App:
                 self.s["versions"] = min(26, max(1, self.s["versions"] + n))
             elif key == "seed":
                 self.s["seed"] = max(0, self.s["seed"] + n)
-            elif key == "style":
-                i = mp.STYLES.index(self.s["style"])
-                self.s["style"] = mp.STYLES[(i + n) % len(mp.STYLES)]
             elif key == "order":
                 if n % 2:
                     self.s["shuffle"] = not self.s["shuffle"]
@@ -183,11 +170,6 @@ class App:
                 self.change(lambda: self.s["counts"].__setitem__(key, n))
             else:
                 self.change(lambda: self.s.__setitem__(key, n))
-        elif key == "style":
-            hit = [x for x in mp.STYLES if x.startswith(text.lower())] if text else []
-            if len(hit) != 1:
-                return "style is mixed, letters, or formulas"
-            self.change(lambda: self.s.__setitem__("style", hit[0]))
         elif key == "order":
             hit = [x for x in ORDERS if x.startswith(text.lower())] if text else []
             if len(hit) != 1:
@@ -235,23 +217,23 @@ class App:
     # -- preview -------------------------------------------------------
     def preview_key(self):
         return (tuple(sorted(self.mix().items())), self.s["versions"], self.s["seed"],
-                self.s["style"], self.s["shuffle"], tuple(tuple(g["types"]) for g in self.layout()))
+                self.s["shuffle"], tuple((tuple(g["types"]), g["name"]) for g in self.layout()))
 
     def stale(self):
-        return self.sets_key != self.preview_key()
+        return self.sheet_key != self.preview_key()
 
     def refresh_preview(self):
         key = self.preview_key()
         if not self.total():
-            self.sets, self.sets_key = None, key
+            self.sheet, self.sheet_key = None, key
             return
         try:
-            self.sets = mp.draw_versions(self.mix(), self.s["versions"], self.s["seed"],
-                                         self.s["style"], self.s["shuffle"], self.s["groups"])
+            self.sheet = mp.draft(self.mix(), self.s["versions"], self.s["seed"],
+                                  self.s["shuffle"], self.s["groups"])
         except RuntimeError as e:
-            self.sets = None
+            self.sheet = None
             self.say(str(e), True)
-        self.sets_key = key
+        self.sheet_key = key
         self.version = min(self.version, self.s["versions"] - 1)
 
     def preview_lines(self):
@@ -260,27 +242,30 @@ class App:
             return [("No problems yet.", "head"), ("", "plain"),
                     ("Move to a type with j/k and press l to add one,", "dim"),
                     ("or type  :mix all:2  for two of every type.", "dim")]
-        if self.sets is None or self.stale():
+        if self.sheet is None or self.stale():
             return [("drawing…", "dim")]
-        probs = self.sets[self.version]
         order = "shuffled" if self.s["shuffle"] else "grouped"
         out = [(f"Version {self.version + 1}/{self.s['versions']} · {order} · "
                 f"answers {'on' if self.answers else 'off'} (za)"
                 + (" · gt next" if self.s["versions"] > 1 else ""), "dim"), ("", "plain")]
-        last, lay = None, self.layout()
-        for i, p in enumerate(probs, 1):
-            if not self.s["shuffle"] and p["group"] != last:
-                g = lay[p["group"]]
-                if last is not None:
+        i, lay = 0, self.layout()
+        for j, sec in enumerate(self.sheet["sections"]):
+            if sec["title"]:
+                if i:
                     out.append(("", "plain"))
-                special = len(g["types"]) == 1 and mp.TYPE[g["types"][0]].get("special")
-                out.append((mp.heading(g), "special" if special else "head"))
-                last = p["group"]
-            tag = "" if not self.s["shuffle"] else f"   [{p['type']}]"
-            src = "  (formula)" if p.get("source") == "formula" else ""
-            out.append((f"{i:>3}. {pretty(p['prompt'])}    for {pretty(p['target'])}{tag}{src}", "plain"))
-            if self.answers:
-                out.append((f"       {pretty(p['answer'])}", "ans"))
+                g = lay[j] if j < len(lay) else dict(types=[])
+                special = len(g["types"]) == 1 and mp.L.special(g["types"][0])
+                out.append((sec["title"], "special" if special else "head"))
+            if sec["instructions"]:
+                out.append((sec["instructions"], "dim"))
+            for it in sec["items"]:
+                i += 1
+                b, p = banks.get(it["bank"]), sh.problem(it, self.version)
+                tag = f"   [{it['entry']}]" if self.s["shuffle"] else ""
+                src = "  (formula)" if p.get("source") == "formula" else ""
+                out.append((f"{i:>3}. {b.text(p)}{tag}{src}", "plain"))
+                if self.answers:
+                    out.append((f"       {b.answer_text(p)}", "ans"))
         return out
 
     # -- files ---------------------------------------------------------
@@ -289,15 +274,20 @@ class App:
             return self.say("E: nothing to write: every count is 0", True) or False
         if self.stale():
             self.refresh_preview()
+        if self.sheet is None:
+            return self.say(self.msg if self.err else "E: nothing to write", True) or False
+        sheet = copy.deepcopy(self.sheet)
+        sheet.update(title=self.s["title"], class_name=self.s["class"],
+                     command=mp.command_for(self.mix(), self.s["versions"], self.s["seed"], self.s["shuffle"],
+                                            self.s["title"], self.s["out"], self.s["name"], self.s["class"],
+                                            self.s["groups"]))
         try:
-            r = mp.build(self.mix(), self.s["versions"], self.s["seed"], self.s["style"],
-                         self.s["shuffle"], self.s["title"], self.s["out"], self.s["name"], self.s["class"],
-                         sets=self.sets, groups=self.s["groups"])
+            r = mp.build(sheet, self.s["out"], self.s["name"])
         except (RuntimeError, OSError) as e:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
         self.written, self.last_build = self.snapshot(), r
-        n = len(r["files"]) + self.s["versions"]           # plus one JSON per version
+        n = len(r["files"])
         try:
             where = r["out"].relative_to(Path.cwd())
         except ValueError:
@@ -317,8 +307,8 @@ class App:
             else:
                 return self.say("usage: :open [sheet|key|slides] [version]", True)
         b = self.last_build
-        if not 1 <= v <= len(b["sets"]):
-            return self.say(f"E: there are {len(b['sets'])} versions", True)
+        if not 1 <= v <= b["sheet"]["versions"]:
+            return self.say(f"E: there are {b['sheet']['versions']} versions", True)
         suffix = {"sheet": "", "key": "_key", "slides": "_slides"}[what]
         f = b["out"] / f"{self.s['name']}_v{v}{suffix}.{'pdf' if b['compiled'] else 'typ'}"
         try:
@@ -329,20 +319,26 @@ class App:
             self.say(f"E: {e}", True)
 
     def load(self, path):
+        """Reopen the settings a .sheet.json (or an older practice .json) was made with."""
         try:
-            cmd = json.loads(Path(path).read_text())["command"]
+            d = json.loads(Path(path).read_text())
+            cmd = d["command"]
             a = parse_args(shlex.split(cmd)[2:])
-            mix = mp.parse_mix(a.mix)
+            mix = mp.apply_style(mp.parse_mix(a.mix), a.style)
             groups = mp.parse_groups(a.groups)
-        except (OSError, ValueError, KeyError, SystemExit) as e:
+        except (OSError, ValueError, KeyError, TypeError, SystemExit) as e:
             return self.say(f"E: can't read settings from {path}: {e}", True)
         def go():
             self.s["counts"] = {k: mix.get(k, 0) for k in mp.KEYS}
-            self.s.update(seed=a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle,
+            self.s.update(seed=a.seed, versions=a.versions, shuffle=a.shuffle,
                           title=a.title, out=a.out, name=a.name, groups=groups, **{"class": a.class_name})
         self.change(go)
         self.written = self.snapshot()
-        self.say(f'"{path}" loaded: {self.total()} problems, seed {a.seed}')
+        if d.get("format") == sh.FORMAT:
+            self.say(f'"{path}" loaded: {self.total()} problems, seed {a.seed}')
+        else:
+            self.say(f'"{path}" is an older file: its settings are loaded, but the problems are drawn anew '
+                     f'(make_practice.py --sheet FILE reprints the old ones)')
 
     # -- ex commands -----------------------------------------------------
     def ex(self, line):
@@ -386,7 +382,7 @@ class App:
             self.change(lambda: self.s.__setitem__("counts", {k: 0 for k in mp.KEYS}))
         elif cmd == "seed" and not rest:
             self.reroll()
-        elif cmd in ("seed", "versions", "style", "title", "class", "name", "out", "order"):
+        elif cmd in ("seed", "versions", "title", "class", "name", "out", "order"):
             err = self.set_value(rest, ROWS.index(("set", cmd)))
             if err:
                 self.say(f"E: {err}", True)
@@ -543,7 +539,8 @@ class App:
         for i in range(1, n + 1):
             r = (self.row + step * i) % n
             kind, key = ROWS[r]
-            text = (f"{mp.label(mp.TYPE[key])} {mp.TYPE[key]['title']}" if kind == "count" else key).lower()
+            text = (f"{key} {mp.label(mp.TYPE[mp.L.type_of(key)])} {mp.ENTRY[key]['title']}"
+                    if kind == "count" else key).lower()
             if q.lower() in text:
                 self.row = r
                 return self.say(f"/{q}")
@@ -817,7 +814,8 @@ class Screen:
             self.put(2, 1, "no problems yet: add some on the types pane", st["dim"])
         cur = app.grow_at()
         top = max(0, min(cur - (body - 3) // 2, len(lay) - (body - 3)))
-        counts = {i: sum(app.s["counts"][k] for k in g["types"]) for i, g in enumerate(lay)}
+        counts = {i: sum(n for k, n in app.s["counts"].items() if mp.L.type_of(k) in g["types"])
+                  for i, g in enumerate(lay)}
         for y, (i, g) in enumerate(list(enumerate(lay))[top:top + body - 3], 3):
             held = app.held is not None and app.held in g["types"]
             text = f" {i + 1:>2}{'▸' if held else ' '} {mp.heading(g)}"
@@ -853,9 +851,10 @@ class Screen:
                 continue
             kind, key = ROWS[i]
             if kind == "count":
-                ty = mp.TYPE[key]
+                ty = mp.TYPE[mp.L.type_of(key)]
                 n = app.s["counts"][key]
-                text = f" {key:>2}  {ty['title']}"
+                text = (f" {key:>3}    real formulas" if mp.ENTRY[key]["kind"] == "formulas"
+                        else f" {key:>3}  {ty['title']}")
                 val = str(n) if n else "·"
                 attr_v = st["count"] if n else st["dim"]
                 attr_t = st["special"] if ty.get("special") else 0
@@ -877,7 +876,7 @@ class Screen:
         if free >= 3:
             kind, key = ROWS[app.row]
             if kind == "count":
-                ty = mp.TYPE[key]
+                ty = mp.TYPE[mp.L.type_of(key)]
                 hint = f"Look for: {ty['look']}  The move: {ty['move']}"
             else:
                 hint = SETTING_HINTS[key]
@@ -892,7 +891,7 @@ class Screen:
         self.put(h - 2, 0, " " * (w - 1), curses.A_REVERSE)
         self.put(h - 2, 0, f" {mode} ", st[app.mode if app.mode in st else "normal"])
         info = (f" {app.total()} problem{'s' * (app.total() != 1)} × {app.s['versions']} "
-                f"version{'s' * (app.s['versions'] != 1)}  ·  seed {app.s['seed']}  ·  {app.s['style']}"
+                f"version{'s' * (app.s['versions'] != 1)}  ·  seed {app.s['seed']}"
                 f"{'  ·  [+]' if app.dirty() else ''}")
         self.put(h - 2, len(mode) + 2, info, curses.A_REVERSE)
         right = (f"{app.count}{app.pending.replace(chr(23), '^W')}  "
@@ -964,11 +963,12 @@ def run(scr, app):
 def parse_args(argv):
     import argparse
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("file", nargs="?", help="a .json written by make_practice.py to reopen")
+    ap.add_argument("file", nargs="?", help="a .sheet.json written by make_practice.py to reopen")
     ap.add_argument("--mix", nargs="+", default=[], metavar="TYPE:COUNT")
     ap.add_argument("--versions", type=int, default=mp.DEFAULTS["versions"])
     ap.add_argument("--seed", type=int)
-    ap.add_argument("--style", choices=mp.STYLES, default=mp.DEFAULTS["style"])
+    ap.add_argument("--style", choices=("mixed", "letters", "formulas"), default="mixed",
+                    help=argparse.SUPPRESS)           # old files: formulas means the 3f entries
     ap.add_argument("--shuffle", action="store_true")
     ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP")
     ap.add_argument("--title", default=mp.DEFAULTS["title"])
@@ -980,11 +980,11 @@ def parse_args(argv):
 def main():
     a = parse_args(sys.argv[1:])
     try:
-        mix = mp.parse_mix(a.mix)
+        mix = mp.apply_style(mp.parse_mix(a.mix), a.style)
         groups = mp.parse_groups(a.groups)
     except ValueError as e:
         sys.exit(str(e))
-    app = App(mix, a.seed, versions=a.versions, style=a.style, shuffle=a.shuffle, groups=groups,
+    app = App(mix, a.seed, versions=a.versions, shuffle=a.shuffle, groups=groups,
               title=a.title, out=a.out, name=a.name, **{"class": a.class_name})
     if a.file:
         app.load(a.file)
@@ -992,8 +992,8 @@ def main():
     os.environ.setdefault("ESCDELAY", "25")      # Esc should feel instant
     curses.wrapper(run, app)
     if app.last_build:
-        print(f"last written: {app.last_build['out']}  (seed {app.last_build['seed']})")
-        print(f"reproduce with: {app.last_build['command']}")
+        print(f"last written: {app.last_build['out']}  (seed {app.s['seed']})")
+        print(f"reproduce with: {app.last_build['sheet']['command']}")
 
 if __name__ == "__main__":
     main()

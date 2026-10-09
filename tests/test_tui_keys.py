@@ -9,9 +9,10 @@ a = T.App(seed=12)
 def keys(s):
     for c in s: a.key(c)
 def st(): return {k:v for k,v in a.s["counts"].items() if v}
-keys("2j"); assert a.row == 2
+keys("4j"); assert a.row == 4
 keys("3l"); assert st() == {"3": 3}, st()
-keys("j6l"); assert st() == {"3": 3, "4": 6}
+keys("2j6l"); assert st() == {"3": 3, "4": 6}
+keys("k2l"); assert st() == {"3": 3, "3f": 2, "4": 6}; keys("x"); assert "3f" not in st(); keys("j")
 keys("h"); assert a.s["counts"]["4"] == 5
 keys("."); assert a.s["counts"]["4"] == 4, "repeat"
 keys("u"); assert a.s["counts"]["4"] == 5, "undo"
@@ -22,14 +23,17 @@ keys("gg"); assert a.row == 0
 keys("G"); assert a.row == len(T.ROWS)-1
 keys("5G"); assert a.row == 4
 keys("/square\n"); assert T.ROWS[a.row] == ("count","B"), a.row
+keys("n"); assert T.ROWS[a.row] == ("count","Bf"), a.row
 keys("/seed\n"); assert T.ROWS[a.row] == ("set","seed")
 keys("cc99\n"); assert a.s["seed"] == 99
 keys("k"); keys("i\x153\n"); assert a.s["versions"] == 3, a.s["versions"]
-keys("jjl"); assert a.s["style"] == "letters"
-keys("jl"); assert a.s["shuffle"]
+keys("jjl"); assert a.s["shuffle"]
 keys("j"); keys("cc\n"); assert a.err and "empty" in a.msg, a.msg
 keys(":mix 1:2 A:1\n"); assert st() == {"1": 2, "A": 1}
-keys(":set noshuffle style=formulas\n"); assert a.s["style"]=="formulas" and not a.s["shuffle"], a.msg
+keys(":set noshuffle\n"); assert not a.s["shuffle"], a.msg
+keys(":set style=formulas\n"); assert a.err and "E518" in a.msg, a.msg
+keys(":mix 1:2 A:1 3f:1\n"); assert st() == {"1": 2, "A": 1, "3f": 1}
+keys(":mix 1:2 A:1\n")
 keys(":set title=Quiz 3 Review\n"); assert a.s["title"] == "Quiz 3 Review"
 assert a.s["class"] == "Algebra 1"
 keys(":class Geometry\n"); assert a.s["class"] == "Geometry"
@@ -38,15 +42,19 @@ keys(":versions 2\n"); assert a.s["versions"] == 2
 keys(":bogus\n"); assert a.msg.startswith("E492")
 keys(":mix 12:1\n"); assert a.err
 keys(":q\n"); assert a.msg.startswith("E37") and not a.quit
-a.refresh_preview(); assert len(a.sets) == 2 and len(a.sets[0]) == 3
+a.refresh_preview(); assert a.sheet["versions"] == 2 and len(T.sh.items(a.sheet)) == 3
+assert all(len(it["alts"]) == 1 for it in T.sh.items(a.sheet)), "parallel versions"
+assert [T.mp.L.type_of(it["entry"]) for it in T.sh.items(a.sheet)] == ["1", "1", "A"]
 keys("za"); assert a.answers
 keys("gt"); assert a.version == 1
 keys("gt"); assert a.version == 0
 keys("2gt"); assert a.version == 1
 keys(f":out {OUT}\n")
 keys(":w\n"); assert not a.err and not a.dirty()
-assert a.sets == a.last_build["sets"], "preview must equal what :w wrote"
-b = T.App(); b.load(str(a.last_build["out"] / "literal_practice_v1.json")); assert b.s == a.s, (b.s, a.s)
+written = T.sh.load(a.last_build["out"] / "literal_practice.sheet.json")
+assert written["sections"] == a.sheet["sections"], "preview must equal what :w wrote"
+assert written["title"] == "Quiz 3 Review" and written["class_name"] == "Pre Algebra"
+b = T.App(); b.load(str(a.last_build["out"] / "literal_practice.sheet.json")); assert b.s == a.s, (b.s, a.s)
 keys("D"); assert a.total()==0; keys("u"); assert a.total()==3
 keys(":q\n"); assert a.quit
 assert T.pretty("V = 1/3 pi r^2 h") == "V = (1/3)πr²h"
@@ -84,16 +92,19 @@ gk(":groups 3 3\n"); assert g.err and "more than one" in g.msg
 gk(":groups\n"); assert order() == ["3", "4", "8", "9"]
 gk(":groups 9 8 3+4=Easy\n")
 g.refresh_preview()
-assert [p["group"] for p in g.sets[0]] == [0, 1, 2, 2], g.sets[0]
-assert sorted({p["group"] for p in g.sets[0]}) == [0, 1, 2], g.sets[0]
-assert [p["type"] for p in g.sets[0]][:2] == ["9", "8"]
+secs = g.sheet["sections"]
+assert [s["title"] for s in secs] == [mp.L.heading("9"), mp.L.heading("8"), "Easy"], [s["title"] for s in secs]
+assert [len(s["items"]) for s in secs] == [1, 1, 2]
+assert sorted(it["entry"] for it in secs[2]["items"]) == ["3", "4"]
 gk(f":out {OUT}\n:w\n"); assert not g.err, g.msg
-cmd = g.last_build["command"]; assert "--groups 9 8 3+4=Easy" in cmd, cmd
-h = T.App(); h.load(str(g.last_build["out"] / "literal_practice_v1.json"))
+cmd = g.last_build["sheet"]["command"]; assert "--groups 9 8 3+4=Easy" in cmd, cmd
+h = T.App(); h.load(str(g.last_build["out"] / "literal_practice.sheet.json"))
 assert h.s["groups"] == g.layout(), (h.s["groups"], g.layout())
 mixc = {"3": 2, "4": 2}
-a1 = mp.draw_versions(mixc, 1, 7)[0]; a2 = mp.draw_versions(mixc, 1, 7, groups=[])[0]
-assert a1 == a2, "default layout draws the same as before groups existed"
+a1 = mp.draft(mixc, 1, 7); a2 = mp.draft(mixc, 1, 7, groups=[])
+assert a1 == a2, "no groups means the default layout"
+assert mp.draft(mixc, 2, 7)["sections"][0]["items"][0]["problem"] == a1["sections"][0]["items"][0]["problem"], \
+    "adding versions doesn't change version 1"
 assert mp.layout(mp.parse_groups(["3+4"]), {"3": 1}) == [dict(types=["3"], name="")]
 print("group tests passed")
 print("all key tests passed")
