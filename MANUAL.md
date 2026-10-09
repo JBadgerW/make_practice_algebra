@@ -2,7 +2,7 @@
 
 1. [The lesson set](#1-the-lesson-set)
 2. [Making practice sets from the command line](#2-making-practice-sets-from-the-command-line)
-3. [The terminal app](#3-the-terminal-app)
+3. [mathsheet, the terminal app](#3-mathsheet-the-terminal-app)
 4. [What gets written](#4-what-gets-written)
 5. [Adding problems](#5-adding-problems)
 6. [Checking your changes](#6-checking-your-changes)
@@ -132,12 +132,12 @@ and no equation has a common factor that would turn it into a Type 4. In the
 terminal app, `i` edits a system as `eq1 ; eq2 ; eq3` (solved again), and `A`
 takes `(x, y, z)`, `no solution`, or `infinitely many solutions`.
 
-## 3. The terminal app
+## 3. mathsheet, the terminal app
 
 ```sh
-python3 practice_tui.py                                      # start empty
-python3 practice_tui.py --mix 3:6 8:4 --seed 12              # start from a draft
-python3 practice_tui.py practice/literal_practice.sheet.json # open a sheet
+python3 mathsheet.py                                      # start empty
+python3 mathsheet.py --mix 3:6 8:4 --seed 12              # start from a draft
+python3 mathsheet.py practice/literal_practice.sheet.json # open a sheet
 ```
 
 It takes the same drafting options as `make_practice.py` (`--mix`,
@@ -379,7 +379,7 @@ Rules that keep templates honest:
 
 ```sh
 python3 make_practice.py --selftest 100     # every type of both families and every formula
-python3 tests/test_tui_keys.py              # TUI key handling
+python3 tests/test_mathsheet.py              # TUI key handling
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 python3 gen_sequence.py                     # lesson set: answers and worked steps
 ```

@@ -43,11 +43,11 @@ their classroom. Ease of building comes second.
 4. `make_practice.py`, read top to bottom:
    - `draw_versions`, `build`: the API;
    - `worksheet`, `slides`: Typst output.
-5. `practice_tui.py`: `App` holds all the state and key handling, and has no
+5. `mathsheet.py`: `App` holds all the state and key handling, and has no
    curses in it. `Screen` draws. `run` is the loop.
 6. `gen_sequence.py`: the fixed lesson set, with hand-written worked steps
    that are checked step by step.
-7. `tests/`: `test_tui_keys.py` and `screen_test.py`.
+7. `tests/`: `test_mathsheet.py` and `screen_test.py`.
 
 Then run everything in section 7 to record a baseline before you change
 anything.
@@ -98,8 +98,8 @@ anything.
 | `TYPE[...]["space"]` | Work space per type | Keep; every type gives a work-space height |
 | `original_prompts()` reads `lesson_1-4_literal_seq_bank.json` | One lesson's bank | Per-family exclusion list (optional) |
 | `FORMULAS`, `--style mixed/letters/formulas` | A pool of real-world formulas | Optional per-family pools; the family declares its styles |
-| `practice_tui.pretty()`, `"for {target}"`, title bar, help text "Types 1-11…" | Literal-equation display | `family.prompt_text(p)`, `answer_text(p)`; help built from the family list |
-| `practice_tui` hints: "Look for / The move" | Per-type teaching text | Keep as optional type fields |
+| `mathsheet.pretty()`, `"for {target}"`, title bar, help text "Types 1-11…" | Literal-equation display | `family.prompt_text(p)`, `answer_text(p)`; help built from the family list |
+| `mathsheet` hints: "Look for / The move" | Per-type teaching text | Keep as optional type fields |
 | `DEFAULTS["title"]`, `name` | Literal-equation names | Per family, or set by the user |
 
 ## 5. Target design
@@ -200,7 +200,7 @@ samples. Expect to adjust.
 shared Typst code. Compile them and look at the PDFs (render pages to PNG
 and view them). In the TUI, add a family list above the types (or one tree
 of family → types) and make the help text and hints family-aware. Add tests
-alongside `tests/test_tui_keys.py`. → **Checkpoint:** a sample set of each
+alongside `tests/test_mathsheet.py`. → **Checkpoint:** a sample set of each
 output.
 
 **Phase 5: Tests and mixed sets** (when asked): parallel versions, points,
@@ -210,7 +210,7 @@ sections per family, multiple choice.
 
 ```sh
 python3 make_practice.py --selftest 100     # every type of every family + formula pools
-python3 tests/test_tui_keys.py              # TUI state and keys, no terminal
+python3 tests/test_mathsheet.py              # TUI state and keys, no terminal
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
 python3 gen_sequence.py                     # lesson set: answers and worked steps

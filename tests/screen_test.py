@@ -1,4 +1,4 @@
-"""Run practice_tui.py in a pseudo-terminal, type keys, and print the screen.
+"""Run mathsheet.py in a pseudo-terminal, type keys, and print the screen.
 
 Needs the pyte terminal emulator (pip install pyte). Run from literal_sequence/:
     python3 tests/screen_test.py 80 24 ":mix all:1\\r" wait3 @ "za" wait1 @
@@ -13,7 +13,7 @@ cols, rows, steps = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3:]
 pid, fd = pty.fork()
 if pid == 0:
     os.environ["TERM"] = os.environ.get("TT", "xterm-256color")
-    os.execvp("python3", ["python3", "practice_tui.py", "--seed", "12"])
+    os.execvp("python3", ["python3", "mathsheet.py", "--seed", "12"])
 fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
 class Screen(pyte.Screen):
     """pyte lacks SU/SD (CSI S, CSI T), which ncurses uses on xterm to shift lines."""

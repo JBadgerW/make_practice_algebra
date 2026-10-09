@@ -16,7 +16,7 @@ Examples (run from this folder):
     python3 make_practice.py --mix 1f:6 3f:4         # real formulas
     python3 make_practice.py --sheet practice/literal_practice.sheet.json   # print a saved sheet again
     python3 make_practice.py --selftest 200        # stress-test every type
-    python3 practice_tui.py                        # the same, interactively (vim keys)
+    python3 mathsheet.py                        # the same, interactively (vim keys)
 
 --mix ENTRY:COUNT ... entries are 1-11, A, B (made-up equations), 1f-11f, Af, Bf
                       (real formulas), all (every made-up entry), allf (every

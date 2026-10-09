@@ -149,7 +149,7 @@ and `:w` still use the same data and the same functions.
 3. ✅ **Preview becomes the editor.** Rendering, cursor, rerolls, width and
    space, sections, inline editing, tests.
    Done as: `sheets/edit.py` (every change, no UI) and a rewritten
-   `practice_tui.py`. Departures from the plan above: `l` adds to the type's
+   `mathsheet.py`. Departures from the plan above: `l` adds to the type's
    own section and `L` adds at the sheet cursor; `yy` + `p` draws new
    problems rather than duplicating; the groups pane is gone (`:groups`,
    `:join`, `J`/`K` on titles, and `zM` cover it).

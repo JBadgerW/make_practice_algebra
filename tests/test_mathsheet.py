@@ -1,11 +1,11 @@
-"""Drive practice_tui.App with scripted keys (no terminal needed).
-Run from the project folder:  python3 tests/test_tui_keys.py"""
+"""Drive mathsheet.App with scripted keys (no terminal needed).
+Run from the project folder:  python3 tests/test_mathsheet.py"""
 import sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import practice_tui as T, make_practice as mp
+import mathsheet as T, make_practice as mp
 from sheets import sheet as sh, edit as E
-OUT = tempfile.mkdtemp(prefix="practice_tui_test_")
+OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
 
 def driver(app):
     def keys(s):

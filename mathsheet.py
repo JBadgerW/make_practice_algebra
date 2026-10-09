@@ -1,8 +1,8 @@
-"""Terminal worksheet editor, driven with vim keys.
+"""mathsheet: a terminal worksheet editor, driven with vim keys.
 
-    python3 practice_tui.py                       # start empty
-    python3 practice_tui.py --mix 3:6 8:4 --seed 12
-    python3 practice_tui.py practice/literal_practice.sheet.json   # reopen a sheet
+    python3 mathsheet.py                       # start empty
+    python3 mathsheet.py --mix 3:6 8:4 --seed 12
+    python3 mathsheet.py practice/literal_practice.sheet.json   # reopen a sheet
 
 The left pane is a tree of problem banks: the literal-equation generator
 (each type's made-up equations and its real formulas: 3 and 3f) and the
@@ -1225,7 +1225,7 @@ class Screen:
         body = h - 3                                   # title, status, command lines
         on_sheet = app.focus == "preview"
         LEFT_W = 0 if on_sheet else max(40, min(55, w - 50))
-        self.put(0, 0, " Worksheet: " + app.sheet["title"], st["head"])
+        self.put(0, 0, " mathsheet · " + app.sheet["title"], st["head"])
         self.put(0, w - 12, "? for help", st["dim"])
         if LEFT_W:
             self.types_view(app, body, LEFT_W)
