@@ -23,9 +23,10 @@ from sheets import sheet as sh, edit as E, banks, library
 from sheets.banks.literal import pretty
 
 # ------------------------------------------------------------------
-# Rows in the left pane: ("course", None) on top, ("bank", name),
-# ("count", (bank, entry)), ("problem", (bank, id)) under an open type of a
-# fixed bank, ("set", key)
+# Rows in the left pane: ("course", None) on top; ("seq", name) and its
+# ("step", (name, n)), with ("example", (name, n, bank, id)) under an open
+# step; ("bank", name), ("count", (bank, entry)), ("problem", (bank, id))
+# under an open type of a fixed bank; ("set", key)
 # ------------------------------------------------------------------
 SETTINGS = ["versions", "title", "class", "instructions", "name", "out"]
 COURSE_HINT = ("Which course's banks to show, grouped by unit: h/l step through the courses "
@@ -49,7 +50,7 @@ h - ^X  remove the last one         r 3r R      reroll it / 3 / section
 x dd  remove all   D  clear sheet   W           half / full width
 i a cc  type a count or a setting   + -         work space ±0.25in
 r  reroll all of this type          i  A        edit problem / answer
-o  open a bank or a type's list     dd yy p P   cut, copy (redraws), paste
+o  open a bank, sequence, or list   dd yy p P   cut, copy (redraws), paste
 EVERYWHERE                          J K         move problem or section
 u ^R .   undo, redo, repeat         o O  cS cI  new section; title, instr.
 Tab ^W w switch panes               zM zR       fold to sections / unfold
@@ -85,8 +86,8 @@ class App:
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         self.undo, self.redo = [], []
         self.row, self.focus, self.version = 2, "left", 0
-        self.open = {mp.BANK}           # banks open in the tree
-        self.open_types = set()         # (bank, type) of fixed banks showing their problems
+        self.open = {mp.BANK} | set(library.current().sequences)    # banks and sequences open in the tree
+        self.open_types = set()         # (bank, type) showing its problems; (sequence, step) its examples
         self.cur = SHEET
         self.anchor = None              # where v was pressed: a selection runs from here to the cursor
         self.last_sel = None            # (anchor, cursor) of the last selection, for gv
@@ -129,7 +130,15 @@ class App:
     def rows(self, everything=False):
         """The left pane's rows, as shown (or with every bank and type open)."""
         out, lib = [("course", None)], library.current()
-        for name in [n for _, ns in lib.view(self.course) for n in ns]:
+        for name in [n for _, ns in lib.view(self.course, sequences=True) for n in ns]:
+            if name in lib.sequences:
+                out.append(("seq", name))
+                if everything or name in self.open:
+                    for st in lib.sequences[name].steps:
+                        out.append(("step", (name, st["n"])))
+                        if everything or (name, st["n"]) in self.open_types:
+                            out += [("example", (name, st["n"], b, pid)) for b, pid in self.examples(st)]
+                continue
             out.append(("bank", name))
             if everything or name in self.open:
                 b, keep = banks.get(name), lib.types_in(name, self.course)
@@ -141,13 +150,62 @@ class App:
                         out += [("problem", (name, p["id"])) for p in b.PROBLEMS if p["type"] == e["key"]]
         return out + [("set", k) for k in SETTINGS]
 
+    def examples(self, st):
+        """A step's pinned examples that the library has, as (bank, id)."""
+        lib = library.current()
+        return [] if st["missing"] else \
+            [(b, pid) for b, pid in st["examples"] if lib.has(b) and pid in getattr(lib.get(b), "PROBLEM", {})]
+
+    def step(self, key):
+        """The step a ("step", (sequence, n)) row is."""
+        return library.current().sequence(key[0]).steps[key[1] - 1]
+
+    def act(self, row=None):
+        """A row as the bank row it stands for: a sequence's step acts as its
+        entry's row, a pinned example as its problem's, and a step that can't
+        draw is ("missing", why)."""
+        kind, key = self.rid(row)
+        if kind == "step":
+            st = self.step(key)
+            return ("missing", f"step {st['n']}: {st['missing']}") if st["missing"] else ("count", (st["bank"], st["entry"]))
+        if kind == "example":
+            return "problem", key[2:]
+        return kind, key
+
+    def step_items(self, st):
+        """Is a sheet item this step's: of its entry, or one of its pinned examples
+        (found as where_problem finds a fixed problem)?"""
+        if st["missing"]:
+            return lambda it: False
+        pinned = set()
+        for b, pid in self.examples(st):
+            x = banks.get(b)
+            pinned.add((x.FAMILY, x.seen_key(x.problem(pid))))
+        def mine(it):
+            if (it["bank"], it["entry"]) == (st["bank"], st["entry"]):
+                return True
+            ib = banks.get(it["bank"])
+            return not it["edited"] and (ib.FAMILY, ib.seen_key(it["problem"])) in pinned
+        return mine
+
+    def seq_items(self, name):
+        """Is a sheet item one of this sequence's (see step_items)?"""
+        steps = [self.step_items(st) for st in library.current().sequence(name).steps]
+        return lambda it: any(f(it) for f in steps)
+
     def rid(self, row=None):
         """The id of a row (default: the cursor's)."""
         rows = self.rows()
         return rows[min(self.row if row is None else row, len(rows) - 1)]
 
     def value(self, row):
-        kind, key = self.rid(row)
+        if self.rid(row)[0] == "step":
+            return sum(map(self.step_items(self.step(self.rid(row)[1])), sh.items(self.sheet)))
+        kind, key = self.act(row)
+        if kind == "missing":
+            return 0
+        if kind == "seq":
+            return sum(map(self.seq_items(key), sh.items(self.sheet)))
         if kind == "course":
             return self.course or "All banks"
         if kind == "bank":
@@ -162,8 +220,14 @@ class App:
     def toggle_open(self, rid=None):
         """o: open or close the bank, or the fixed bank's type, under the cursor."""
         kind, key = rid or self.rid()
-        if kind == "bank":
+        if kind in ("bank", "seq"):
             self.open ^= {key}
+        elif kind in ("step", "example"):
+            st = self.step(key)
+            if not self.examples(st):
+                return self.say(f"step {st['n']} has no pinned examples: l draws one of {st['spec']}", True)
+            self.open_types ^= {key[:2]}
+            rid = ("step", key[:2])
         elif kind in ("count", "problem"):
             bank = key[0]
             b = banks.get(bank)
@@ -179,12 +243,23 @@ class App:
 
     def fold_banks(self, close):
         here = self.rid()
-        self.open = set() if close else set(banks.names())
+        self.open = set() if close else set(banks.names()) | set(library.current().sequences)
         if close:
             self.open_types = set()
         rows = self.rows()
-        bank = here[1] if here[0] == "bank" else here[1][0] if here[0] != "set" else None
-        self.row = rows.index(here) if here in rows else rows.index(("bank", bank)) if bank else len(rows) - 1
+        parent = self.parent(here)
+        self.row = rows.index(here) if here in rows else rows.index(parent) if parent in rows else 0
+
+    def parent(self, rid):
+        """The bank or sequence row a row belongs to (itself, for one), or None."""
+        kind, key = rid
+        if kind in ("bank", "seq"):
+            return rid
+        if kind in ("count", "problem"):
+            return ("bank", key[0])
+        if kind in ("step", "example"):
+            return ("seq", key[0])
+        return None
 
     def dirty(self):
         return self.written != self.snapshot()
@@ -223,7 +298,9 @@ class App:
 
     # -- the types pane --------------------------------------------------
     def bump(self, n, row=None):
-        kind, key = self.rid(row)
+        kind, key = self.act(row)
+        if kind == "missing":
+            return self.say(key, True)
         if kind == "course":
             titles = [c["title"] for c in library.current().courses] + [None]
             self.set_course(titles[(titles.index(self.course) + n) % len(titles)])
@@ -239,6 +316,8 @@ class App:
                 self.change(lambda: E.remove_problem(self.sheet, *key))
         elif kind == "bank":
             return self.say("o opens the bank; l on a type adds a problem", True)
+        elif kind == "seq":
+            return self.say("o opens the sequence; l on a step adds a problem of it", True)
         elif key == "versions":
             self.set_versions(self.sheet["versions"] + n)
         else:
@@ -309,8 +388,17 @@ class App:
         self.version = min(self.version, n - 1)
 
     def zero(self, row=None):
-        kind, key = self.rid(row)
-        if kind == "count":
+        kind, key = self.act(row)
+        if kind == "missing":
+            return self.say(key, True)
+        if kind == "seq":
+            mine = self.seq_items(key)
+            def go():
+                for sec in self.sheet["sections"]:
+                    sec["items"] = [it for it in sec["items"] if not mine(it)]
+                E.drop_empty_auto(self.sheet)
+            self.change(go)
+        elif kind == "count":
             self.change(lambda: E.remove_last(self.sheet, *key, 10**6))
         elif kind == "problem":
             self.change(lambda: E.remove_problem(self.sheet, *key))
@@ -325,11 +413,13 @@ class App:
 
     def set_value(self, text, row=None):
         """Apply typed text to a row; returns an error string or None."""
-        kind, key = self.rid(row)
+        kind, key = self.act(row)
         text = text.strip()
+        if kind == "missing":
+            return key
         if kind == "course":
             return self.set_course(text)
-        if kind in ("bank", "problem"):
+        if kind in ("bank", "seq", "problem"):
             return "type a count on a type's row"
         if kind == "count" or key == "versions":
             if not text.isdigit():
@@ -357,7 +447,9 @@ class App:
 
     def add_here(self, n):
         """L: add n of the type (or the one problem) under the tree cursor where the sheet cursor is."""
-        kind, key = self.rid()
+        kind, key = self.act()
+        if kind == "missing":
+            return self.say(key, True)
         if kind not in ("count", "problem"):
             return self.say("L adds the type or problem under the cursor where the sheet cursor is", True)
         def go():
@@ -375,10 +467,13 @@ class App:
         self.last_change = lambda: self.add_here(n)
 
     def reroll_entry(self):
-        kind, key = self.rid()
-        if kind not in ("count", "bank"):
+        kind, key = self.act()
+        if kind == "missing":
+            return self.say(key, True)
+        if kind not in ("count", "bank", "seq"):
             return
-        mine = lambda it: it["bank"] == key if kind == "bank" else (it["bank"], it["entry"]) == key
+        mine = self.seq_items(key) if kind == "seq" else \
+            (lambda it: it["bank"] == key) if kind == "bank" else (lambda it: (it["bank"], it["entry"]) == key)
         ps = [p for p in E.positions(self.sheet) if mine(self.sheet["sections"][p[0]]["items"][p[1]])]
         if self.change(lambda: E.reroll(self.sheet, ps, self.seeds())):
             self.say(f"{len(ps)} rerolled")
@@ -1054,10 +1149,13 @@ class App:
                 rid = rows[(i + step * k) % len(rows)]
                 if ql in self.row_text(rid).lower():
                     kind, key = rid
-                    if kind != "set":
-                        self.open.add(key if kind == "bank" else key[0])
+                    parent = self.parent(rid)
+                    if parent:
+                        self.open.add(parent[1])
                     if kind == "problem":
                         self.open_types.add((key[0], banks.get(key[0]).PROBLEM[key[1]]["type"]))
+                    if kind == "example":
+                        self.open_types.add(key[:2])
                     self.row = self.rows().index(rid)
                     return self.say(f"/{q}")
         self.say(f"E486: Pattern not found: {q}", True)
@@ -1067,6 +1165,14 @@ class App:
         kind, key = rid
         if kind == "course":
             return f"course {self.value(0)}"
+        if kind == "seq":
+            return f"{key} {library.current().sequence(key).TITLE}"
+        if kind == "step":
+            st = self.step(key)
+            return f"{st['n']} {st['title']} {st['note']} {st['spec']}"
+        if kind == "example":
+            b = banks.get(key[2])
+            return f"{key[2]}#{key[3]} {b.text(b.problem(key[3]))}"
         if kind == "bank":
             return f"{key} {banks.get(key).TITLE}"
         if kind == "count":
@@ -1559,7 +1665,7 @@ class Screen:
         st = self.st
         rows = app.rows()
         nset = len(SETTINGS)
-        view = library.current().view(app.course)
+        view = library.current().view(app.course, sequences=True)
         units = app.course is not None and any(u for u, _ in view)
         lines, i = [(None, 0), ("", None)], 1                    # the course row, then the banks by unit
         for unit, names in view:
@@ -1568,7 +1674,7 @@ class Screen:
             for _ in names:
                 lines.append((None, i))
                 i += 1
-                while i < len(rows) - nset and rows[i][0] != "bank":
+                while i < len(rows) - nset and rows[i][0] not in ("bank", "seq"):
                     lines.append((None, i))
                     i += 1
         if not view:
@@ -1586,6 +1692,22 @@ class Screen:
             attr_t = 0
             if kind == "course":
                 text, val, attr_v, attr_t = "COURSE", app.value(i), st["count"], curses.A_BOLD
+            elif kind == "seq":
+                text = f"{'▾' if key in app.open else '▸'} ≡ {library.current().sequence(key).TITLE}"
+                n = app.value(i)
+                val, attr_v, attr_t = (str(n) if n else "·"), (st["count"] if n else st["dim"]), curses.A_BOLD
+            elif kind == "step":
+                stp = app.step(key)
+                arrow = ("▾" if key in app.open_types else "▸") if app.examples(stp) else " "
+                text = f"  {arrow}{stp['n']:>3}  {stp['title']}" + (" (missing)" if stp["missing"] else "")
+                n = app.value(i)
+                val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
+                attr_t = st["err"] if stp["missing"] else 0
+            elif kind == "example":
+                b = banks.get(key[2])
+                on = app.value(i)
+                text = f"       {key[3]:>3}. {b.text(b.problem(key[3]))}"
+                val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
             elif kind == "bank":
                 b = banks.get(key)
                 size = f" ({len(b.PROBLEMS)})" if getattr(b, "FIXED", False) else ""
@@ -1630,6 +1752,22 @@ class Screen:
         kind, key = rid
         if kind == "course":
             hint = COURSE_HINT
+        elif kind == "seq":
+            q = library.current().sequence(key)
+            hint = (f"{q.TITLE}: a sequence of {len(q.steps)} steps, each changing one thing. o opens it; "
+                    f"l on a step adds a problem of it; o on a step lists its pinned examples.")
+        elif kind == "step":
+            stp = app.step(key)
+            if stp["missing"]:
+                hint = f"Step {stp['n']} ({stp['spec']}): {stp['missing']}. Fix the sequence file, then :rescan."
+            else:
+                k = len(app.examples(stp))
+                hint = (f"Step {stp['n']}: {stp['title']}." + (f" What changes: {stp['note'].rstrip('.')}." if stp["note"] else "")
+                        + f" ({stp['spec']}) l adds one, h removes one"
+                        + (f"; o lists its {k} pinned example{'s' * (k > 1)}." if k else "."))
+        elif kind == "example":
+            b = banks.get(key[2])
+            hint = f"Answer: {b.answer_text(b.problem(key[3]))}.  l adds this example, h removes it, L puts it at the sheet cursor."
         elif kind == "bank":
             b = banks.get(key)
             hint = (f"{b.TITLE}: written problems. o opens it; o on a type lists its problems. l on a type adds one "

@@ -379,6 +379,54 @@ dk(":warnings\n"); assert d.msg == "no warnings"
 library.save_config(library=EMPTY_LIB, course=None)
 library.rescan()
 
+# ---- sequences in the banks pane: steps act as their entries, examples as their problems
+sl = Path(tempfile.mkdtemp(prefix="seqlib_"))
+(sl / "by_move.json").write_text(_json.dumps({"format": 1, "kind": "sequence", "title": "By First Move",
+    "courses": {"Algebra 1": "Equations"}, "steps": [
+        {"entry": "literal/1", "note": "one operation to undo"},
+        {"entry": "literal/3", "note": "a fraction bar appears", "examples": ["lesson_1-4#13", "lesson_1-4#14"]},
+        {"entry": "literal/44"},
+        {"entry": "systems/1", "title": "Back-Substitute (systems)"}]}))
+(sl / "other.json").write_text(_json.dumps({"format": 1, "kind": "sequence", "title": "Untagged",
+    "steps": [{"entry": "literal/2"}]}))
+library.save_config(library=str(sl), course="Algebra 1"); library.rescan()
+q = T.App(seed=9); qk = driver(q)
+assert q.rows()[:6] == [("course", None), ("seq", "by_move"), ("step", ("by_move", 1)), ("step", ("by_move", 2)),
+                        ("step", ("by_move", 3)), ("step", ("by_move", 4))], q.rows()[:6]
+assert ("seq", "other") not in q.rows() and ("bank", "literal") in q.rows(), "a sequence shows in its own course"
+qk(":course all\n"); tops = [r for r in q.rows() if r[0] in ("seq", "bank")]
+assert tops[:3] == [("seq", "by_move"), ("seq", "other"), ("bank", "literal")], "sequences first"
+qk(":course Algebra 1\n")
+qk("ggjj"); assert q.rid() == ("step", ("by_move", 1))
+qk("2l"); assert E.count(q.sheet, "literal", "1") == 2 and q.value(q.row) == 2, "l on a step adds its entry"
+qk("h"); assert E.count(q.sheet, "literal", "1") == 1
+qk("j"); qk("o"); assert ("example", ("by_move", 2, "lesson_1-4", "13")) in q.rows()
+qk("j"); assert q.rid() == ("example", ("by_move", 2, "lesson_1-4", "13"))
+qk("l"); assert E.where_problem(q.sheet, "lesson_1-4", "13") and q.value(q.row) is True
+qk("l"); assert q.err and "already" in q.msg
+qk("k"); assert q.value(q.row) == 1, "a pinned example counts for its step"
+qk("l"); assert q.value(q.row) == 2 and E.count(q.sheet, "literal", "3") == 1
+assert q.value(q.rows().index(("seq", "by_move"))) == 3
+qk("o"); assert ("example", ("by_move", 2, "lesson_1-4", "13")) not in q.rows()
+qk("j"); assert q.rid() == ("step", ("by_move", 3))
+qk("l"); assert q.err and "step 3: literal has no entry '44'" in q.msg, q.msg
+qk("i5\n"); assert q.err and "no entry" in q.msg
+qk("o"); assert q.err and "no pinned examples" in q.msg
+qk("j"); qk("l"); assert E.count(q.sheet, "systems", "1") == 1, "a step can come from any bank"
+before = prompts(q)
+qk("ggj"); assert q.rid() == ("seq", "by_move")
+qk("l"); assert q.err and "o opens the sequence" in q.msg
+qk("r"); assert prompts(q) != before and len(prompts(q)) == 4, "r rerolls the sequence's problems"
+qk("x"); assert q.total() == 0, "x removes the sequence's problems"
+qk("u"); assert q.total() == 4
+qk("/fraction bar\n"); assert q.rid() == ("step", ("by_move", 2)), "/ finds a step by its note"
+qk("zM"); assert ("step", ("by_move", 1)) not in q.rows() and q.rid() == ("seq", "by_move")
+qk("gg"); qk("zR"); assert ("step", ("by_move", 1)) in q.rows() and q.rid() == ("course", None), "zR on COURSE"
+qk("/Algebra 1\n"); assert q.rid() == ("course", None) and not q.err, "/ can land on COURSE"
+qk("/V = (1/3)\n"); assert q.rid() == ("example", ("by_move", 2, "lesson_1-4", "13")), q.rid()
+assert ("by_move", 2) in q.open_types, "/ opens the step it finds an example in"
+library.save_config(library=EMPTY_LIB, course=None); library.rescan()
+
 # ---- out: ~ is home, relative starts in the current folder, Tab completes
 import os
 home, here = Path(tempfile.mkdtemp(prefix="home_")), Path(tempfile.mkdtemp(prefix="cwd_"))

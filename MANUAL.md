@@ -186,6 +186,44 @@ A bank's types share sections with its family: Type 3 problems from the
 lesson bank and from the generator go into the same *Type 3* section, and
 the sheet never holds the same problem twice.
 
+### Sequences
+
+A **sequence** is an ordered path through a skill, one step at a time, each
+step changing a single thing (Engelmann's minimal differences). It doesn't
+hold problems itself: each step points at a bank's type, so the same
+problems can sit in several sequences (a first teaching sequence, a review,
+a set that sets two look-alike types side by side).
+
+In the banks pane, a course's sequences come first under their unit, marked
+`≡`, with their steps in order:
+
+```
+Equations
+▾ ≡ Literal Equations by First Move       3
+     1  One Step                          1
+     2  Add or Subtract, Then Divide      ·
+  ▾  3  Clear One Denominator             2
+       13. V = (1/3)Bh;  B                ●
+       14. A = (1/2)d₁d₂;  d₁             ·
+▸ Literal Equations
+```
+
+- A step works like its type's row in the bank: `l` adds a problem (drawn
+  fresh), `h` removes one, `L` adds at the sheet cursor, `r` rerolls, `i`
+  types a count. The number is how many of the step's problems are on the
+  sheet.
+- A step may have **pinned examples**, the exact problems the sequence
+  teaches with. `o` on the step lists them (`▸`); `l` on one adds that
+  problem.
+- On the sequence's own row, `o` opens or closes it, `r` rerolls all its
+  problems on the sheet, and `x` removes them.
+- The hint under the tree shows what changes at the step under the cursor.
+- A step whose bank or type the library doesn't have is shown in red,
+  marked *(missing)*, and `:warnings` says why. It keeps its number, so the
+  steps after it don't renumber.
+- As with courses, a problem added from a sequence is just its bank's
+  problem: the sheet doesn't depend on the sequence.
+
 ### Courses and the library
 
 The **library** is every bank the app knows: the generators, the built-in
@@ -439,6 +477,35 @@ Courses appear in this order (the built-in ones first), and each course's
 banks under its units in this order. Rename a unit here and in the banks
 that use it; until both match, those banks show under *Other* and
 `:warnings` says why.
+
+**A sequence.** A JSON file with `"kind": "sequence"`, in your library like a
+bank, tagged with `courses` the same way:
+
+```json
+{
+ "format": 1,
+ "kind": "sequence",
+ "name": "literal_by_move",
+ "title": "Literal Equations by First Move",
+ "courses": {"Algebra 1": "Equations"},
+ "steps": [
+  {"entry": "literal/1", "note": "one operation to undo"},
+  {"entry": "literal/2", "note": "two operations: add or subtract, then divide"},
+  {"entry": "literal/3", "note": "a fraction bar appears",
+   "examples": ["lesson_1-4#13", "lesson_1-4#14"]}
+ ]
+}
+```
+
+- `entry` names a bank's type as `--mix` does: `literal/3`, `literal/3f`
+  (real formulas), `systems/A`, `lesson_1-4/9`.
+- `note` says what changes at this step; it shows in the hint. `title`
+  (optional) replaces the type's title.
+- `examples` (optional) pins problems of a fixed bank, `BANK#ID`, in order.
+  Each should be of the step's type; `:warnings` says when one isn't.
+- A step finer than a bank's types (Type 3 with a number denominator, then
+  with a letter) needs its own entry in the bank first.
+- Banks and sequences share names: a sequence can't have a bank's name.
 
 `gen_sequence.py` writes the lesson's fifty as `banks/lesson_1-4.json`.
 

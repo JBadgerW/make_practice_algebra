@@ -239,6 +239,9 @@ and `:w` still use the same data and the same functions.
       library (steps resolve to the bank's own entry spelling and title;
       bad banks, entries, and examples are warnings with suggestions; one
       namespace with banks), tests. No change on screen yet.
-   2. The banks pane: sequences under units, steps as rows.
+   2. ✅ The banks pane: sequences first under their unit (`≡`), steps as
+      rows that act as their entries, `o` on a step lists its pinned examples,
+      counts include them, missing steps shown in red; MANUAL. Also fixed:
+      `zM`/`zR` and `/` on the COURSE row crashed.
    3. `:draft` and `--draft`, with review.
    4. Lesson 1-4 as a bank plus a sequence.
