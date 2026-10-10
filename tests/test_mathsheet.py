@@ -1,6 +1,6 @@
 """Drive mathsheet.App with scripted keys (no terminal needed).
 Run from the project folder:  python3 tests/test_mathsheet.py"""
-import os, sys, tempfile
+import os, shlex, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never the teacher's own config
@@ -425,6 +425,54 @@ qk("gg"); qk("zR"); assert ("step", ("by_move", 1)) in q.rows() and q.rid() == (
 qk("/Algebra 1\n"); assert q.rid() == ("course", None) and not q.err, "/ can land on COURSE"
 qk("/V = (1/3)\n"); assert q.rid() == ("example", ("by_move", 2, "lesson_1-4", "13")), q.rid()
 assert ("by_move", 2) in q.open_types, "/ opens the step it finds an example in"
+
+# ---- drafting from a sequence: new steps in sections, then a shuffled review
+(sl / "long.json").write_text(_json.dumps({"format": 1, "kind": "sequence", "title": "Long",
+    "courses": ["Algebra 1"], "steps": [{"entry": f"literal/{k}"} for k in ("1", "2", "3", "4", "5", "6", "7")]
+                                       + [{"entry": "literal/3", "examples": ["lesson_1-4#13", "lesson_1-4#14"]}]}))
+library.rescan()
+assert mp.parse_steps("5", library.current().sequence("long")) == [5]
+assert mp.parse_steps("1-3,5,3", library.current().sequence("long")) == [1, 2, 3, 5]
+assert mp.steps_text([1, 2, 3, 5, 7, 8]) == "1-3,5,7-8"
+assert mp.spread([1, 2, 3, 4], 6) == {1: 1, 2: 1, 3: 2, 4: 2}, "extras go to the most recent"
+assert mp.spread([1, 2, 3, 4, 5, 6, 7], 3) == {1: 1, 4: 1, 7: 1}, "evenly spaced, ending at the latest"
+assert mp.spread([1, 2], 1) == {2: 1} and mp.spread([], 4) == {}
+plan = mp.parse_draft(["long", "5-6"])
+assert plan == dict(seq="long", new=[5, 6], per=6, review=[1, 2, 3, 4], pinned=False), plan
+assert mp.parse_draft(["long", "5", "x3", "review", "none"])["review"] == []
+assert mp.parse_draft(["long", "4", "review", "1-5", "pinned"]) == dict(seq="long", new=[4], per=6, review=[1, 2, 3, 5], pinned=True)
+for bad, why in ((["long"], "use SEQUENCE"), (["lng", "1"], "did you mean long"), (["long", "9"], "steps 1-8"),
+                 (["long", "1", "x0"], "bad draft option"), (["by_move", "3"], "can't draw"),
+                 (["long", "2", "review"], "bad draft option"), (["long", "a-b"], "bad steps")):
+    try:
+        mp.parse_draft(bad); raise AssertionError(bad)
+    except ValueError as e:
+        assert why in str(e), (bad, e)
+assert mp.parse_draft(["by_move", "4"])["review"] == [1, 2], "a broken step is left out of the default review"
+sheet = mp.draft_sequence(plan, 2, 11)
+assert [x["title"] for x in sheet["sections"]] == ["Clear a Denominator, Then Distribute", "Clear Two Denominators", "Review"]
+assert sheet["title"] == "Long: Steps 5–6" and sheet["instructions"] == mp.L.INSTRUCTIONS
+assert [len(x["items"]) for x in sheet["sections"]] == [6, 6, 6], "one review problem per two new"
+assert sorted(it["entry"] for it in sheet["sections"][2]["items"]) == ["1", "2", "3", "3", "4", "4"]
+assert all(len(it["alts"]) == 1 for it in sh.items(sheet)), "versions"
+assert len({it["problem"]["prompt"] for it in sh.items(sheet)}) == 18, "nothing repeats"
+assert mp.draft_sequence(plan, 2, 11) == sheet, "same plan and seed, same sheet"
+pin = mp.draft_sequence(mp.parse_draft(["long", "8", "x3", "review", "none", "pinned"]), 1, 2)
+assert [it["problem"].get("id") for it in pin["sections"][0]["items"]][:2] == ["13", "14"] and len(pin["sections"]) == 1
+assert pin["sections"][0]["items"][2]["bank"] == "literal", "then fresh draws"
+cmd = mp.draft_command(plan, 2, 11, out="x y")
+assert cmd == "python3 make_practice.py --draft long 5-6 x6 review 1-4 --versions 2 --seed 11 --out 'x y'", cmd
+assert mp.draft_sequence(mp.parse_draft(shlex.split(cmd)[3:8]), 2, 11) == sheet, "the command redraws it"
+
+g = T.App(seed=4); gk = driver(g)
+gk(":title My Quiz\n:draft lo\t"); assert g.buf == "draft long", g.buf
+gk(" 2-3 x4\n"); assert not g.err and g.total() == 4 + 4 + 4 and "review of 1" in g.msg, g.msg
+assert g.sheet["title"] == "My Quiz", "a title you typed stays"
+gk(":title Literal Equations Practice\n:draft long 3\n"); assert g.sheet["title"] == "Long: Step 3"
+gk(":draft long 4\n"); assert g.sheet["title"] == "Long: Step 4", "a drafted title follows the next draft"
+gk("u"); assert g.sheet["title"] == "Long: Step 3"
+gk(":draft long 9\n"); assert g.err and "steps 1-8" in g.msg
+gk(":draft\n"); assert g.err and "use SEQUENCE" in g.msg
 library.save_config(library=EMPTY_LIB, course=None); library.rescan()
 
 # ---- out: ~ is home, relative starts in the current folder, Tab completes

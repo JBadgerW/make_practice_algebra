@@ -63,6 +63,7 @@ python3 make_practice.py [options]
 | `--class NAME` | Class name in the worksheet and slide header | Algebra 1 |
 | `--out DIR` | Output folder: `~` is home; a relative path starts in the current folder | `practice` |
 | `--name NAME` | File prefix | `literal_practice` |
+| `--draft SEQ STEPS ...` | Draft from a sequence instead of `--mix`: `--draft by_move 5-6 review 1-4` (see *Drafting from a sequence*) | |
 | `--sheet FILE` | Print a saved `.sheet.json` again, or convert an older `NAME_v1.json` set (with its other versions) and print it in the current style | |
 | `--no-compile` | Write `.typ` files only | compile |
 | `--selftest N` | Draw N problems of every type, check them all, then check every formula | |
@@ -224,6 +225,35 @@ Equations
 - As with courses, a problem added from a sequence is just its bank's
   problem: the sheet doesn't depend on the sequence.
 
+**Drafting from a sequence.** `:draft` builds a new sheet for the steps
+you're teaching, with cumulative review of the steps before them:
+
+```
+:draft by_move 5-6                    steps 5 and 6, reviewing steps 1-4
+:draft by_move 5-6 review 1-4         the same, saying so
+:draft by_move 7 x8 review 3,5-6      8 problems of step 7; review only 3, 5, 6
+:draft by_move 1-2 review none        no review
+:draft by_move 3 pinned               start with step 3's pinned examples
+```
+
+- Each new step gets its own section, titled with the step's title, with 6
+  problems (`x8` for 8). With `pinned`, a step's section starts with its
+  pinned examples, in order, and fresh draws fill the rest.
+- Then one **Review** section, shuffled, with about one problem for every two
+  new ones (12 new problems, 6 in review). They're spread evenly over the
+  review steps; extras go to the most recent steps, and when there are fewer
+  problems than steps, the steps chosen are evenly spaced, ending with the
+  most recent. Without `review`, every earlier step is reviewed (except any
+  that can't draw).
+- Steps are written `5`, `5-6`, or `1-3,5`. `Tab` completes the sequence's
+  name.
+- The sheet's title becomes *By First Move: Steps 5–6* unless you've typed a
+  title of your own; versions and the other settings stay. `u` undoes it.
+- From the command line: `python3 make_practice.py --draft by_move 5-6`
+  (with `--versions`, `--seed`, and the rest), or start the app with
+  `python3 mathsheet.py --draft by_move 5-6`. The saved sheet records the
+  exact command, so the same sheet can be drawn again.
+
 ### Courses and the library
 
 The **library** is every bank the app knows: the generators, the built-in
@@ -358,6 +388,7 @@ through earlier commands.
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |
 | `:q!` `ZQ` | Quit and discard |
 | `:mix 3:6 3f:2 A:1` | Draft a new sheet (`all:N`, `allf:N` work). The title and settings stay. |
+| `:draft SEQ 5-6 [x6] [review 1-4\|none] [pinned]` | Draft a new sheet from a sequence's steps, with review (see *Drafting from a sequence*) |
 | `:groups 9 8 3+4=Warm-up 1` | Sort the problems already on the sheet into sections by type, as with `--groups`. `:groups` alone: one section per type, in sequence order. |
 | `:shuffle` | Every problem in one shuffled section with no title |
 | `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |

@@ -2,6 +2,7 @@
 
     python3 mathsheet.py                       # start empty
     python3 mathsheet.py --mix 3:6 8:4 --seed 12
+    python3 mathsheet.py --draft by_move 5-6       # from a sequence's steps, with review
     python3 mathsheet.py practice/literal_practice.sheet.json   # reopen a sheet
 
 The left pane is a tree of problem banks: the literal-equation generator
@@ -62,6 +63,7 @@ gt gT    next / previous version    ? an answer can't be checked
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|key|slides] [N]
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
+:draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
 :title :class :instructions :versions :name :out  :set [no]compact [no]wide
 :course NAME|all  (h l on COURSE)   :rescan   :library DIR   :warnings
@@ -813,6 +815,28 @@ class App:
             self.say({"checked": "answer checks", "failed": "that answer FAILS its check",
                       "unchecked": "answer kept; it can't be checked"}[status], status == "failed")
 
+    def draft_steps(self, tokens):
+        """:draft SEQ STEPS [xN] [review STEPS|none] [pinned]: a new sheet from a sequence."""
+        try:
+            plan = mp.parse_draft(tokens)
+        except ValueError as e:
+            return self.say(f"E: {e}", True)
+        def go():
+            new = mp.draft_sequence(plan, self.sheet["versions"], self.rng.randrange(2**31))
+            self.sheet["sections"] = new["sections"]
+            defaults = [banks.get(n) for n in banks.names()]
+            if self.sheet["instructions"] in [b.INSTRUCTIONS for b in defaults]:   # still a bank's default
+                self.sheet["instructions"] = new["instructions"]
+            if self.sheet["title"] in [mp.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults] \
+                    or re.search(r": Steps? [\d–,]+$", self.sheet["title"]):           # still a drafted title
+                self.sheet["title"] = new["title"]
+        if self.change(go):
+            self.cur = SHEET
+            self.clamp()
+            r = plan["review"]
+            self.say(f"drafted {self.total()} problems: step{'s' * (len(plan['new']) > 1)} {mp.steps_text(plan['new'])}"
+                     + (f", review of {mp.steps_text(r)}" if r else ", no review") + " (u to undo)")
+
     def regroup(self, tokens):
         try:
             groups = mp.parse_groups(tokens)
@@ -1049,6 +1073,8 @@ class App:
                 self.quit = True
         elif cmd == "mix":
             self.redraft(rest.split())
+        elif cmd == "draft":
+            self.draft_steps(rest.split())
         elif cmd == "groups":
             try:
                 self.regroup(shlex.split(rest))
@@ -1444,14 +1470,18 @@ class App:
 
     def completing(self):
         """What Tab completes in the line being typed: (start, what), or None, with
-        what "dirs", "files", or "courses". The out setting, :out, and :library
-        complete folders; :e files too; the course row and :course, courses."""
+        what "dirs", "files", "courses", or "sequences". The out setting, :out, and
+        :library complete folders; :e files too; the course row and :course,
+        courses; :draft, a sequence's name."""
         if self.mode == "insert" and self.editing and self.editing[0] == "row":
             return {("set", "out"): (0, "dirs"), ("course", None): (0, "courses")}.get(self.rid(self.editing[1]))
         if self.mode == "command":
             m = re.match(r"\s*(?:(out|e|edit|library|lib|course)\s+|set\s+out=)", self.buf)
             if m:
                 return m.end(), {"e": "files", "edit": "files", "course": "courses"}.get(m.group(1), "dirs")
+            m = re.match(r"\s*draft\s+(?=\S*$)", self.buf)            # the sequence's name, the first word
+            if m:
+                return m.end(), "sequences"
         return None
 
     def complete(self, step):
@@ -1464,7 +1494,8 @@ class App:
                 return
             start, what = where
             word = self.buf[start:]
-            matches = complete_course(word) if what == "courses" else complete_path(word, what == "dirs")
+            matches = complete_course(word) if what == "courses" else complete_sequence(word) \
+                if what == "sequences" else complete_path(word, what == "dirs")
             if not matches:
                 self.comp = None
                 return
@@ -1527,6 +1558,10 @@ def complete_course(text):
     """The course titles (and all) that start with text, ignoring case."""
     t = text.strip().lower()
     return [c for c in [x["title"] for x in library.current().courses] + ["all"] if c.lower().startswith(t)]
+
+def complete_sequence(text):
+    """The sequence names that start with text."""
+    return [n for n in sorted(library.current().sequences) if n.startswith(text.strip())]
 
 def complete_path(text, dirs_only=False):
     """The names a partly typed path could become, as Neovim completes them:
@@ -1887,6 +1922,8 @@ def parse_args(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("file", nargs="?", help="a .sheet.json to open (or an older practice .json to convert)")
     ap.add_argument("--mix", nargs="+", default=[], metavar="ENTRY:COUNT")
+    ap.add_argument("--draft", nargs="+", default=[], metavar="TOKEN",
+                    help="start from a sequence: SEQ STEPS [xN] [review STEPS|none] [pinned]")
     ap.add_argument("--versions", type=int, default=mp.DEFAULTS["versions"])
     ap.add_argument("--seed", type=int)
     ap.add_argument("--shuffle", action="store_true")
@@ -1904,7 +1941,12 @@ def main():
     except ValueError as e:
         sys.exit(str(e))
     seed = a.seed if a.seed is not None else random.randrange(10**6)
-    sheet = mp.draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name) if mix else \
+    try:
+        plan = mp.parse_draft(a.draft) if a.draft else None
+    except ValueError as e:
+        sys.exit(str(e))
+    sheet = mp.draft_sequence(plan, a.versions, seed, a.title, a.class_name) if plan else \
+        mp.draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name) if mix else \
         sh.new_sheet(a.title, a.class_name, mp.L.INSTRUCTIONS, a.versions)
     app = App(seed, sheet, a.out, a.name)
     if a.file:

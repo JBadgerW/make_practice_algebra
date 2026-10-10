@@ -243,5 +243,7 @@ and `:w` still use the same data and the same functions.
       rows that act as their entries, `o` on a step lists its pinned examples,
       counts include them, missing steps shown in red; MANUAL. Also fixed:
       `zM`/`zR` and `/` on the COURSE row crashed.
-   3. `:draft` and `--draft`, with review.
+   3. ✅ `:draft` and `--draft` (both scripts), with review: `parse_draft`,
+      `spread`, `draft_sequence` in make_practice.py; `xN`, `review STEPS|none`,
+      `pinned`; the saved command redraws the sheet; MANUAL.
    4. Lesson 1-4 as a bank plus a sequence.

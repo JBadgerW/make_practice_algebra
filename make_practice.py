@@ -14,6 +14,7 @@ Examples (run from this folder):
     python3 make_practice.py --mix 3:6 8:4 A:2 --versions 3 --seed 12
     python3 make_practice.py --mix all:2 --shuffle
     python3 make_practice.py --mix 1f:6 3f:4         # real formulas
+    python3 make_practice.py --draft by_move 5-6 review 1-4   # a sheet from a sequence's steps
     python3 make_practice.py --sheet practice/literal_practice.sheet.json   # print a saved sheet again
     python3 make_practice.py --selftest 200        # stress-test every type
     python3 mathsheet.py                        # the same, interactively (vim keys)
@@ -26,13 +27,19 @@ Examples (run from this folder):
 --seed S              same seed -> same sheet (default: random, printed)
 --shuffle             one section with every problem shuffled, no headings
 --groups G ...        section order and mixed sections: 9 8 3+4=Warm-up 1
+--draft SEQ STEPS [xN] [review STEPS|none] [pinned]
+                      a sheet from a sequence (sheets/sequences.py): N problems
+                      (default 6) of each new step in its own section, then a
+                      shuffled review of about one problem per two new ones,
+                      spread over the review steps (default: every earlier
+                      step). pinned starts each step with its pinned examples.
 --sheet FILE          print a saved .sheet.json (or an older practice .json) again
 --out DIR, --name N   output folder (default ./practice) and file prefix
 --no-compile          write .typ files only
 """
 import argparse, json, random, re, shlex, shutil, subprocess, sys
 from pathlib import Path
-from sheets import sheet as sh, writer, banks
+from sheets import sheet as sh, writer, banks, library
 from sheets.typst import esc
 from sheets.banks import literal as L
 from sheets.banks.literal import TYPE, label, selftest
@@ -165,6 +172,16 @@ def command_for(mix, versions, seed, shuffle=False, title=DEFAULTS["title"], out
             c += [f"--{'class' if opt == 'class_name' else opt}", shlex.quote(val)]
     return " ".join(c)
 
+def draft_command(plan, versions, seed, title=DEFAULTS["title"], out=DEFAULTS["out"],
+                  name=DEFAULTS["name"], class_name=DEFAULTS["class_name"]):
+    """The make_practice.py command line that drafts and writes a sequence's sheet exactly."""
+    c = ["python3 make_practice.py", "--draft", *map(shlex.quote, draft_tokens(plan)),
+         "--versions", str(versions), "--seed", str(seed)]
+    for opt, val in (("title", title), ("out", out), ("name", name), ("class_name", class_name)):
+        if val != DEFAULTS[opt]:
+            c += [f"--{'class' if opt == 'class_name' else opt}", shlex.quote(val)]
+    return " ".join(c)
+
 def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["title"],
           class_name=DEFAULTS["class_name"]):
     """A new sheet from a recipe. Depends only on these arguments.
@@ -181,6 +198,126 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     sheet = sh.new_sheet(title, class_name, first.INSTRUCTIONS, versions)
     sheet["sections"] = [dict(sh.new_section(), items=drawn)]
     (shuffle_all(sheet, rng) if shuffle else regroup(sheet, groups, rng))
+    return sh.fill_versions(sheet, seen)
+
+# ------------------------------------------------------------------
+# Drafting from a sequence
+# ------------------------------------------------------------------
+PER_STEP, REVIEW_RATIO = 6, 0.5          # new problems per step; review problems per new one
+
+def parse_steps(text, q):
+    """"5", "5-6", "1-3,5" -> step numbers of sequence q, in order; raises ValueError."""
+    nums = []
+    for part in text.split(","):
+        a, _, b = part.strip().partition("-")
+        if not a.isdigit() or (b and not b.isdigit()):
+            raise ValueError(f"bad steps {text!r}: use 5, 5-6, or 1-3,5")
+        lo, hi = sorted((int(a), int(b or a)))
+        nums += range(lo, hi + 1)
+    if any(not 1 <= n <= len(q.steps) for n in nums):
+        raise ValueError(f"{q.NAME} has steps 1-{len(q.steps)}")
+    return list(dict.fromkeys(nums))
+
+def steps_text(nums):
+    """[1, 2, 3, 5] -> "1-3,5"."""
+    out, run = [], []
+    for n in sorted(nums) + [None]:
+        if run and n == run[-1] + 1:
+            run.append(n)
+            continue
+        if run:
+            out.append(f"{run[0]}-{run[-1]}" if len(run) > 1 else str(run[0]))
+        run = [n]
+    return ",".join(out)
+
+def parse_draft(tokens):
+    """["by_move", "5-6", "x8", "review", "1-4", "pinned"] -> dict(seq, new, per,
+    review, pinned); raises ValueError. Without review, every earlier step that
+    can draw is reviewed; review none reviews nothing."""
+    usage = "use SEQUENCE STEPS [xN] [review STEPS|none] [pinned], e.g. by_move 5-6 x6 review 1-4"
+    if len(tokens) < 2:
+        raise ValueError(usage)
+    lib = library.current()
+    name = tokens[0]
+    if name not in lib.sequences:
+        near = library.suggest(name, list(lib.sequences))
+        raise ValueError(f"no sequence {name!r}" + (f" (did you mean {near}?)" if near else
+                         f"; sequences: {', '.join(sorted(lib.sequences)) or 'none'}"))
+    q = lib.sequences[name]
+    new = parse_steps(tokens[1], q)
+    per, review, pinned, rest = PER_STEP, None, False, list(tokens[2:])
+    while rest:
+        t = rest.pop(0)
+        if re.fullmatch(r"x\d+", t) and 1 <= int(t[1:]) <= 40:
+            per = int(t[1:])
+        elif t == "review" and rest:
+            r = rest.pop(0)
+            review = [] if r in ("none", "0") else parse_steps(r, q)
+        elif t == "pinned":
+            pinned = True
+        else:
+            raise ValueError(f"bad draft option {t!r}: {usage}")
+    if review is None:
+        review = [n for n in range(1, min(new)) if not q.steps[n - 1]["missing"]]
+    review = [n for n in review if n not in new]
+    bad = [n for n in new + review if q.steps[n - 1]["missing"]]
+    if bad:
+        raise ValueError(f"step {bad[0]} of {name} can't draw: {q.steps[bad[0] - 1]['missing']}")
+    return dict(seq=name, new=new, per=per, review=review, pinned=pinned)
+
+def draft_tokens(plan):
+    """The tokens that parse_draft turns back into this plan."""
+    return [plan["seq"], steps_text(plan["new"]), f"x{plan['per']}",
+            "review", steps_text(plan["review"]) or "none"] + (["pinned"] if plan["pinned"] else [])
+
+def spread(steps, k):
+    """How many of k review problems each review step gets: as even as possible,
+    any extra going to the most recent steps; with fewer problems than steps,
+    evenly spaced steps ending with the most recent."""
+    m = len(steps)
+    if not m or k <= 0:
+        return {}
+    if k >= m:
+        base, extra = divmod(k, m)
+        return {n: base + (i >= m - extra) for i, n in enumerate(steps)}
+    picks = [round(m - 1 - i * (m - 1) / (k - 1)) for i in range(k)] if k > 1 else [m - 1]
+    return {steps[i]: 1 for i in sorted(set(picks))}
+
+def draft_sequence(plan, versions=1, seed=0, title=DEFAULTS["title"], class_name=DEFAULTS["class_name"]):
+    """A new sheet from a sequence: the new steps in their own sections, in order,
+    then one shuffled review section. Depends only on these arguments (and the
+    library's contents)."""
+    q = library.current().sequence(plan["seq"])
+    rng, seen = random.Random(seed), {}
+    step = lambda n: q.steps[n - 1]
+    def drawn(st, n):
+        return [sh.new_item(st["bank"], st["entry"], rng.randrange(2**31), seen) for _ in range(n)]
+    secs = []
+    for n in plan["new"]:
+        st, its = step(n), []
+        if plan["pinned"]:
+            for b, pid in st["examples"][:plan["per"]]:
+                x = banks.get(b)
+                if banks.has(b) and pid in getattr(x, "PROBLEM", {}):
+                    its.append(sh.fixed_item(b, pid))
+                    seen.setdefault(x.FAMILY, set()).add(x.seen_key(its[-1]["problem"]))
+        its += drawn(st, plan["per"] - len(its))
+        b = banks.get(st["bank"])
+        secs.append(dict(sh.new_section(st["title"], b.INSTRUCTIONS), items=its))
+    review = []
+    for n, k in spread(plan["review"], round(len(plan["new"]) * plan["per"] * REVIEW_RATIO)).items():
+        review += drawn(step(n), k)
+    rng.shuffle(review)
+    if review:
+        secs.append(dict(sh.new_section("Review"), items=review))
+    first = banks.get(step(plan["new"][0])["bank"])
+    if title == DEFAULTS["title"]:
+        title = f"{q.TITLE}: Step{'s' * (len(plan['new']) > 1)} {steps_text(plan['new']).replace('-', '–')}"
+    sheet = sh.new_sheet(title, class_name, first.INSTRUCTIONS, versions)
+    for sec in secs:                       # a section repeats the sheet's instructions only when they differ
+        if sec["instructions"] == first.INSTRUCTIONS:
+            sec["instructions"] = ""
+    sheet["sections"] = secs
     return sh.fill_versions(sheet, seen)
 
 def regroup(sheet, groups, rng):
@@ -309,6 +446,8 @@ def parser():
     ap.add_argument("--out", default=DEFAULTS["out"])
     ap.add_argument("--name", default=DEFAULTS["name"])
     ap.add_argument("--class", dest="class_name", default=DEFAULTS["class_name"], metavar="NAME")
+    ap.add_argument("--draft", nargs="+", metavar="TOKEN",
+                    help="a sheet from a sequence: SEQ STEPS [xN] [review STEPS|none] [pinned]")
     ap.add_argument("--sheet", metavar="FILE", help="print a saved .sheet.json (or older practice .json) again")
     ap.add_argument("--no-compile", action="store_true")
     ap.add_argument("--selftest", type=int, metavar="N")
@@ -323,6 +462,10 @@ def main():
     try:
         if a.sheet:
             sheet = read_sheet(a.sheet)
+        elif a.draft:
+            plan = parse_draft(a.draft)
+            sheet = draft_sequence(plan, a.versions, seed, a.title, a.class_name)
+            sheet["command"] = draft_command(plan, a.versions, seed, a.title, a.out, a.name, a.class_name)
         else:
             mix, groups = apply_style(parse_mix(a.mix), a.style), parse_groups(a.groups)
             sheet = draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name)
