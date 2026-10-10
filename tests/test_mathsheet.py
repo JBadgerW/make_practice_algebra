@@ -316,4 +316,48 @@ assert a1 == a2, "no groups means the default layout"
 assert mp.draft(mixc, 2, 7)["sections"][0]["items"][0]["problem"] == a1["sections"][0]["items"][0]["problem"], \
     "adding versions doesn't change version 1"
 assert mp.layout(mp.parse_groups(["3+4"]), {"3": 1}) == [dict(types=["3"], name="")]
+# ---- out: ~ is home, relative starts in the current folder, Tab completes
+import os
+home, here = Path(tempfile.mkdtemp(prefix="home_")), Path(tempfile.mkdtemp(prefix="cwd_"))
+for d in ("Documents", "Downloads", "Desktop", ".config", "Documents/Algebra"):
+    (home / d).mkdir()
+(home / "Doc notes.txt").write_text("")
+saved_home, saved_cwd = os.environ["HOME"], os.getcwd()
+os.environ["HOME"] = str(home); os.chdir(here)
+try:
+    assert T.complete_path("~") == ["~/"]
+    assert T.complete_path("~/Docu", True) == ["~/Documents/"]
+    assert T.complete_path("~/Do", True) == ["~/Documents/", "~/Downloads/"]
+    assert T.complete_path("~/Do") == ["~/Doc notes.txt", "~/Documents/", "~/Downloads/"], "files too, for :e"
+    assert T.complete_path("~/", True) == ["~/Desktop/", "~/Documents/", "~/Downloads/"], "hidden ones stay hidden"
+    assert T.complete_path("~/.c", True) == ["~/.config/"]
+    assert T.complete_path("~/Nope/x") == [] and T.complete_path(str(home) + "/De", True) == [str(home) + "/Desktop/"]
+    assert T.dir_label(home / "Desktop") == "~/Desktop" and T.dir_label(here / "practice") == "practice"
+    assert T.dir_label(here) == "." and T.dir_label(home) == "~"
+
+    c = T.App(seed=4); ck = driver(c)
+    ck("G"); assert c.rid() == ("set", "out")
+    ck("cc~/Docu\t"); assert c.buf == "~/Documents/", c.buf
+    ck("\t"); assert c.buf == "~/Documents/Algebra/", "the next Tab looks inside"
+    ck("\n"); assert c.s["out"] == "~/Documents/Algebra/"
+    ck("cc~/D\t"); assert c.buf == "~/Desktop/" and c.comp
+    ck("\t"); assert c.buf == "~/Documents/"
+    ck(chr(T.curses.KEY_BTAB)); assert c.buf == "~/Desktop/", "Shift-Tab goes back"
+    ck("\t\t\t"); assert c.buf == "~/D", "after the last match, what was typed"
+    ck("\x1b"); assert c.comp is None and c.s["out"] == "~/Documents/Algebra/"
+    ck(":out ~/Desk\t"); assert c.buf == "out ~/Desktop/", c.buf
+    ck("\n"); assert c.s["out"] == "~/Desktop/"
+    ck(":set out=~/Dow\t\n"); assert c.s["out"] == "~/Downloads/"
+    ck(":e ~/Doc\t"); assert c.buf == "e ~/Doc notes.txt", c.buf
+    ck("\x1b:title Doc\t"); assert c.buf == "title Doc", "Tab completes paths only"
+    ck("\x1b")
+
+    ck(":mix 1:2\n:out ~/Desktop\n:w\n"); assert not c.err, c.msg
+    assert (home / "Desktop" / "literal_practice.sheet.json").exists() and '"~/Desktop/"' in c.msg, c.msg
+    assert str(home / "Desktop" / "literal_practice.sheet.json") in c.last_build["sheet"]["command"]
+    ck(":out sets\n:w\n"); assert (here / "sets" / "literal_practice.sheet.json").exists(), "relative: the current folder"
+    d = T.App(); d.load("~/Desktop/literal_practice.sheet.json"); assert d.s["out"] == "~/Desktop", d.s["out"]
+finally:
+    os.environ["HOME"] = saved_home; os.chdir(saved_cwd)
+
 print("all key tests passed")

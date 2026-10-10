@@ -32,7 +32,6 @@ Examples (run from this folder):
 """
 import argparse, json, random, re, shlex, shutil, subprocess, sys
 from pathlib import Path
-from sheets import ROOT as HERE
 from sheets import sheet as sh, writer, banks
 from sheets.typst import esc
 from sheets.banks import literal as L
@@ -275,7 +274,7 @@ def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
     Returns dict(out, files, compiled, sheet); raises RuntimeError."""
     if not sh.items(sheet):
         raise RuntimeError("no problems: the sheet is empty")
-    outp = HERE / out                     # an absolute out stays absolute
+    outp = Path(out).expanduser().resolve()   # ~ is home; a relative out starts in the current folder
     outp.mkdir(parents=True, exist_ok=True)
     typst = shutil.which("typst") if compile else None
     sh.save(sheet, outp / f"{name}.sheet.json")

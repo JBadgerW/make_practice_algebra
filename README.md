@@ -32,7 +32,8 @@ python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 python3 mathsheet.py
 ```
 
-The practice files go into `practice/`. See [MANUAL.md](MANUAL.md) for the
+The practice files go into `practice/` in the folder you run from (`--out`, or
+`:out ~/Desktop` in mathsheet, changes it). See [MANUAL.md](MANUAL.md) for the
 details.
 
 ## The types

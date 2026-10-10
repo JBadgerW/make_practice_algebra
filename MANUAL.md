@@ -61,7 +61,7 @@ python3 make_practice.py [options]
 | `--groups G ...` | Order and combine the headed sections (see below) | sequence order |
 | `--title TEXT` | Title on the worksheet and slides | Literal Equations Practice |
 | `--class NAME` | Class name in the worksheet and slide header | Algebra 1 |
-| `--out DIR` | Output folder, relative to the script's folder | `practice` |
+| `--out DIR` | Output folder: `~` is home; a relative path starts in the current folder | `practice` |
 | `--name NAME` | File prefix | `literal_practice` |
 | `--sheet FILE` | Print a saved `.sheet.json` again, or convert an older `NAME_v1.json` set (with its other versions) and print it in the current style | |
 | `--no-compile` | Write `.typ` files only | compile |
@@ -253,6 +253,17 @@ edited problems are the same in every version. `gt` `gT` show the versions.
 While typing a value: `Enter` accepts, `Esc` cancels, `Ctrl-U` erases the
 line, and `Ctrl-W` erases a word.
 
+**The output folder** (*out*, `:out DIR`, `--out DIR`) works as a path does
+in Neovim: `~` is your home folder (`~/Desktop`), and a relative path starts
+in the folder you ran mathsheet from (the default, `practice`, is a
+`practice/` folder there). The folder is made if it doesn't exist. While
+typing it, `Tab` completes a folder name: `~/Docu` becomes `~/Documents/`.
+When several match, the first fills in, the rest show on the status line,
+and each `Tab` moves to the next (`Shift-Tab` back; past the last, you're
+back to what you typed). `:e` completes the same way, files included. Names
+starting with a dot show only when you type the dot. Opening a sheet sets
+*out* to the sheet's folder.
+
 **Commands.** Type `:` and the command, then press Enter. `↑` and `↓` scroll
 through earlier commands.
 
@@ -271,7 +282,7 @@ through earlier commands.
 | `:group TITLE` | Move the selected problems (or the cursor's) into a new section |
 | `:rename TEXT` | Retitle the cursor's section |
 | `:clear` | Clear the sheet |
-| `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting |
+| `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
 | `:open [sheet\|key\|slides] [N]` | Open version N's PDF (default: worksheet, version 1) |

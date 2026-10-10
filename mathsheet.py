@@ -33,7 +33,7 @@ SETTING_HINTS = {
     "class": "The class name in the worksheet and slide header (default Algebra 1). i to edit.",
     "instructions": "The italic line under the header, for the whole sheet. i to edit; empty for none.",
     "name": "File prefix: NAME.sheet.json, NAME_v1.pdf, NAME_v1_key.pdf, NAME_v1_slides.pdf. i to edit.",
-    "out": "Folder to write into, relative to this script's folder. i to edit.",
+    "out": "Folder to write into: ~ is your home folder, and a relative path starts in the folder you ran mathsheet from. i to edit; Tab completes folder names.",
 }
 
 HELP = """\
@@ -94,6 +94,7 @@ class App:
         self.last_change = None         # a function that repeats the last change (for .)
         self.search_q = ""
         self.cmd_hist, self.hist_i = [], 0
+        self.comp = None                # Tab completion in progress: dict(start, options, i, buf)
         self.written = None             # the state at the last :w (or when a file was opened)
         self.reg = None                 # dict(kind="items"|"section", what=..., cut=bool)
         self.last_build = None
@@ -788,17 +789,15 @@ class App:
             return self.say("E: nothing to write: the sheet is empty", True) or False
         out, name = self.s["out"], self.s["name"]
         sheet = copy.deepcopy(self.sheet)
-        sheet["command"] = f"python3 make_practice.py --sheet {shlex.quote(str(Path(out) / f'{name}.sheet.json'))}"
+        path = Path(out).expanduser().resolve() / f"{name}.sheet.json"
+        sheet["command"] = f"python3 make_practice.py --sheet {shlex.quote(str(path))}"
         try:
             r = mp.build(sheet, out, name)
         except (RuntimeError, OSError) as e:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
         self.written, self.last_build = self.snapshot(), r
-        try:
-            where = r["out"].relative_to(Path.cwd())
-        except ValueError:
-            where = r["out"]
+        where = dir_label(r["out"])
         un, bad = self.statuses()
         warn = (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "") + \
                (f"  ·  {un} unchecked" if un else "")
@@ -837,10 +836,7 @@ class App:
         except (OSError, ValueError, KeyError, TypeError, SystemExit) as e:
             return self.say(f"E: can't open {path}: {e}", True)
         name = re.sub(r"(\.sheet\.json|_v\d+\.json|\.json)$", "", p.name)
-        try:
-            out = str(p.resolve().parent.relative_to(mp.HERE))
-        except ValueError:
-            out = str(p.resolve().parent)
+        out = dir_label(p.resolve().parent)
         def go():
             self.s.update(sheet=sheet, out=out, name=name)
         self.change(go)
@@ -1245,8 +1241,43 @@ class App:
             return f"{'sheet' if ref < 0 else 'section'} {kind}: "
         return {"problem": "problem (equation ; unknown): ", "answer": "answer: "}[kind]
 
+    def completing(self):
+        """What Tab completes in the line being typed: (start, dirs_only), or None.
+        The out setting and :out complete folders; :e completes files too."""
+        if self.mode == "insert" and self.editing and self.editing[0] == "row":
+            return (0, True) if self.rid(self.editing[1]) == ("set", "out") else None
+        if self.mode == "command":
+            m = re.match(r"\s*(?:(out|e|edit)\s+|set\s+out=)", self.buf)
+            if m:
+                return m.end(), m.group(1) not in ("e", "edit")
+        return None
+
+    def complete(self, step):
+        """Tab / Shift-Tab: the next or previous name the path could become, as in
+        Neovim: the first match at once, then each in turn, then what was typed."""
+        c = self.comp
+        if not (c and c["buf"] == self.buf):
+            where = self.completing()
+            if not where:
+                return
+            start, dirs_only = where
+            word = self.buf[start:]
+            matches = complete_path(word, dirs_only)
+            if not matches:
+                self.comp = None
+                return
+            if len(matches) == 1:               # done: the next Tab looks inside it
+                self.buf, self.comp = self.buf[:start] + matches[0], None
+                return
+            c = self.comp = dict(start=start, options=matches + [word], i=-1 if step > 0 else len(matches))
+        c["i"] = (c["i"] + step) % len(c["options"])
+        self.buf = c["buf"] = self.buf[:c["start"]] + c["options"][c["i"]]
+
     def key_line(self, ch):
         c = chr(ch) if 0 <= ch < 0x110000 else ""
+        if c == "\t" or ch == curses.KEY_BTAB:
+            return self.complete(-1 if ch == curses.KEY_BTAB else 1)
+        self.comp = None
         if c == "\x1b" or (c == "\x03"):
             self.mode, self.buf, self.editing = "normal", "", None
         elif c in ("\n", "\r") or ch == curses.KEY_ENTER:
@@ -1274,6 +1305,47 @@ class App:
             self.buf = self.cmd_hist[self.hist_i] if self.hist_i < len(self.cmd_hist) else ""
         elif c.isprintable() and c:
             self.buf += c
+
+# ------------------------------------------------------------------
+# Paths
+# ------------------------------------------------------------------
+def dir_label(p):
+    """A folder as you'd type it: from the folder mathsheet started in if it's
+    inside it, else from ~ if it's in your home folder, else in full."""
+    p = Path(p).expanduser().resolve()
+    for base, pre in ((Path.cwd(), ""), (Path.home(), "~")):
+        try:
+            rel = str(p.relative_to(base))
+        except ValueError:
+            continue
+        return (pre or ".") if rel == "." else f"{pre}/{rel}" if pre else rel
+    return str(p)
+
+def complete_path(text, dirs_only=False):
+    """The names a partly typed path could become, as Neovim completes them:
+    ~ is home, a relative path starts in the current folder, folders end in /,
+    and hidden names show only when the part typed starts with a dot."""
+    if text == "~":
+        return ["~/"]
+    head, sep, frag = text.rpartition("/")
+    folder = Path(os.path.expanduser(head + sep) if sep else ".")
+    try:
+        entries = sorted(os.scandir(folder), key=lambda e: e.name)
+    except OSError:
+        return []
+    out = []
+    for e in entries:
+        if not e.name.startswith(frag) or (e.name.startswith(".") and not frag.startswith(".")):
+            continue
+        try:
+            is_dir = e.is_dir()
+        except OSError:
+            continue
+        if is_dir:
+            out.append(head + sep + e.name + "/")
+        elif not dirs_only:
+            out.append(head + sep + e.name)
+    return out
 
 # ------------------------------------------------------------------
 # Drawing
@@ -1476,9 +1548,29 @@ class Screen:
         right = (f"{app.count}{app.pending.replace(chr(23), '^W')}  "
                  + (f"{app.where()}  sheet {where}" if app.focus == "preview" else "types") + " ")
         self.put(h - 2, w - len(right) - 1, right, curses.A_REVERSE)
+        if app.comp:
+            self.wildmenu(app, h, w)
         if app.mode == "help":
             self.help(h, w)
         self.cmdline(app, h, w)
+
+    def wildmenu(self, app, h, w):
+        """Over the status line while Tab cycles: the matches, the current one lit."""
+        names = [m.rstrip("/").rsplit("/", 1)[-1] + ("/" if m.endswith("/") else "")
+                 for m in app.comp["options"][:-1]]
+        i, x = app.comp["i"], 1
+        first = 0                                        # scroll so the current one shows
+        while i < len(names) and sum(len(n) + 2 for n in names[first:i + 1]) > w - 6:
+            first += 1
+        self.put(h - 2, 0, " " * (w - 1), curses.A_REVERSE)
+        if first:
+            self.put(h - 2, 0, "<", curses.A_REVERSE)
+        for k, n in enumerate(names[first:], first):
+            if x + len(n) > w - 3:
+                self.put(h - 2, w - 3, ">", curses.A_REVERSE)
+                break
+            self.put(h - 2, x, n, self.st["search"] if k == i else curses.A_REVERSE)
+            x += len(n) + 2
 
     def help(self, h, w):
         lines = HELP.splitlines()
