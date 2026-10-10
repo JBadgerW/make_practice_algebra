@@ -19,14 +19,18 @@ Press ? inside for the full key list.
 import copy, curses, os, random, re, shlex, subprocess, sys, textwrap
 from pathlib import Path
 import make_practice as mp
-from sheets import sheet as sh, edit as E, banks
+from sheets import sheet as sh, edit as E, banks, library
 from sheets.banks.literal import pretty
 
 # ------------------------------------------------------------------
-# Rows in the left pane: ("bank", name), ("count", (bank, entry)),
-# ("problem", (bank, id)) under an open type of a fixed bank, ("set", key)
+# Rows in the left pane: ("course", None) on top, ("bank", name),
+# ("count", (bank, entry)), ("problem", (bank, id)) under an open type of a
+# fixed bank, ("set", key)
 # ------------------------------------------------------------------
 SETTINGS = ["versions", "title", "class", "instructions", "name", "out"]
+COURSE_HINT = ("Which course's banks to show, grouped by unit: h/l step through the courses "
+               "(then All banks); i types one (Tab completes). Banks list their courses; :rescan "
+               "rereads the library after you change one.")
 SETTING_HINTS = {
     "versions": "How many parallel versions to write (h/l, or i to type one): each drawn problem is redrawn in its slot; edited problems stay. Each version gets its own worksheet, key, and slides.",
     "title": "The worksheet and slide title. i to edit.",
@@ -59,7 +63,8 @@ COMMANDS
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
 :title :class :instructions :versions :name :out  :set [no]compact [no]wide
-Types 1-11, A, B: the lesson's sequence. 3f: real formulas. banks/: fixed."""
+:course NAME|all  (h l on COURSE)   :rescan   :library DIR   :warnings
+Types 1-11, A, B: the lesson's sequence. 3f: real formulas. Banks: built in, and your :library."""
 
 SHEET = (-1, -1)                       # the sheet cursor on the header (title, instructions)
 SHEET_MIN = 60                         # a sheet pane narrower than this takes room from the banks while it has focus
@@ -77,8 +82,9 @@ class App:
         self.rng = random.Random(seed)
         self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"], mp.L.INSTRUCTIONS),
                       out=out or mp.DEFAULTS["out"], name=name or mp.DEFAULTS["name"])
+        self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         self.undo, self.redo = [], []
-        self.row, self.focus, self.version = 1, "left", 0
+        self.row, self.focus, self.version = 2, "left", 0
         self.open = {mp.BANK}           # banks open in the tree
         self.open_types = set()         # (bank, type) of fixed banks showing their problems
         self.cur = SHEET
@@ -107,6 +113,12 @@ class App:
     def sheet(self):
         return self.s["sheet"]
 
+    @property
+    def course(self):
+        """The course whose banks the left pane shows (its title), or None for all."""
+        c = library.current().course(self.sheet.get("course"))
+        return c["title"] if c else None
+
     def seeds(self):
         return iter(lambda: self.rng.randrange(2**31), None)
 
@@ -116,12 +128,14 @@ class App:
 
     def rows(self, everything=False):
         """The left pane's rows, as shown (or with every bank and type open)."""
-        out = []
-        for name in banks.names():
+        out, lib = [("course", None)], library.current()
+        for name in [n for _, ns in lib.view(self.course) for n in ns]:
             out.append(("bank", name))
             if everything or name in self.open:
-                b = banks.get(name)
+                b, keep = banks.get(name), lib.types_in(name, self.course)
                 for e in b.ENTRIES:
+                    if e["type"] not in keep:
+                        continue
                     out.append(("count", (name, e["key"])))
                     if getattr(b, "FIXED", False) and (everything or (name, e["key"]) in self.open_types):
                         out += [("problem", (name, p["id"])) for p in b.PROBLEMS if p["type"] == e["key"]]
@@ -134,6 +148,8 @@ class App:
 
     def value(self, row):
         kind, key = self.rid(row)
+        if kind == "course":
+            return self.course or "All banks"
         if kind == "bank":
             return sum(1 for it in sh.items(self.sheet) if it["bank"] == key)
         if kind == "count":
@@ -208,7 +224,10 @@ class App:
     # -- the types pane --------------------------------------------------
     def bump(self, n, row=None):
         kind, key = self.rid(row)
-        if kind == "count":
+        if kind == "course":
+            titles = [c["title"] for c in library.current().courses] + [None]
+            self.set_course(titles[(titles.index(self.course) + n) % len(titles)])
+        elif kind == "count":
             if n > 0:
                 self.change(lambda: E.set_count(self.sheet, *key, E.count(self.sheet, *key) + n, self.seeds()))
             else:
@@ -225,6 +244,61 @@ class App:
         else:
             return self.say(f"{key} is text: press i to edit it", True)
         self.last_change = lambda: self.bump(n)
+
+    # -- the library ------------------------------------------------------
+    def set_course(self, title):
+        """Show this course's banks (None, "" or "all": every bank). The class name
+        follows while it is the default or the last course's title. Returns an
+        error message, or None."""
+        lib, title = library.current(), (title or "").strip()
+        new = None
+        if title.lower() not in ("", "all", "all banks"):
+            c = lib.course(title)
+            if not c:
+                near = library.suggest(title, [x["title"] for x in lib.courses])
+                return f"no course {title!r}" + (f" (did you mean {near}?)" if near else "") + "; :course all shows every bank"
+            new = c["title"]
+        old, here = self.course, self.rid()
+        def go():
+            self.sheet["course"] = new
+            if new and self.sheet["class_name"] in (mp.DEFAULTS["class_name"], old):
+                self.sheet["class_name"] = new
+        self.change(go)
+        try:
+            library.save_config(course=new)         # a new sheet starts here next time
+        except OSError:
+            pass
+        rows = self.rows()
+        self.row = rows.index(here) if here in rows else min(self.row, len(rows) - 1)
+        n = sum(len(ns) for _, ns in lib.view(new))
+        self.say(f"{new or 'All banks'}: {n} bank{'s' * (n != 1)}" +
+                 ("" if n or not new else " (tag a bank with this course, then :rescan)"))
+        return None
+
+    def missing(self):
+        """The banks this sheet uses that the library doesn't have."""
+        return sorted({it["bank"] for it in sh.items(self.sheet) if not banks.has(it["bank"])})
+
+    def rescan(self):
+        """:rescan: read the library again (banks, courses, tags)."""
+        lib = library.rescan()
+        self.row = min(self.row, len(self.rows()) - 1)
+        gone = self.missing()
+        where = dir_label(lib.folder) + ("" if lib.folder.is_dir() else " (no such folder: built-in banks only)")
+        msg = f"{where}: {lib.summary()}" + (f"  ·  missing: {', '.join(gone)}" if gone else "")
+        if lib.warnings:
+            msg += f"  ·  {lib.warnings[0]}" + (f" (+{len(lib.warnings) - 1} more: :warnings)" if len(lib.warnings) > 1 else "")
+        self.say(msg, bool(lib.warnings or gone))
+
+    def set_library(self, text):
+        """:library DIR: use this library folder from now on."""
+        if not text:
+            return self.rescan()
+        try:
+            library.save_config(library=text)
+        except OSError as e:
+            return self.say(f"E: can't save the config: {e}", True)
+        self.rescan()
 
     def set_versions(self, n):
         n = min(26, max(1, n))
@@ -253,6 +327,8 @@ class App:
         """Apply typed text to a row; returns an error string or None."""
         kind, key = self.rid(row)
         text = text.strip()
+        if kind == "course":
+            return self.set_course(text)
         if kind in ("bank", "problem"):
             return "type a count on a type's row"
         if kind == "count" or key == "versions":
@@ -747,11 +823,11 @@ class App:
                     n += 1
                     x0, tgt = k * (colw + 3), (si, index[id(it)])
                     b, p = banks.get(it["bank"]), sh.problem(it, v)
-                    mark = {"failed": "✗", "unchecked": "?"}.get(it["status"], "")
+                    mark = "!" if getattr(b, "MISSING", False) else {"failed": "✗", "unchecked": "?"}.get(it["status"], "")
                     num = f"{mark}{n}."
                     body = [w for part in b.text(p).split("\n")
                             for w in textwrap.wrap(part, max(8, colw - len(num) - 1)) or [""]]
-                    nstyle = {"failed": "err", "unchecked": "dim"}.get(it["status"], "plain")
+                    nstyle = "err" if mark == "!" else {"failed": "err", "unchecked": "dim"}.get(it["status"], "plain")
                     cell = [[(x0, num, nstyle, tgt), (x0 + len(num) + 1, body[0], "plain", tgt)]]
                     cell += [[(x0 + len(num) + 1, l, "plain", tgt)] for l in body[1:]]
                     if self.answers:
@@ -837,6 +913,7 @@ class App:
             return self.say(f"E: can't open {path}: {e}", True)
         name = re.sub(r"(\.sheet\.json|_v\d+\.json|\.json)$", "", p.name)
         out = dir_label(p.resolve().parent)
+        sheet.setdefault("course", self.sheet.get("course"))
         def go():
             self.s.update(sheet=sheet, out=out, name=name)
         self.change(go)
@@ -845,8 +922,11 @@ class App:
         older = not str(p).endswith(".sheet.json")
         if not older:
             self.written = self.snapshot()
+        gone = self.missing()
         self.say(f'"{path}" opened: {self.total()} problems' +
-                 (" (an older set, converted: :w saves it as a sheet)" if older else ""))
+                 (" (an older set, converted: :w saves it as a sheet)" if older else "") +
+                 (f"  ·  not in the library: {', '.join(gone)} (marked !; :library or :rescan)" if gone else ""),
+                 bool(gone))
 
     # -- ex commands -----------------------------------------------------
     def ex(self, line):
@@ -901,6 +981,19 @@ class App:
             self.join()
         elif cmd in ("group", "gr"):
             self.group(rest)
+        elif cmd == "course":
+            if not rest:
+                return self.say(f"course: {self.course or 'All banks'} (:course NAME, :course all)")
+            err = self.set_course(rest)
+            if err:
+                self.say(f"E: {err}", True)
+        elif cmd == "rescan":
+            self.rescan()
+        elif cmd in ("library", "lib"):
+            self.set_library(rest)
+        elif cmd == "warnings":
+            ws = banks.errors()
+            self.say("; ".join(ws) if ws else "no warnings", bool(ws))
         elif cmd == "rename":
             self.rename(rest) if rest else self.say("usage: :rename NEW TITLE (empty title: cS, then Enter)", True)
         elif cmd == "clear":
@@ -972,6 +1065,8 @@ class App:
     def row_text(self, rid):
         """What / searches on a left-pane row."""
         kind, key = rid
+        if kind == "course":
+            return f"course {self.value(0)}"
         if kind == "bank":
             return f"{key} {banks.get(key).TITLE}"
         if kind == "count":
@@ -1236,20 +1331,21 @@ class App:
         kind, ref = self.editing
         if kind == "row":
             k, key = self.rid(ref)
-            return f"{'count of ' + key[1] if k == 'count' else key}: "
+            return f"{'count of ' + key[1] if k == 'count' else 'course' if k == 'course' else key}: "
         if kind in ("title", "instructions"):
             return f"{'sheet' if ref < 0 else 'section'} {kind}: "
         return {"problem": "problem (equation ; unknown): ", "answer": "answer: "}[kind]
 
     def completing(self):
-        """What Tab completes in the line being typed: (start, dirs_only), or None.
-        The out setting and :out complete folders; :e completes files too."""
+        """What Tab completes in the line being typed: (start, what), or None, with
+        what "dirs", "files", or "courses". The out setting, :out, and :library
+        complete folders; :e files too; the course row and :course, courses."""
         if self.mode == "insert" and self.editing and self.editing[0] == "row":
-            return (0, True) if self.rid(self.editing[1]) == ("set", "out") else None
+            return {("set", "out"): (0, "dirs"), ("course", None): (0, "courses")}.get(self.rid(self.editing[1]))
         if self.mode == "command":
-            m = re.match(r"\s*(?:(out|e|edit)\s+|set\s+out=)", self.buf)
+            m = re.match(r"\s*(?:(out|e|edit|library|lib|course)\s+|set\s+out=)", self.buf)
             if m:
-                return m.end(), m.group(1) not in ("e", "edit")
+                return m.end(), {"e": "files", "edit": "files", "course": "courses"}.get(m.group(1), "dirs")
         return None
 
     def complete(self, step):
@@ -1260,9 +1356,9 @@ class App:
             where = self.completing()
             if not where:
                 return
-            start, dirs_only = where
+            start, what = where
             word = self.buf[start:]
-            matches = complete_path(word, dirs_only)
+            matches = complete_course(word) if what == "courses" else complete_path(word, what == "dirs")
             if not matches:
                 self.comp = None
                 return
@@ -1320,6 +1416,11 @@ def dir_label(p):
             continue
         return (pre or ".") if rel == "." else f"{pre}/{rel}" if pre else rel
     return str(p)
+
+def complete_course(text):
+    """The course titles (and all) that start with text, ignoring case."""
+    t = text.strip().lower()
+    return [c for c in [x["title"] for x in library.current().courses] + ["all"] if c.lower().startswith(t)]
 
 def complete_path(text, dirs_only=False):
     """The names a partly typed path could become, as Neovim completes them:
@@ -1422,7 +1523,7 @@ class Screen:
         LEFT_W = left_width(app, w)
         tab = lambda on: st["normal"] if on else st["dim"]      # the focused pane's label stands out
         if LEFT_W:
-            self.put(0, 1, " BANKS ", tab(not on_sheet))
+            self.put(0, 1, f" BANKS · {app.course or 'all'} ", tab(not on_sheet), LEFT_W - 2)
         self.put(0, LEFT_W + 1, " SHEET · " + app.sheet["title"] + " ", tab(on_sheet), w - LEFT_W - 14)
         self.put(0, w - 12, "? for help", st["dim"])
         if LEFT_W:
@@ -1458,8 +1559,21 @@ class Screen:
         st = self.st
         rows = app.rows()
         nset = len(SETTINGS)
-        lines = [(None, i) for i in range(len(rows) - nset)] + \
-                [("", None), ("SETTINGS", None)] + [(None, i) for i in range(len(rows) - nset, len(rows))]
+        view = library.current().view(app.course)
+        units = app.course is not None and any(u for u, _ in view)
+        lines, i = [(None, 0), ("", None)], 1                    # the course row, then the banks by unit
+        for unit, names in view:
+            if units:
+                lines.append((unit or "Other", None))
+            for _ in names:
+                lines.append((None, i))
+                i += 1
+                while i < len(rows) - nset and rows[i][0] != "bank":
+                    lines.append((None, i))
+                    i += 1
+        if not view:
+            lines.append(("(no banks in this course yet)", None))
+        lines += [("", None), ("SETTINGS", None)] + [(None, i) for i in range(len(rows) - nset, len(rows))]
         app.row = min(app.row, len(rows) - 1)
         cur = next(j for j, (_, i) in enumerate(lines) if i == app.row)
         top = max(0, min(cur - body // 2, len(lines) - body))
@@ -1470,7 +1584,9 @@ class Screen:
                 continue
             kind, key = rows[i]
             attr_t = 0
-            if kind == "bank":
+            if kind == "course":
+                text, val, attr_v, attr_t = "COURSE", app.value(i), st["count"], curses.A_BOLD
+            elif kind == "bank":
                 b = banks.get(key)
                 size = f" ({len(b.PROBLEMS)})" if getattr(b, "FIXED", False) else ""
                 text = f"{'▾' if key in app.open else '▸'} {b.TITLE}{size}"
@@ -1512,7 +1628,9 @@ class Screen:
     def hint(self, app, rid, y0, free, LEFT_W):
         """Under the tree, if there's room: what the row under the cursor is."""
         kind, key = rid
-        if kind == "bank":
+        if kind == "course":
+            hint = COURSE_HINT
+        elif kind == "bank":
             b = banks.get(key)
             hint = (f"{b.TITLE}: written problems. o opens it; o on a type lists its problems. l on a type adds one "
                     f"at random; l on a problem adds that one." if getattr(b, "FIXED", False) else
@@ -1542,6 +1660,7 @@ class Screen:
         v = app.sheet["versions"]
         info = (f" {app.total()} problem{'s' * (app.total() != 1)} × {v} version{'s' * (v != 1)}"
                 + (f"  ·  {bad} failing" if bad else "") + (f"  ·  {un} unchecked" if un else "")
+                + (f"  ·  {len(app.missing())} bank{'s' * (len(app.missing()) > 1)} missing (!)" if app.missing() else "")
                 + ("  ·  [+]" if app.dirty() else "")
                 + (f"  ·  {len(app.selection())} selected" if app.anchor is not None else ""))
         self.put(h - 2, len(mode) + 2, info, curses.A_REVERSE)

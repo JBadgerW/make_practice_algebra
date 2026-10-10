@@ -200,6 +200,8 @@ and `:w` still use the same data and the same functions.
    1. ✅ Library core: `sheets/library.py` (config, scan, courses.json, tags,
       warnings), generators found automatically, tags on the three banks,
       `tests/test_library.py`. No change on screen yet.
-   2. The app: course row, units, `:course`, `:rescan`, `:library`, class
-      name, the sheet's course, missing banks.
+   2. ✅ The app: course row, units, `:course`, `:rescan`, `:library`, class
+      name, the sheet's course, missing banks (a stand-in shows, edits, and
+      prints their problems from the sheet, through the family the problem
+      records; `!` marks them), `:warnings`.
    3. Docs: MANUAL, and tagging in EXTENDING.md.

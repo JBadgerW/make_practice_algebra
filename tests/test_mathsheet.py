@@ -5,8 +5,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never the teacher's own config
 (Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet").mkdir()
+EMPTY_LIB = tempfile.mkdtemp(prefix="emptylib_")
 (Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet" / "config.json").write_text(
-    '{"library": "%s"}' % tempfile.mkdtemp(prefix="emptylib_"))          # nor their library
+    '{"library": "%s"}' % EMPTY_LIB)                                        # nor their library
 import mathsheet as T, make_practice as mp
 from sheets import sheet as sh, edit as E
 OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
@@ -39,7 +40,7 @@ keys("."); assert counts(a)["4"] == 4, "repeat"
 keys("u"); assert counts(a)["4"] == 5, "undo"
 keys("\x12"); assert counts(a)["4"] == 4, "redo"
 keys("dd"); assert "4" not in counts(a) and titles(a) == [mp.L.heading("3")], "an emptied type section goes"
-keys("ggj"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
+keys("ggjj"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
 keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
 keys("G"); assert a.row == len(a.rows()) - 1
 keys("/square\n"); assert a.rid() == ("count", ("literal", "B")), a.rid()
@@ -147,7 +148,7 @@ assert T.left_width(a, 80) == 40 and T.left_width(a, 125) == 55, "the banks pane
 keys("\t"); assert T.left_width(a, 80) == 30 and T.left_width(a, 125) == 55, "a narrow sheet takes room from the banks"
 keys(":set wide\n"); assert T.left_width(a, 125) == 0
 keys(":set nowide\n\t")
-keys("ggj"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
+keys("ggjj"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
 assert [it["entry"] for it in a.sheet["sections"][0]["items"]][1:3] == ["1", "1"]
 
 # groups and shuffle rearrange what is there, drawing nothing
@@ -321,6 +322,63 @@ assert a1 == a2, "no groups means the default layout"
 assert mp.draft(mixc, 2, 7)["sections"][0]["items"][0]["problem"] == a1["sections"][0]["items"][0]["problem"], \
     "adding versions doesn't change version 1"
 assert mp.layout(mp.parse_groups(["3+4"]), {"3": 1}) == [dict(types=["3"], name="")]
+# ---- courses: the banks pane shows one course's banks, by unit
+import json as _json
+lib = Path(tempfile.mkdtemp(prefix="courselib_"))
+(lib / "courses.json").write_text(_json.dumps({"format": 1, "courses": [
+    {"title": "Algebra 1", "units": ["Foundations", "Equations"]}]}))
+(lib / "ints.json").write_text(_json.dumps({"format": 1, "name": "ints", "title": "Integers",
+    "courses": {"Prealgebra": None, "Algebra 1": "Foundations"},
+    "types": [{"key": "add", "title": "Adding"}, {"key": "mul", "title": "Multiplying", "courses": ["Prealgebra"]}],
+    "problems": [{"id": "1", "type": "add", "prompt": "$-3 + 5$", "answer": "$2$"},
+                 {"id": "2", "type": "mul", "prompt": "$-3 dot 5$", "answer": "$-15$"}]}))
+library.save_config(library=str(lib))
+c = T.App(seed=6); ck = driver(c)
+assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
+ck(":rescan\n"); assert "4 banks, 6 courses" in c.msg and not c.err, c.msg
+ck("gg"); assert c.rid() == ("course", None)
+ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
+assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
+ck("o"); assert c.rid() == ("course", None)
+c.open.add("ints"); assert [r for r in c.rows() if r[0] == "count"] == [("count", ("ints", "add")), ("count", ("ints", "mul"))]
+ck("l"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Algebra 1"
+assert [r for r in c.rows() if r[0] == "count" and r[1][0] == "ints"] == [("count", ("ints", "add"))], "mul is Prealgebra only"
+assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Equations", ["literal", "lesson_1-4"])]
+assert library.config()["course"] == "Algebra 1", "remembered for the next sheet"
+ck("h"); assert c.course == "Prealgebra"
+ck("h"); assert c.course is None and c.sheet["class_name"] == "Prealgebra", "All banks leaves the class alone"
+ck(":class Period 3\n:course alg\t"); assert c.buf == "course Algebra 1", c.buf
+ck("\n"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Period 3", "a typed class stays"
+ck(":course Algebra I\n"); assert c.err and "did you mean Algebra 1" in c.msg, c.msg
+ck(":course all\n"); assert c.course is None
+ck("u"); assert c.course == "Algebra 1", "u undoes a course change"
+ck(":course\n"); assert c.msg.startswith("course: Algebra 1")
+ck("gg" + "i\x15Geo\t"); assert c.buf == "Geometry"
+ck("\n"); assert c.course == "Geometry" and len(c.rows()) == 1 + len(T.SETTINGS)
+ck("/Adding\n"); assert c.err, "/ searches the course"
+ck(":course all\n/Adding\n"); assert c.rid() == ("count", ("ints", "add"))
+assert T.App().course is None, "all banks, as last used"
+library.save_config(course="Algebra 2"); assert T.App().course == "Algebra 2", "a new sheet starts in the last course"
+
+# the sheet keeps its course; a bank that goes missing still shows and prints
+ck(":course Algebra 1\n"); c.open.add("ints")
+ck("gg/Adding\n"); ck("l"); assert E.count(c.sheet, "ints", "add") == 1
+ck(f":out {OUT}\n:name course\n:w\n"); assert not c.err, c.msg
+saved = sh.load(Path(OUT) / "course.sheet.json"); assert saved["course"] == "Algebra 1"
+library.save_config(library=str(Path(tempfile.mkdtemp()))); library.rescan()
+d = T.App(); dk = driver(d); d.load(str(Path(OUT) / "course.sheet.json"))
+assert d.course == "Algebra 1" and d.missing() == ["ints"] and d.err and "not in the library: ints" in d.msg, d.msg
+assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
+dk("\tG"); assert "ints (missing)" not in d.msg
+dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
+dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
+dk(f":library {lib}\n"); assert not d.missing() and not d.err and "4 banks" in d.msg, d.msg
+assert library.config()["library"] == str(lib)
+dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]
+dk(":warnings\n"); assert d.msg == "no warnings"
+library.save_config(library=EMPTY_LIB, course=None)
+library.rescan()
+
 # ---- out: ~ is home, relative starts in the current folder, Tab completes
 import os
 home, here = Path(tempfile.mkdtemp(prefix="home_")), Path(tempfile.mkdtemp(prefix="cwd_"))

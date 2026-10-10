@@ -96,17 +96,24 @@ class FixedBank:
     def special(self, typ):
         return self.fam.special(typ) if self._family_type(typ) else bool(self.types[typ].get("special"))
 
+    def fam_of(self, p):
+        """The family that checks and shows problem p."""
+        return self.fam
+
     # -- drawing -------------------------------------------------------
     def initial_seen(self):
         return set()
 
     def seen_key(self, p):
-        return self.fam.seen_key(p) if self.fam else ("fixed", p.get("id"), p.get("prompt"))
+        f = self.fam_of(p)
+        return f.seen_key(p) if f else ("fixed", p.get("id"), p.get("prompt"))
 
     def problem(self, pid):
         """A copy of one problem, as an item stores it."""
         p = dict(self.PROBLEM[pid])
         p["source"] = f"{self.NAME}#{pid}"
+        if self.fam:
+            p["family"] = self.fam.NAME            # so it still shows if this bank goes missing
         return p
 
     def generate(self, entry, rng, seen):
@@ -119,26 +126,33 @@ class FixedBank:
 
     # -- checking, showing, editing -------------------------------------
     def check(self, p):
-        return self.fam.check(p) if self.fam else "unchecked"
+        f = self.fam_of(p)
+        return f.check(p) if f else "unchecked"
 
     def typst(self, p, gap="0.3em"):
-        return self.fam.typst(p, gap) if self.fam else p["prompt"]
+        f = self.fam_of(p)
+        return f.typst(p, gap) if f else p["prompt"]
 
     def answer_typst(self, p):
-        return self.fam.answer_typst(p) if self.fam else p["answer"]
+        f = self.fam_of(p)
+        return f.answer_typst(p) if f else p["answer"]
 
     def text(self, p):
-        return self.fam.text(p) if self.fam else p.get("text") or plain(p["prompt"])
+        f = self.fam_of(p)
+        return f.text(p) if f else p.get("text") or plain(p["prompt"])
 
     def answer_text(self, p):
-        return self.fam.answer_text(p) if self.fam else p.get("answer_text") or plain(p["answer"])
+        f = self.fam_of(p)
+        return f.answer_text(p) if f else p.get("answer_text") or plain(p["answer"])
 
     def edit_text(self, p):
-        return self.fam.edit_text(p) if self.fam else p["prompt"]
+        f = self.fam_of(p)
+        return f.edit_text(p) if f else p["prompt"]
 
     def from_edit(self, text, old):
-        if self.fam:
-            return self.fam.from_edit(text, old)
+        f = self.fam_of(old)
+        if f:
+            return f.from_edit(text, old)
         if not text.strip():
             raise ValueError("the problem can't be empty")
         new = dict(old, prompt=text.strip(), source="edited")
@@ -146,11 +160,13 @@ class FixedBank:
         return new, "unchecked"
 
     def answer_edit_text(self, p):
-        return self.fam.answer_edit_text(p) if self.fam else p["answer"]
+        f = self.fam_of(p)
+        return f.answer_edit_text(p) if f else p["answer"]
 
     def with_answer(self, p, text):
-        if self.fam:
-            return self.fam.with_answer(p, text)
+        f = self.fam_of(p)
+        if f:
+            return f.with_answer(p, text)
         if not text.strip():
             raise ValueError("the answer can't be empty")
         new = dict(p, answer=text.strip())

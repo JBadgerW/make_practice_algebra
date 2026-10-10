@@ -115,10 +115,9 @@ def parse_mix(tokens):
         k, _, c = tok.partition(":")
         if "/" in k:
             bank, _, e = k.partition("/")
-            try:
-                b = banks.get(bank)
-            except KeyError:
-                raise ValueError(f"bad mix entry {tok!r}: no bank {bank!r} (banks: {', '.join(banks.names())})") from None
+            if not banks.has(bank):
+                raise ValueError(f"bad mix entry {tok!r}: no bank {bank!r} (banks: {', '.join(banks.names())})")
+            b = banks.get(bank)
             es = [x["key"] for x in b.ENTRIES] if e.lower() == "all" else [b.entry_key(e)] if b.entry_key(e) else None
             if not c.isdigit() or not es:
                 raise ValueError(f"bad mix entry {tok!r}: use {bank}/ENTRY:COUNT with ENTRY in "

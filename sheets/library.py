@@ -118,13 +118,49 @@ def suggest(name, choices):
     return next((c for c in choices if key(c) == near[0]), None) if near else None
 
 # ------------------------------------------------------------------
+# A bank that isn't there
+# ------------------------------------------------------------------
+def missing_bank(name, families):
+    """A stand-in for a bank a sheet uses that the library no longer has (moved,
+    renamed, deleted): its problems still show, print, and edit, from what the
+    sheet stores, but nothing new can be drawn from it."""
+    from .banks.fixed import FixedBank
+
+    class MissingBank(FixedBank):
+        MISSING = True
+
+        def __init__(self):
+            self.NAME = self.FAMILY = name
+            self.TITLE = f"{name} (missing)"
+            self.INSTRUCTIONS, self.COURSES, self.SOURCE = "", None, "missing"
+            self.fam, self.types = None, {}
+            self.PROBLEMS, self.PROBLEM, self.ENTRIES, self.ENTRY = [], {}, [], {}
+
+        def fam_of(self, p):
+            return families.get(p.get("family"))
+
+        def hint(self, typ):
+            return None
+
+        def heading(self, typ):
+            return f"Type {typ}"
+
+        def special(self, typ):
+            return False
+
+        def generate(self, entry, rng, seen):
+            raise RuntimeError(f"the bank {name!r} isn't in the library (:rescan once it's back)")
+
+    return MissingBank()
+
+# ------------------------------------------------------------------
 # The library
 # ------------------------------------------------------------------
 class Library:
     def __init__(self, folder=None):
         self.folder = Path(folder).expanduser() if folder else library_dir()
         self.warnings = []
-        self.generators, self.fixed, self.courses = {}, {}, []
+        self.generators, self.fixed, self.courses, self.missing = {}, {}, [], {}
         self._find_generators()
         self._read_courses(BUILTIN / COURSES_FILE, "banks/")
         if self._own_folder():
@@ -239,10 +275,15 @@ class Library:
         """Every bank: the generators, then the fixed banks by name."""
         return list(self.generators) + sorted(self.fixed)
 
+    def has(self, name):
+        return name in self.generators or name in self.fixed
+
     def get(self, name):
+        """A bank by name; for one the library doesn't have, a stand-in that
+        shows a sheet's problems from it (see missing_bank)."""
         b = self.generators.get(name) or self.fixed.get(name)
         if b is None:
-            raise KeyError(f"no bank named {name!r}")
+            b = self.missing.get(name) or self.missing.setdefault(name, missing_bank(name, self.generators))
         return b
 
     def course(self, title):

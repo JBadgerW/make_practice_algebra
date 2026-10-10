@@ -78,10 +78,14 @@ L.save_config(library=str(root))
 L.rescan(); assert "factoring" in banks.names() and banks.get("factoring").TITLE == "Factoring"
 assert any("Algebra I" in e for e in banks.errors())
 L.rescan(Path(tempfile.mkdtemp())); assert "factoring" not in banks.names()
+gone = banks.get("factoring"); assert gone.MISSING and not banks.has("factoring") and gone is banks.get("factoring")
+fam = {"prompt": "y = m x + b", "target": "m", "answer": "m = (y - b)/x", "family": "literal"}
+assert gone.text(fam) == banks.get("literal").text(fam), "a missing bank's problem shows through its family"
+assert gone.text({"prompt": "$x^2$", "answer": "$4$"}) == "x^2" and gone.check({"prompt": "", "answer": ""}) == "unchecked"
 try:
-    banks.get("factoring"); raise AssertionError("a bank that's gone")
-except KeyError:
-    pass
+    gone.generate("1", None, set()); raise AssertionError("nothing new from a missing bank")
+except RuntimeError as e:
+    assert "isn't in the library" in str(e)
 L.save_config(library=str(root / "alg"))
 assert L.rescan().folder == root / "alg" and "warmups" in banks.names() and "found" not in banks.names()
 print("all library tests passed")

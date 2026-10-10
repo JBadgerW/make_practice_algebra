@@ -35,7 +35,12 @@ def names():
     """Every bank: the generators, then the fixed banks by name."""
     return library.current().names()
 
+def has(name):
+    """Is there a bank by this name?"""
+    return library.current().has(name)
+
 def get(name):
+    """A bank by name (a stand-in, marked MISSING, for one that's gone)."""
     return library.current().get(name)
 
 def problems(name):
