@@ -92,7 +92,7 @@ space, its terms lined up in columns.
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
 | `tests/` | `test_mathsheet.py` and `test_library.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
-| `banks/` | The built-in fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`) and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
+| `banks/` | The built-in fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`), the built-in sequence `literal_by_type.json` (the lesson's order, also written by `gen_sequence.py`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |

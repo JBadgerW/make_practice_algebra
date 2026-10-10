@@ -67,7 +67,7 @@ class Sequence:
         bank does, take its title and type, and check its examples. Returns
         warnings; a step that can't be used keeps a "missing" message."""
         from .library import suggest
-        out = []
+        out, absent = [], []                           # absent examples: one warning for them all
         for st in self.steps:
             where = f"{self.SOURCE}, step {st['n']} ({st['spec']})"
             if not lib.has(st["bank"]):
@@ -88,10 +88,14 @@ class Sequence:
             for eb, pid in st["examples"]:
                 x = lib.get(eb) if lib.has(eb) else None
                 if x is None or pid not in getattr(x, "PROBLEM", {}):
-                    out.append(f"{where}: no problem {eb}#{pid} (examples come from a fixed bank)")
+                    absent.append(f"{eb}#{pid}")
                 elif x.FAMILY != b.FAMILY or x.PROBLEM[pid]["type"] != st["type"]:
                     out.append(f"{where}: example {eb}#{pid} is {x.heading(x.PROBLEM[pid]['type'])}, "
                                f"not {b.heading(st['type'])}")
+        if absent:
+            out.append(f"{self.SOURCE}: {len(absent)} pinned example{'s' * (len(absent) > 1)} "
+                       f"{'are' if len(absent) > 1 else 'is'} in no fixed bank: " + ", ".join(absent[:3])
+                       + (", …" if len(absent) > 3 else ""))
         return out
 
     def usable(self):

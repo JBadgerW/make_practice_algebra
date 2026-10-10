@@ -246,4 +246,10 @@ and `:w` still use the same data and the same functions.
    3. ✅ `:draft` and `--draft` (both scripts), with review: `parse_draft`,
       `spread`, `draft_sequence` in make_practice.py; `xN`, `review STEPS|none`,
       `pinned`; the saved command redraws the sheet; MANUAL.
-   4. Lesson 1-4 as a bank plus a sequence.
+   4. ✅ Lesson 1-4 as a bank plus a sequence: `banks/literal_by_type.json`
+      (a step per type over the generator, the fifty pinned), built by
+      `lesson_sequence()` from `TYPES` and written by `gen_sequence.py`; a
+      test checks the file matches. Notes start as each type's "look for",
+      for the teacher to rewrite as what changes. Missing pinned examples
+      are one warning per sequence; the cursor starts on the first row to
+      add from.

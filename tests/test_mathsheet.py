@@ -23,12 +23,21 @@ def titles(app):
     return [s["title"] for s in app.sheet["sections"]]
 def prompts(app):
     return [it["problem"]["prompt"] for it in sh.items(app.sheet)]
+def banks_first(app):
+    """Fold the built-in sequence and start on the literal bank's first type,
+    for the tests of the banks themselves."""
+    app.open.discard("literal_by_type")
+    app.row = app.rows().index(("count", ("literal", "1")))
+    return app
 def text(app, width=80):
     lines, _ = app.render(width)
     return "\n".join("".join(t for _, t, _, _ in l) for l in lines)
 
 # ---- the types pane: counts make sections in sequence order
-a = T.App(seed=12); keys = driver(a)
+a = T.App(seed=12)
+assert a.rows()[1:3] == [("seq", "literal_by_type"), ("step", ("literal_by_type", 1))] and a.row == 2, \
+    "the built-in sequence comes first, open, and the cursor starts on its first step"
+banks_first(a); keys = driver(a)
 keys("4j"); assert a.rid() == ("count", ("literal", "3")), a.rid()
 keys("3l"); assert counts(a) == {"3": 3}, counts(a)
 keys("2j6l"); assert counts(a) == {"3": 3, "4": 6}
@@ -40,10 +49,12 @@ keys("."); assert counts(a)["4"] == 4, "repeat"
 keys("u"); assert counts(a)["4"] == 5, "undo"
 keys("\x12"); assert counts(a)["4"] == 4, "redo"
 keys("dd"); assert "4" not in counts(a) and titles(a) == [mp.L.heading("3")], "an emptied type section goes"
-keys("ggjj"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
+keys("ggjjj"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
 keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
 keys("G"); assert a.row == len(a.rows()) - 1
-keys("/square\n"); assert a.rid() == ("count", ("literal", "B")), a.rid()
+keys("/square\n"); assert a.rid() == ("step", ("literal_by_type", 13)), "the sequence's step, by its note"
+assert "literal_by_type" in a.open, "/ opens what it finds"
+keys("n"); assert a.rid() == ("count", ("literal", "B")), a.rid()
 keys("n"); assert a.rid() == ("count", ("literal", "Bf")), a.rid()
 keys("i2\n"); assert counts(a)["Bf"] == 2, "typed count"
 before = prompts(a)
@@ -148,7 +159,7 @@ assert T.left_width(a, 80) == 40 and T.left_width(a, 125) == 55, "the banks pane
 keys("\t"); assert T.left_width(a, 80) == 30 and T.left_width(a, 125) == 55, "a narrow sheet takes room from the banks"
 keys(":set wide\n"); assert T.left_width(a, 125) == 0
 keys(":set nowide\n\t")
-keys("ggjj"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
+banks_first(a); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
 assert [it["entry"] for it in a.sheet["sections"][0]["items"]][1:3] == ["1", "1"]
 
 # groups and shuffle rearrange what is there, drawing nothing
@@ -207,7 +218,7 @@ wk("j"); assert w.rid() == ("problem", ("lesson_1-4", "13"))
 wk("l"); assert E.where_problem(w.sheet, "lesson_1-4", "13") and w.value(w.row) is True
 wk("l"); assert w.err and "already" in w.msg
 wk("k2l"); assert E.count(w.sheet, "lesson_1-4", "3") == 3
-wk("/Clear One\n"); assert w.rid() == ("count", ("literal", "3")), w.rid()
+wk("/Clear One\n"); assert w.rid() == ("step", ("literal_by_type", 3)) and w.act() == ("count", ("literal", "3")), w.rid()
 wk("2l"); assert titles(w) == [mp.L.heading("3")], "the lesson and the generator share Type 3's section"
 assert len(set(prompts(w))) == 5
 wk(":versions 2\n")
@@ -335,7 +346,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert "4 banks, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert "4 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
@@ -395,7 +406,8 @@ assert q.rows()[:6] == [("course", None), ("seq", "by_move"), ("step", ("by_move
                         ("step", ("by_move", 3)), ("step", ("by_move", 4))], q.rows()[:6]
 assert ("seq", "other") not in q.rows() and ("bank", "literal") in q.rows(), "a sequence shows in its own course"
 qk(":course all\n"); tops = [r for r in q.rows() if r[0] in ("seq", "bank")]
-assert tops[:3] == [("seq", "by_move"), ("seq", "other"), ("bank", "literal")], "sequences first"
+assert tops[:4] == [("seq", "by_move"), ("seq", "literal_by_type"), ("seq", "other"), ("bank", "literal")], \
+    "sequences first"
 qk(":course Algebra 1\n")
 qk("ggjj"); assert q.rid() == ("step", ("by_move", 1))
 qk("2l"); assert E.count(q.sheet, "literal", "1") == 2 and q.value(q.row) == 2, "l on a step adds its entry"
@@ -473,6 +485,11 @@ gk(":draft long 4\n"); assert g.sheet["title"] == "Long: Step 4", "a drafted tit
 gk("u"); assert g.sheet["title"] == "Long: Step 3"
 gk(":draft long 9\n"); assert g.err and "steps 1-8" in g.msg
 gk(":draft\n"); assert g.err and "use SEQUENCE" in g.msg
+gk(":draft literal_by_type 3-4 x4 pinned\n"); assert not g.err, g.msg
+assert [it["problem"].get("id") for it in g.sheet["sections"][0]["items"]] == ["13", "14", "15", "16"], \
+    "the lesson's own Type 3 problems, in order"
+assert [x["title"] for x in g.sheet["sections"]] == ["Clear One Denominator", "Distribute First", "Review"]
+assert {it["entry"] for it in g.sheet["sections"][2]["items"]} == {"1", "2"} and len(g.sheet["sections"][2]["items"]) == 4
 library.save_config(library=EMPTY_LIB, course=None); library.rescan()
 
 # ---- out: ~ is home, relative starts in the current folder, Tab completes

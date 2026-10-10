@@ -9,7 +9,7 @@ sympy before any Typst is emitted. Run from this folder:
 import argparse, json, random
 from pathlib import Path
 import make_practice as mp
-from sheets.banks.literal import TYPES, label
+from sheets.banks.literal import TYPES, label, lesson_sequence
 from sheets.check import to_sympy, side_diff, syms_of, holds
 from sheets.typst import MARK, head, slhead, vars_
 
@@ -263,6 +263,8 @@ bank = {
     "problems": [{"id": str(n), "type": TYPE_OF[n]["key"], "prompt": EQ[n][0], "target": EQ[n][1],
                   "answer": f"{EQ[n][1]} = {EQ[n][2][EQ[n][1]]}"} for n in seq],
 }, indent=1, ensure_ascii=False) + "\n")
+# ... and the lesson's order as a sequence over the generator, its fifty pinned as examples
+(HERE / "banks" / "literal_by_type.json").write_text(json.dumps(lesson_sequence(), indent=1, ensure_ascii=False) + "\n")
 
 # ------------------------------------------------------------------
 # Typst

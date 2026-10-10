@@ -1,0 +1,139 @@
+{
+ "format": 1,
+ "kind": "sequence",
+ "name": "literal_by_type",
+ "title": "Literal Equations by Type",
+ "courses": {
+  "Algebra 1": "Equations"
+ },
+ "steps": [
+  {
+   "entry": "literal/1",
+   "note": "The unknown is tied to the rest by a single operation: $+$, $-$, $times$, or $div$.",
+   "examples": [
+    "lesson_1-4#1",
+    "lesson_1-4#2",
+    "lesson_1-4#3",
+    "lesson_1-4#4",
+    "lesson_1-4#5",
+    "lesson_1-4#6",
+    "lesson_1-4#7",
+    "lesson_1-4#8"
+   ]
+  },
+  {
+   "entry": "literal/2",
+   "note": "No fractions. The unknown's term has other terms added to it or subtracted from it.",
+   "examples": [
+    "lesson_1-4#9",
+    "lesson_1-4#10",
+    "lesson_1-4#11",
+    "lesson_1-4#12"
+   ]
+  },
+  {
+   "entry": "literal/3",
+   "note": "One fraction bar (or a fraction coefficient like $1/3$), and no parentheses to distribute.",
+   "examples": [
+    "lesson_1-4#13",
+    "lesson_1-4#14",
+    "lesson_1-4#15",
+    "lesson_1-4#16",
+    "lesson_1-4#17",
+    "lesson_1-4#18"
+   ]
+  },
+  {
+   "entry": "literal/4",
+   "note": "The unknown is inside parentheses, with a number or letter multiplying the group.",
+   "examples": [
+    "lesson_1-4#19",
+    "lesson_1-4#20",
+    "lesson_1-4#21",
+    "lesson_1-4#22",
+    "lesson_1-4#23",
+    "lesson_1-4#24"
+   ]
+  },
+  {
+   "entry": "literal/5",
+   "note": "A fraction and a set of parentheses.",
+   "examples": [
+    "lesson_1-4#25",
+    "lesson_1-4#26",
+    "lesson_1-4#27"
+   ]
+  },
+  {
+   "entry": "literal/6",
+   "note": "Two different fractions in the equation.",
+   "examples": [
+    "lesson_1-4#28",
+    "lesson_1-4#29"
+   ]
+  },
+  {
+   "entry": "literal/7",
+   "note": "The unknown appears in two terms that are already together on one side.",
+   "examples": [
+    "lesson_1-4#30",
+    "lesson_1-4#31"
+   ]
+  },
+  {
+   "entry": "literal/8",
+   "note": "The unknown appears on both sides of the equation.",
+   "examples": [
+    "lesson_1-4#32",
+    "lesson_1-4#33",
+    "lesson_1-4#34",
+    "lesson_1-4#35"
+   ]
+  },
+  {
+   "entry": "literal/9",
+   "note": "Parentheses, and the unknown shows up in more than one term.",
+   "examples": [
+    "lesson_1-4#36",
+    "lesson_1-4#37",
+    "lesson_1-4#38"
+   ]
+  },
+  {
+   "entry": "literal/10",
+   "note": "Fractions whose denominators are single numbers or letters.",
+   "examples": [
+    "lesson_1-4#39",
+    "lesson_1-4#40",
+    "lesson_1-4#41"
+   ]
+  },
+  {
+   "entry": "literal/11",
+   "note": "A denominator that is a sum or difference, such as $(x - 1)$.",
+   "examples": [
+    "lesson_1-4#42",
+    "lesson_1-4#43",
+    "lesson_1-4#44",
+    "lesson_1-4#45"
+   ]
+  },
+  {
+   "entry": "literal/A",
+   "note": "The term with the unknown has a minus sign in front of it.",
+   "examples": [
+    "lesson_1-4#46",
+    "lesson_1-4#47"
+   ]
+  },
+  {
+   "entry": "literal/B",
+   "note": "The unknown is squared.",
+   "examples": [
+    "lesson_1-4#48",
+    "lesson_1-4#49",
+    "lesson_1-4#50"
+   ]
+  }
+ ]
+}

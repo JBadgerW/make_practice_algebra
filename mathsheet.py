@@ -108,6 +108,7 @@ class App:
         self.reg = None                 # dict(kind="items"|"section", what=..., cut=bool)
         self.last_build = None
         self.quit = False
+        self.row = next((i for i, r in enumerate(self.rows()) if r[0] in ("step", "count")), 0)   # the first to add from
         self.clamp()
         if banks.errors():
             self.say("E: " + "; ".join(banks.errors()), True)

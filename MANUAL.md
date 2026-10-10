@@ -35,6 +35,7 @@ numbers. Without `--groups`, the output is the same as before.
 | `lesson_1-4_literal_seq_all_solutions` | The textbook equations and the 50 lesson equations, each solved for every variable |
 | `lesson_1-4_literal_seq_bank.json` | Everything above as data |
 | `../banks/lesson_1-4.json` | The fifty as a fixed bank for the terminal app (section 5) |
+| `../banks/literal_by_type.json` | The lesson's order as a sequence for the terminal app: a step per type, the fifty pinned as its examples (section 3, *Sequences*) |
 
 The script stops with an error if an answer or a worked step fails its
 numeric check. It also stops if the types don't cover problems 1–50 exactly
@@ -194,6 +195,15 @@ step changing a single thing (Engelmann's minimal differences). It doesn't
 hold problems itself: each step points at a bank's type, so the same
 problems can sit in several sequences (a first teaching sequence, a review,
 a set that sets two look-alike types side by side).
+
+The app comes with one: **Literal Equations by Type**, Lesson 1-4's order.
+It has a step per type (1–11, then Special Cases A and B), each drawing fresh
+problems from the generator, with the lesson's own problems of that type
+pinned as its examples (problems 13–18 under step 3, and so on). Its notes
+start as each type's *Look for* text, which describes the type rather than
+what changed from the step before; rewrite them in your own copy (see
+below). `gen_sequence.py` writes it from the same `TYPES` table as the
+lesson, so the two never disagree.
 
 In the banks pane, a course's sequences come first under their unit, marked
 `≡`, with their steps in order:
@@ -537,6 +547,9 @@ bank, tagged with `courses` the same way:
 - A step finer than a bank's types (Type 3 with a number denominator, then
   with a letter) needs its own entry in the bank first.
 - Banks and sequences share names: a sequence can't have a bank's name.
+- To change a built-in sequence (its notes, say), copy it from `banks/` into
+  your library and edit the copy: yours replaces the built-in one, and
+  `gen_sequence.py` never touches it.
 
 `gen_sequence.py` writes the lesson's fifty as `banks/lesson_1-4.json`.
 

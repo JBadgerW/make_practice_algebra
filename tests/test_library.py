@@ -25,6 +25,19 @@ assert lib.view("Geometry") == [] and lib.view() == [(None, lib.names())]
 assert lib.types_in("literal", "Algebra 1") == L.types(lib.get("literal")) and lib.types_in("literal", "Calculus") == []
 assert L.library_dir() == Path("~/Documents/mathsheet-library").expanduser(), "the default library"
 
+# ---- the built-in sequence: Lesson 1-4's order, over the generator, its fifty pinned
+from sheets.banks.literal import TYPES, lesson_sequence
+q = lib.sequence("literal_by_type")
+assert json.loads((L.BUILTIN / "literal_by_type.json").read_text()) == lesson_sequence(), \
+    "banks/literal_by_type.json is what gen_sequence.py writes from TYPES"
+assert [st["entry"] for st in q.steps] == [t["key"] for t in TYPES] and all(st["bank"] == "literal" for st in q.steps)
+assert [st["title"] for st in q.steps] == [t["title"] for t in TYPES]
+pinned = [pid for st in q.steps for _, pid in st["examples"]]
+assert pinned == [str(n) for n in range(1, 51)], "the fifty, in lesson order"
+lesson = lib.get("lesson_1-4")
+assert all(lesson.PROBLEM[pid]["type"] == st["type"] for st in q.steps for _, pid in st["examples"])
+assert lib.view("Algebra 1", sequences=True) == [("Equations", ["literal_by_type", "literal", "lesson_1-4"])]
+
 # ---- the config file
 L.save_config(library="~/somewhere")
 assert L.config()["library"] == "~/somewhere" and L.library_dir() == Path("~/somewhere").expanduser()
@@ -56,14 +69,16 @@ w = "\n".join(lib.warnings)
 assert "no course 'Algebra I'" in w and "did you mean 'Algebra 1'" in w, w
 assert "has no unit 'Equatoins'" in w and "did you mean 'Equations'" in w, w
 assert "fam.json" in w and "no generator bank 'nope'" in w, w
-assert "other.json" in w and "sheet.json" not in w and len(lib.warnings) == 4, lib.warnings
+assert "banks/literal_by_type.json: 50 pinned examples are in no fixed bank: lesson_1-4#1, lesson_1-4#2, lesson_1-4#3, …" in w, \
+    "the built-in sequence's examples, gone with the built-in Lesson 1-4: one warning"
+assert "other.json" in w and "sheet.json" not in w and len(lib.warnings) == 5, lib.warnings
 assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Equations", ["literal"]),
                                  ("Factoring", ["factoring"]), (None, ["typos", "warmups"])], \
     "a unit courses.json lacks files the bank under Other"
 assert lib.types_in("factoring", "Algebra 1") == ["1", "2"], "type 9 has its own courses"
 assert lib.types_in("factoring", "Precalculus") == ["9"] and lib.view("Precalculus") == [(None, ["systems", "factoring"])]
 assert lib.view("Algebra 2") == [(None, ["systems", "factoring", "lesson_1-4"])]
-assert lib.summary() == "8 banks, 7 courses, 4 warnings", lib.summary()
+assert lib.summary() == "8 banks, 1 sequence, 7 courses, 5 warnings", lib.summary()
 
 # ---- a bank that names a generator, or a name used twice
 bank(root / "more" / "found.json", "found")
@@ -115,7 +130,8 @@ seq("same_name", [{"entry": "found/1"}], name="found")               # a bank ha
 seq("typo", [{"entry": "found/1"}], courses={"Algebra 1": "Equatoins"})
 lib = L.Library(sq)
 w = "\n".join(lib.warnings)
-assert sorted(lib.sequences) == ["by_move", "typo", "untagged", "warmup"] and "found" in lib.names(), sorted(lib.sequences)
+assert sorted(lib.sequences) == ["by_move", "literal_by_type", "typo", "untagged", "warmup"] and "found" in lib.names(), \
+    sorted(lib.sequences)
 assert "broken.json: step 1 needs an \"entry\" like \"literal/3\"" in w and "empty.json: \"steps\" must be a list" in w, w
 assert "same_name.json: the name 'found' is taken (found.json)" in w, w
 q = lib.sequence("by_move")
@@ -129,14 +145,14 @@ assert q.steps[4]["missing"] == "literal has no entry '99'" and q.steps[5]["miss
 assert "by_move.json, step 5 (literal/99): literal has no entry '99'" in w, w
 assert "step 8 (sytems/2): no bank 'sytems' (did you mean 'systems'?)" in w, w
 assert "step 4 (literal/a): example lesson_1-4#19 is" in w, w
-assert "step 7 (systems/1): no problem literal#1" in w and "no problem lesson_1-4#999" in w, w
+assert "by_move.json: 2 pinned examples are in no fixed bank: literal#1, lesson_1-4#999" in w, w
 assert "step 3" not in w, "matching examples are fine"
 assert "typo.json: Algebra 1 has no unit 'Equatoins'" in w, w
 assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Equations", ["literal", "lesson_1-4"])], "banks only, by default"
-assert lib.view("Algebra 1", sequences=True) == [("Foundations", ["found"]), ("Equations", ["by_move", "literal", "lesson_1-4"]),
+assert lib.view("Algebra 1", sequences=True) == [("Foundations", ["found"]), ("Equations", ["by_move", "literal_by_type", "literal", "lesson_1-4"]),
                                                  (None, ["typo", "warmup"])], lib.view("Algebra 1", sequences=True)
-assert lib.view(None, sequences=True)[0][1][:4] == ["by_move", "typo", "untagged", "warmup"]
-assert lib.summary().startswith("4 banks, 4 sequences, ") and "warnings" in lib.summary(), lib.summary()
+assert lib.view(None, sequences=True)[0][1][:5] == ["by_move", "literal_by_type", "typo", "untagged", "warmup"]
+assert lib.summary().startswith("4 banks, 5 sequences, ") and "warnings" in lib.summary(), lib.summary()
 try:
     lib.sequence("found"); raise AssertionError("a bank isn't a sequence")
 except KeyError:

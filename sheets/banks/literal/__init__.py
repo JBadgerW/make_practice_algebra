@@ -89,6 +89,16 @@ for _t in TYPES:
                             title=f'{_t["title"]} (formulas)', width="half", space=_t["work"]))
 ENTRY = {e["key"]: e for e in ENTRIES}
 
+def lesson_sequence():
+    """Lesson 1-4's order as a sequence (sheets/sequences.py): a step per type,
+    drawing fresh problems of it, with the lesson's own problems of that type
+    pinned as its examples. gen_sequence.py writes it to banks/; TYPES is the
+    one source of its order. The notes start as each type's "look for"."""
+    return {"format": 1, "kind": "sequence", "name": "literal_by_type",
+            "title": "Literal Equations by Type", "courses": dict(COURSES),
+            "steps": [{"entry": f"{NAME}/{t['key']}", "note": t["look"],
+                       "examples": [f"lesson_1-4#{n}" for n in t["probs"]]} for t in TYPES]}
+
 def entry_key(text):
     """User spelling -> entry key: "3" "3f" "a" "BF" -> "3" "3f" "A" "Bf"; None if unknown."""
     t = text.strip()
