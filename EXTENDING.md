@@ -185,6 +185,9 @@ show the teacher the new layout and confirm the old commands still work.
 - What a finished answer looks like, with 3–5 examples. Which forms are
   acceptable, and which is printed in the key.
 - Number rules: integer answers only? sizes? negatives allowed? fractions?
+- Which courses the family belongs to, and in which unit of each (see
+  section 8a). Ask whether any types belong to a different course than the
+  rest: a family often starts in Algebra 1 and finishes in Algebra 2.
 
 Write the types down as data. → **Checkpoint:** the teacher approves the
 types and the answer conventions.
@@ -198,10 +201,11 @@ samples. Expect to adjust.
 
 **Phase 4: Output and TUI.** Worksheets, keys, and slides through the
 shared Typst code. Compile them and look at the PDFs (render pages to PNG
-and view them). In the TUI, add a family list above the types (or one tree
-of family → types) and make the help text and hints family-aware. Add tests
-alongside `tests/test_mathsheet.py`. → **Checkpoint:** a sample set of each
-output.
+and view them). A generator module in `sheets/banks/` appears in the banks
+pane on its own; tag it with its courses (section 8a) so it shows in the
+right ones, and check `:warnings` is empty. Make the help text and hints
+family-aware where they need to be. Add tests alongside
+`tests/test_mathsheet.py`. → **Checkpoint:** a sample set of each output.
 
 **Phase 5: Tests and mixed sets** (when asked): parallel versions, points,
 sections per family, multiple choice.
@@ -211,6 +215,7 @@ sections per family, multiple choice.
 ```sh
 python3 make_practice.py --selftest 100     # every type of every family + formula pools
 python3 tests/test_mathsheet.py              # TUI state and keys, no terminal
+python3 tests/test_library.py                # the library: banks, courses.json, tags
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
 python3 gen_sequence.py                     # lesson set: answers and worked steps
@@ -275,6 +280,31 @@ The parent folders already have related material: answer-key instructions
 designing word-problem or test features, and ask the teacher what they're
 for rather than guessing.
 
+## 8a. Tagging a bank with its courses
+
+Courses are tags, not folders (`sheets/library.py` has the details). A
+generator module declares them at the top, next to `TITLE`:
+
+```python
+COURSES = {"Algebra 1": "Equations", "Algebra 2": None}   # course -> unit, or None
+COURSES = ["Algebra 2", "Precalculus"]                    # or: no units
+```
+
+A bank file does the same with `"courses"`. A type that belongs elsewhere
+carries its own `courses` (in `TYPES` for a generator, in `"types"` for a
+bank file), which replaces the bank's for that type only.
+
+- Course titles and unit names must match `courses.json` exactly (the
+  built-in one is `banks/courses.json`; the teacher's library may have its
+  own). Don't invent a course or unit: ask the teacher, and add it to
+  `courses.json` if they agree.
+- A bank with no `COURSES` shows only under *All banks*. That's a fine
+  state while a family is being built.
+- Check with `:rescan` and `:warnings` in the app, or
+  `python3 -c "from sheets import library; print(library.current().warnings)"`.
+- Generators stay in `sheets/banks/`; the library folder holds only JSON.
+  A shared folder must never be able to run code.
+
 ## 9. Lessons learned in this project
 
 - **Typst and sympy read fractions differently.** In Typst, `a/b c` means
@@ -306,5 +336,6 @@ for rather than guessing.
 - [ ] Samples per type read by you and approved by the teacher.
 - [ ] Worksheet, key, and slides compile; rendered pages inspected.
 - [ ] TUI: family selectable, preview correct, help and hints updated, tests added.
+- [ ] Tagged with the teacher's courses and units (types too, where they differ); `:warnings` empty.
 - [ ] Byte-identical baselines for everything that existed before.
 - [ ] README and MANUAL updated: new family, its types, and its answer conventions.

@@ -12,6 +12,11 @@ each one needs, plus two **special cases**. There are two parts:
    slide deck for each version. You can run it from the command line or from
    a terminal app with vim keys.
 
+The terminal app draws from a **library** of problem banks: generators, the
+lesson's fifty, and banks you write yourself, each tagged with the courses it
+belongs to (Algebra 1, Algebra 2, Precalculus, ...), so you see one course's
+banks at a time.
+
 Every answer, and every line of every worked example, is checked
 numerically with sympy before anything is written.
 
@@ -79,13 +84,14 @@ space, its terms lined up in columns.
 | File | What it is |
 |---|---|
 | `sheets/` | The shared package: `sheet.py` (the worksheet document), `edit.py` (changes to a sheet), `writer.py` (worksheet, key, and slide Typst), `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles), `banks/` (the bank interface, the literal-equation generator, and fixed banks) |
+| `sheets/library.py` | The library: finds every bank (generators, `banks/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
-| `tests/` | `test_mathsheet.py` (no terminal needed) and `screen_test.py` (draws the real screen; needs `pyte`) |
-| `banks/` | Fixed banks: written problems as JSON, browsed and added in the terminal app (`lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`) |
+| `tests/` | `test_mathsheet.py` and `test_library.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
+| `banks/` | The built-in fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`) and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |

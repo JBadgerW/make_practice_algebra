@@ -145,10 +145,12 @@ It takes the same drafting options as `make_practice.py` (`--mix`,
 `--out`, `--name`). An older `NAME_v1.json` opens too: it is converted, and
 `:w` saves it as a sheet.
 
-**Two panes.** On the left are the **banks**, as a tree: each bank, its types
-with how many of each are on the sheet (`·` means none), and, for a fixed
-bank, the problems of a type you open (`●` marks one on the sheet). Then the
-settings, and a hint for the row under the cursor. On the right is **the sheet**, laid out like the page:
+**Two panes.** On the left are the **banks** of one **course** (the COURSE
+row on top; see *Courses and the library* below), as a tree under their
+units: each bank, its types with how many of each are on the sheet (`·`
+means none), and, for a fixed bank, the problems of a type you open (`●`
+marks one on the sheet). Then the settings, and a hint for the row under the
+cursor. On the right is **the sheet**, laid out like the page:
 the header, the instructions in italics, bold section titles, problems in
 one or two columns with their work space as blank lines, and a dashed line
 where a new page probably starts. `Tab` moves between the panes, and the
@@ -169,7 +171,8 @@ what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
 
 | Keys | Action |
 |---|---|
-| `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search every bank (type names, and the text of fixed problems), opening what they find, and the settings. |
+| `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search the course's banks (type names, and the text of fixed problems), opening what they find, and the settings. |
+| `h` `l` on COURSE | The previous / next course, then *All banks*. `i` types one (`Tab` completes). |
 | `o` | Open or close a bank; on a fixed bank's type, list its problems. `zM` `zR` close or open every bank. |
 | `l` `+` `→` `Ctrl-A` | On a type: add one problem to the type's own section (made, in sequence order, if needed); `3l` adds three. From a fixed bank, it is an unused problem picked at random. On a problem: add that problem. On *versions*: add a version. |
 | `L` | Add one (or that problem) where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
@@ -182,6 +185,49 @@ what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
 A bank's types share sections with its family: Type 3 problems from the
 lesson bank and from the generator go into the same *Type 3* section, and
 the sheet never holds the same problem twice.
+
+### Courses and the library
+
+The **library** is every bank the app knows: the generators, the built-in
+banks in the app's `banks/` folder, and **your own banks**, in a library
+folder outside the app (`~/Documents/mathsheet-library` unless you choose
+another with `:library DIR`). Keep your banks there: they survive updates to
+the app, and the folder can be synced or shared with colleagues. Inside it,
+organize bank files in any subfolders you like. A bank of yours with the same
+name as a built-in one replaces it, so to change a built-in bank, copy it
+into your library and edit the copy.
+
+A **course** (Algebra 1, Geometry, ...) is a tag on a bank, not a folder, so
+one bank can belong to several courses. The COURSE row at the top of the
+banks pane picks which course's banks you see, grouped under the course's
+units in order (banks without a unit come last, under *Other*); *All banks*
+shows everything. A bank may tag some of its types for other courses, and
+then a course shows only its own types.
+
+- `h` `l` on the COURSE row, or `:course Algebra 2` (`Tab` completes,
+  `:course all` for every bank), changes the course. `:course` alone says
+  which one you're in.
+- The **class name** on the worksheet follows the course (choosing
+  Algebra 2 makes it *Algebra 2*) until you type a class name of your own,
+  which then stays.
+- The sheet remembers its course, so reopening it shows that course; a new
+  sheet starts in the course you used last. `u` undoes a course change.
+- Courses only change what the banks pane shows. A sheet can mix problems
+  from any courses, and changing a bank's tags never changes a sheet.
+
+The app reads the library each time it starts (it takes a few
+milliseconds). After you add or change a bank or `courses.json` while it's
+running, `:rescan` reads it again. Mistakes, such as a tag for a course
+that doesn't exist, a misspelled unit, or a file that isn't a bank, never
+stop the app: `:rescan` reports the first (with a guess at what you meant:
+*did you mean 'Algebra 1'?*), and `:warnings` lists them all.
+
+**When a bank goes missing.** If a sheet uses a bank the library no longer
+has (renamed, moved, or deleted), the sheet still opens, shows, edits, and
+prints, since it stores its own problems. Those problems are marked with a red
+`!`, and the status line counts the missing banks. Nothing new can be drawn
+from a missing bank, so rerolling those problems explains why. Restore the
+bank, or point `:library` at the right folder, and they're ordinary again.
 
 ### The sheet pane
 
@@ -279,6 +325,10 @@ through earlier commands.
 | `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |
 | `:space 1.5in`, `:width full` | Set work space or width (the selection, or problem, section, or sheet, by where the cursor is) |
 | `:join` | Merge the section below into the cursor's section |
+| `:course NAME`, `:course all` | Show a course's banks, or every bank (`Tab` completes); `:course` says which |
+| `:rescan` | Read the library again (after you add or change a bank or `courses.json`) |
+| `:library DIR` | Use this library folder from now on (`Tab` completes); `:library` alone rescans |
+| `:warnings` | Everything wrong in the library: unknown courses or units, unreadable files |
 | `:group TITLE` | Move the selected problems (or the cursor's) into a new section |
 | `:rename TEXT` | Retitle the cursor's section |
 | `:clear` | Clear the sheet |
@@ -333,9 +383,11 @@ as `$display(...)$`.
 
 ## 5. Adding problems
 
-**A fixed bank.** Put a JSON file in `banks/`; the terminal app lists it
-under its title. Problems you write are fixed: they print the same in every
-version, and rerolling one swaps in another unused problem of its type.
+**A fixed bank.** Put a JSON file in your library folder (any subfolder
+will do), then `:rescan` or restart; the terminal app lists it under its
+title in each of its courses. Problems you write are fixed: they print the
+same in every version, and rerolling one swaps in another unused problem of
+its type.
 
 ```json
 {
@@ -343,6 +395,7 @@ version, and rerolling one swaps in another unused problem of its type.
  "name": "quiz_bank",
  "title": "Quiz Bank",
  "family": "literal",
+ "courses": {"Algebra 1": "Equations", "Algebra 2": null},
  "types": [{"key": "3", "title": "Clear One Denominator", "space": "1in"}],
  "problems": [{"id": "q1", "type": "3", "prompt": "A = 1/2 b h", "target": "b",
                "answer": "b = (2 A)/h"}]
@@ -359,7 +412,33 @@ version, and rerolling one swaps in another unused problem of its type.
   These answers can't be checked, so they show `?`.
 - A type may set `width` (`half` or `full`, default `half`), `space` (default
   `1in`), `look` and `move` (hints on the slides), and `special`.
-- A file that can't be read is reported when the app starts.
+- `courses` (optional) names the courses the bank belongs to, each with its
+  unit, or `null` for none. A plain list, `["Algebra 1", "Geometry"]`, means
+  no units. A bank with no `courses` shows only under *All banks*.
+- A type may have its own `courses`, which replace the bank's for that type:
+  `{"key": "9", "title": "...", "courses": ["Algebra 2"]}`.
+- A file that can't be read, or a tag for a course or unit `courses.json`
+  doesn't have, is reported when the app starts (and by `:rescan`).
+
+**A course, or a unit.** The courses and their units live in
+`courses.json`. The app comes with one in `banks/` (Prealgebra, Algebra 1,
+Geometry, Algebra 2, Precalculus, Calculus); a `courses.json` in your library
+folder adds courses to it, or replaces one with the same title:
+
+```json
+{
+ "format": 1,
+ "courses": [
+  {"title": "Algebra 1", "units": ["Foundations", "Equations", "Linear Functions"]},
+  {"title": "Statistics", "units": ["Data", "Probability"]}
+ ]
+}
+```
+
+Courses appear in this order (the built-in ones first), and each course's
+banks under its units in this order. Rename a unit here and in the banks
+that use it; until both match, those banks show under *Other* and
+`:warnings` says why.
 
 `gen_sequence.py` writes the lesson's fifty as `banks/lesson_1-4.json`.
 
@@ -435,3 +514,5 @@ To confirm a refactor changed nothing, write a set with a fixed seed and
 | `FileNotFoundError: ... mixed_review` | The style preambles are missing; see Requirements in the README |
 | The TUI shows `typst not found: .typ only` | Install Typst, or compile the `.typ` files somewhere else |
 | `:open` does nothing | It uses `xdg-open`; open the PDF from the output folder instead |
+| A bank you added doesn't show | `:rescan`; check `:warnings`; check it's tagged with the course you're in (or `:course all`); check `:library` names the folder it's in |
+| Problems marked `!` | Their bank isn't in the library any more; see *When a bank goes missing* |

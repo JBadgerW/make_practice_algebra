@@ -204,4 +204,6 @@ and `:w` still use the same data and the same functions.
       name, the sheet's course, missing banks (a stand-in shows, edits, and
       prints their problems from the sheet, through the family the problem
       records; `!` marks them), `:warnings`.
-   3. Docs: MANUAL, and tagging in EXTENDING.md.
+   3. ✅ Docs: MANUAL (*Courses and the library*, bank and courses.json
+      formats, commands, troubleshooting), tagging in EXTENDING.md (8a),
+      README; `gen_sequence.py` writes Lesson 1-4's course tag.
