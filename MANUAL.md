@@ -156,7 +156,9 @@ label of the one you are in (BANKS or SHEET, at the top) is highlighted. Both
 stay on screen: you can add problems from the banks and arrange them on the
 sheet without losing either. `^W o` widens the sheet to the whole screen (for
 a closer look at two-column rows) and splits it again; `:set wide` and
-`:set nowide` do the same. `:w` writes exactly what the sheet shows.
+`:set nowide` do the same. In a narrow terminal (where the sheet would
+get fewer than 60 columns), the banks pane slims down while you are on the
+sheet, and comes back to full width when you Tab to it. `:w` writes exactly what the sheet shows.
 
 The status line shows the totals, how many answers fail their check or
 can't be checked, `[+]` when there are unwritten changes, and, on the sheet,

@@ -59,6 +59,7 @@ COMMANDS
 Types 1-11, A, B: the lesson's sequence. 3f: real formulas. banks/: fixed."""
 
 SHEET = (-1, -1)                       # the sheet cursor on the header (title, instructions)
+SHEET_MIN = 60                         # a sheet pane narrower than this takes room from the banks while it has focus
 # For the page-break estimate, measured from the refined template in Typst
 # (inches): the page body, the header, an instructions line, a section title,
 # and a problem's own line (plain, or with a stacked fraction), each with the
@@ -1184,6 +1185,15 @@ def cursor(visible):
     except curses.error:
         pass
 
+def left_width(app, w):
+    """How wide the banks pane is in a terminal `w` columns wide (0: hidden)."""
+    full = max(40, min(55, w - 50))
+    if app.focus != "preview":
+        return full
+    if app.wide:
+        return 0
+    return 30 if w - full - 3 < SHEET_MIN else full    # a narrow terminal: give the sheet room
+
 class Screen:
     def __init__(self, scr):
         self.scr = scr
@@ -1233,7 +1243,7 @@ class Screen:
             return self.cmdline(app, h, w)
         body = h - 3                                   # title, status, command lines
         on_sheet = app.focus == "preview"
-        LEFT_W = 0 if on_sheet and app.wide else max(40, min(55, w - 50))
+        LEFT_W = left_width(app, w)
         tab = lambda on: st["normal"] if on else st["dim"]      # the focused pane's label stands out
         if LEFT_W:
             self.put(0, 1, " BANKS ", tab(not on_sheet))

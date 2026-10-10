@@ -139,6 +139,10 @@ keys("\t"); assert a.focus == "left" and a.wide, "Tab back shows the banks; the 
 keys("\x17o"); assert not a.wide and a.focus == "left"
 keys(":set wide\n"); assert a.wide
 keys(":set nowide\n"); assert not a.wide
+assert T.left_width(a, 80) == 40 and T.left_width(a, 125) == 55, "the banks pane, in focus"
+keys("\t"); assert T.left_width(a, 80) == 30 and T.left_width(a, 125) == 55, "a narrow sheet takes room from the banks"
+keys(":set wide\n"); assert T.left_width(a, 125) == 0
+keys(":set nowide\n\t")
 keys("ggj"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
 assert [it["entry"] for it in a.sheet["sections"][0]["items"]][1:3] == ["1", "1"]
 
