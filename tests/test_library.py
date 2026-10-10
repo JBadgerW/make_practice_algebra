@@ -70,7 +70,7 @@ bank(root / "more" / "found.json", "found")
 bank(root / "lit.json", "literal")
 lib = L.Library(root)
 w = "\n".join(lib.warnings)
-assert "more/found.json: a bank named 'found' already exists (found.json)" in w, w
+assert "more/found.json: the name 'found' is taken (found.json)" in w, w
 assert "lit.json: a generator is named 'literal'" in w, w
 
 # ---- the library the app uses, through banks
@@ -88,4 +88,61 @@ except RuntimeError as e:
     assert "isn't in the library" in str(e)
 L.save_config(library=str(root / "alg"))
 assert L.rescan().folder == root / "alg" and "warmups" in banks.names() and "found" not in banks.names()
+# ---- sequences: ordered steps that point at banks' entries
+from sheets.sequences import Sequence
+sq = Path(tempfile.mkdtemp(prefix="seqlib_"))
+(sq / "courses.json").write_text(json.dumps({"format": 1, "courses": [
+    {"title": "Algebra 1", "units": ["Foundations", "Equations"]}]}))
+bank(sq / "found.json", "found", {"Algebra 1": "Foundations"}, types=[("1", None), ("2", None)])
+def seq(fname, steps, **extra):
+    (sq / f"{fname}.json").write_text(json.dumps(dict(format=1, kind="sequence", title=fname.title(), steps=steps, **extra)))
+seq("by_move", [
+    {"entry": "literal/1", "note": "one operation to undo"},
+    {"entry": "literal/2"},
+    {"entry": "literal/3", "title": "A Fraction Bar", "note": "a fraction bar appears",
+     "examples": ["lesson_1-4#13", "lesson_1-4#14"]},
+    {"entry": "literal/a", "examples": ["lesson_1-4#19"]},       # spelled loosely; a Type 4 example
+    {"entry": "literal/99"},
+    {"entry": "nope/1", "examples": ["nope#1"]},
+    {"entry": "systems/1", "examples": ["literal#1", "lesson_1-4#999"]},
+    {"entry": "sytems/2"},
+], courses={"Algebra 1": "Equations"})
+seq("warmup", [{"entry": "found/1"}, {"entry": "found/2"}], courses=["Algebra 1"])
+seq("untagged", [{"entry": "found/1"}])
+(sq / "broken.json").write_text(json.dumps({"format": 1, "kind": "sequence", "steps": [{"note": "no entry"}]}))
+(sq / "empty.json").write_text(json.dumps({"format": 1, "kind": "sequence", "steps": []}))
+seq("same_name", [{"entry": "found/1"}], name="found")               # a bank has this name
+seq("typo", [{"entry": "found/1"}], courses={"Algebra 1": "Equatoins"})
+lib = L.Library(sq)
+w = "\n".join(lib.warnings)
+assert sorted(lib.sequences) == ["by_move", "typo", "untagged", "warmup"] and "found" in lib.names(), sorted(lib.sequences)
+assert "broken.json: step 1 needs an \"entry\" like \"literal/3\"" in w and "empty.json: \"steps\" must be a list" in w, w
+assert "same_name.json: the name 'found' is taken (found.json)" in w, w
+q = lib.sequence("by_move")
+assert [st["n"] for st in q.steps] == [1, 2, 3, 4, 5, 6, 7, 8], "every step keeps its number"
+assert [st["title"] for st in q.steps[:4]] == ["One Step", "Add or Subtract, Then Divide", "A Fraction Bar",
+                                               "Watch the Sign"], [st["title"] for st in q.steps]
+assert q.steps[3]["entry"] == "A" and q.steps[2]["type"] == "3" and q.steps[0]["note"] == "one operation to undo"
+assert q.steps[2]["examples"] == [("lesson_1-4", "13"), ("lesson_1-4", "14")]
+assert [st["n"] for st in q.usable()] == [1, 2, 3, 4, 7]
+assert q.steps[4]["missing"] == "literal has no entry '99'" and q.steps[5]["missing"] == "no bank 'nope'"
+assert "by_move.json, step 5 (literal/99): literal has no entry '99'" in w, w
+assert "step 8 (sytems/2): no bank 'sytems' (did you mean 'systems'?)" in w, w
+assert "step 4 (literal/a): example lesson_1-4#19 is" in w, w
+assert "step 7 (systems/1): no problem literal#1" in w and "no problem lesson_1-4#999" in w, w
+assert "step 3" not in w, "matching examples are fine"
+assert "typo.json: Algebra 1 has no unit 'Equatoins'" in w, w
+assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Equations", ["literal", "lesson_1-4"])], "banks only, by default"
+assert lib.view("Algebra 1", sequences=True) == [("Foundations", ["found"]), ("Equations", ["by_move", "literal", "lesson_1-4"]),
+                                                 (None, ["typo", "warmup"])], lib.view("Algebra 1", sequences=True)
+assert lib.view(None, sequences=True)[0][1][:4] == ["by_move", "typo", "untagged", "warmup"]
+assert lib.summary().startswith("4 banks, 4 sequences, ") and "warnings" in lib.summary(), lib.summary()
+try:
+    lib.sequence("found"); raise AssertionError("a bank isn't a sequence")
+except KeyError:
+    pass
+try:
+    Sequence({"format": 1, "steps": [{"entry": "literal/1"}]}, "x.json"); raise AssertionError("kind is required")
+except ValueError:
+    pass
 print("all library tests passed")

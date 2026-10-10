@@ -4,13 +4,15 @@ Banks come from three places, all read when the app starts and again on
 :rescan (it takes milliseconds):
 
     sheets/banks/*      generator banks (Python modules), found automatically
-    banks/              the built-in fixed banks and the starter courses.json
-    the library folder  your own fixed banks (any *.json, in any subfolder)
-                        and your courses.json. It is set in
+    banks/              the built-in fixed banks and sequences, and the
+                        starter courses.json
+    the library folder  your own fixed banks and sequences (any *.json, in any
+                        subfolder; see sequences.py) and your courses.json. It is set in
                         ~/.config/mathsheet/config.json ("library"), and is
                         ~/Documents/mathsheet-library by default.
 
-A library bank with the same name as a built-in one replaces it.
+A library bank or sequence with the same name as a built-in one replaces it.
+Banks and sequences share one set of names.
 
 courses.json lists the courses in order, each with its units in order:
 
@@ -25,8 +27,9 @@ course to a unit, or to null for none; a plain list means no units:
     {"Algebra 1": "Equations", "Algebra 2": null}    or    ["Algebra 1", "Algebra 2"]
 
 A type may carry its own "courses", which replace the bank's for that type;
-in a course, a bank shows only the types in it. Courses only decide what the
-banks pane shows: a sheet keeps its problems whatever the tags say. A tag
+in a course, a bank shows only the types in it. A sequence is tagged the
+same way. Courses only decide what the banks pane shows: a sheet keeps its
+problems whatever the tags say. A tag
 that names a course or unit courses.json lacks is reported, not fatal.
 """
 import difflib, importlib, json, os, pkgutil, re
@@ -160,12 +163,14 @@ class Library:
     def __init__(self, folder=None):
         self.folder = Path(folder).expanduser() if folder else library_dir()
         self.warnings = []
-        self.generators, self.fixed, self.courses, self.missing = {}, {}, [], {}
+        self.generators, self.fixed, self.sequences, self.courses, self.missing = {}, {}, {}, [], {}
         self._find_generators()
         self._read_courses(BUILTIN / COURSES_FILE, "banks/")
         if self._own_folder():
             self._read_courses(self.folder / COURSES_FILE, "")
-        self._read_banks()
+        self._read_files()
+        for q in self.sequences.values():
+            self.warnings += q.resolve(self)
         self._check_tags()
 
     def _own_folder(self):
@@ -224,26 +229,36 @@ class Library:
                 out.append((f, str(rel), False))
         return out
 
-    def _read_banks(self):
+    def _read_files(self):
+        """The fixed banks and the sequences, which share one set of names."""
         from .banks.fixed import FixedBank
+        from .sequences import Sequence
         builtin = set()
         for f, label, is_builtin in self._bank_files():
             try:
-                b = FixedBank(f, self.generators)
+                d = json.loads(f.read_text())
+                if isinstance(d, dict) and d.get("kind") == "sequence":
+                    x, home, what = Sequence(d, f), self.sequences, "sequence"
+                else:
+                    x, home, what = FixedBank(f, self.generators), self.fixed, "bank"
             except (ValueError, KeyError, TypeError, OSError) as e:
                 self.warn(f"{label}: {e}")
                 continue
-            b.SOURCE = label
-            if b.NAME in self.generators:
-                self.warn(f"{label}: a generator is named {b.NAME!r}; rename this bank")
+            x.SOURCE, name = label, x.NAME
+            if name in self.generators:
+                self.warn(f"{label}: a generator is named {name!r}; rename this {what}")
                 continue
-            if b.NAME in self.fixed and not (b.NAME in builtin and not is_builtin):
-                self.warn(f"{label}: a bank named {b.NAME!r} already exists ({self.fixed[b.NAME].SOURCE})")
+            other = self.fixed.get(name) or self.sequences.get(name)
+            if other and not (name in builtin and not is_builtin):
+                self.warn(f"{label}: the name {name!r} is taken ({other.SOURCE})")
                 continue
-            builtin.discard(b.NAME)                     # a library bank replaces a built-in one
+            if other:                                   # a library file replaces a built-in one
+                self.fixed.pop(name, None)
+                self.sequences.pop(name, None)
+            builtin.discard(name)
             if is_builtin:
-                builtin.add(b.NAME)
-            self.fixed[b.NAME] = b
+                builtin.add(name)
+            home[name] = x
 
     def _check_tags(self):
         titles = [c["title"] for c in self.courses]
@@ -262,6 +277,8 @@ class Library:
                     near = suggest(unit, c["units"])
                     self.warn(f"{where}: {c['title']} has no unit {unit!r}"
                               + (f" (did you mean {near!r}?)" if near else ""))
+        for q in self.sequences.values():
+            check(q.COURSES, q.SOURCE)
         for name in self.names():
             b = self.get(name)
             where = getattr(b, "SOURCE", f"the {name} generator")
@@ -286,6 +303,12 @@ class Library:
             b = self.missing.get(name) or self.missing.setdefault(name, missing_bank(name, self.generators))
         return b
 
+    def sequence(self, name):
+        """A sequence by name; KeyError if there's none."""
+        if name not in self.sequences:
+            raise KeyError(f"no sequence named {name!r}")
+        return self.sequences[name]
+
     def course(self, title):
         """A course by title (ignoring case), or None."""
         return next((c for c in self.courses if c["title"].lower() == (title or "").lower()), None)
@@ -308,14 +331,21 @@ class Library:
                     return u
         return None
 
-    def view(self, course=None):
-        """The banks to show: [(unit or None, [bank names])], in the course's unit
-        order, banks without a unit last; every bank under None for no course."""
+    def view(self, course=None, sequences=False):
+        """The banks to show: [(unit or None, [names])], in the course's unit
+        order, those without a unit last; everything under None for no course.
+        With sequences, each unit's sequences (by name) come before its banks."""
+        seqs = sorted(self.sequences) if sequences else []
         if course is None:
-            return [(None, self.names())]
+            return [(None, seqs + self.names())]
         c = self.course(course)
         units = c["units"] if c else []
         groups = {u: [] for u in units + [None]}
+        for name in seqs:
+            t = {k.lower(): u for k, u in bank_tags(self.sequences[name]).items()}
+            if course.lower() in t:
+                u = t[course.lower()]
+                groups[u if u in groups else None].append(name)
         for name in self.names():
             if self.types_in(name, course):
                 u = self.unit_of(name, course)
@@ -323,9 +353,9 @@ class Library:
         return [(u, ns) for u, ns in groups.items() if ns]
 
     def summary(self):
-        n = len(self.warnings)
-        return (f"{len(self.names())} banks, {len(self.courses)} courses"
-                + (f", {n} warning{'s' * (n != 1)}" if n else ""))
+        n, q = len(self.warnings), len(self.sequences)
+        return (f"{len(self.names())} banks, " + (f"{q} sequence{'s' * (q != 1)}, " if q else "")
+                + f"{len(self.courses)} courses" + (f", {n} warning{'s' * (n != 1)}" if n else ""))
 
 _current = None
 

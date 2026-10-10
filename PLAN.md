@@ -131,6 +131,33 @@ depend on them, and a sheet may mix courses.
   the previous course's title. A sheet whose bank is gone still opens and
   prints, its problems marked.
 
+## Sequences
+
+Decided with the teacher on 2026-10-10. The teacher sequences instruction
+after Engelmann: each step changes one element, with practice as skills
+build. A **sequence** is its own object, an ordered list of steps that
+points at banks; problems don't carry their position, since the same
+problems belong in several sequences (first teaching, review,
+discrimination sets). Like courses, sequences only shape the banks pane and
+drafting: a sheet never depends on one.
+
+- **Step:** a bank's entry (`literal/3`, as in `--mix`), a `note` on what
+  changes, an optional `title`, and optional pinned `examples` (fixed-bank
+  problems, `lesson_1-4#13`, in order). Steps finer than a bank's types
+  become new entries in the bank.
+- **Files:** JSON with `"kind": "sequence"`, in `banks/` or the library,
+  tagged with `courses` like a bank. Unknown banks, entries, and examples
+  are warnings; the step stays (marked) so step numbers never shift.
+- **Structure:** Course › Unit › Sequence › Step; a lesson is a range of
+  steps (lesson objects can come later). Sequences come first under their
+  unit in the banks pane; their steps are rows that add problems like a
+  bank's types.
+- **Drafting** (`:draft SEQ 5-6 review 1-4`, `--draft`): the new steps in
+  their own sections, then one mixed review section. Default review: about
+  one review problem per two new ones, spread evenly over the earlier steps.
+- **Later:** type features and a what-changes check, an in-app sequence
+  editor, per-class progress, lessons that combine sequences.
+
 ## TUI
 
 **Left pane, the bank browser:** a tree `Bank > Type > (items)`. `l` or
@@ -207,3 +234,11 @@ and `:w` still use the same data and the same functions.
    3. ✅ Docs: MANUAL (*Courses and the library*, bank and courses.json
       formats, commands, troubleshooting), tagging in EXTENDING.md (8a),
       README; `gen_sequence.py` writes Lesson 1-4's course tag.
+7. **Sequences** (see above).
+   1. ✅ Sequence files: `sheets/sequences.py`, loading and checks in the
+      library (steps resolve to the bank's own entry spelling and title;
+      bad banks, entries, and examples are warnings with suggestions; one
+      namespace with banks), tests. No change on screen yet.
+   2. The banks pane: sequences under units, steps as rows.
+   3. `:draft` and `--draft`, with review.
+   4. Lesson 1-4 as a bank plus a sequence.
