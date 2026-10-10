@@ -254,6 +254,53 @@ try:
 except ValueError as e:
     assert "1, 2, 3, 4, 5, A, B" in str(e)
 
+# ---- selecting with v: changes apply to every selected problem
+v = T.App(seed=3); vk = driver(v)
+vk(":mix 1:3 3:2 9:1\n\t"); assert v.cur == (0, 0)
+vk("jjv"); assert v.anchor == (0, 2) and v.selection() == [(0, 2)]
+vk("jj"); assert v.cur == (1, 0) and v.selection() == [(0, 2), (1, 0)], "across a section title"
+vk("k"); assert v.selection() == [(0, 2), (1, 0), (1, 1)], "a title at the end takes its whole section"
+vk("j")
+spaces = [v.item(q)["space"] for q in v.selection()]
+vk("+"); assert [E.inches(v.item(q)["space"]) for q in v.selection()] == [E.inches(x) + 0.25 for x in spaces]
+assert v.anchor is not None, "+ keeps the selection"
+vk("2-"); assert [E.inches(v.item(q)["space"]) for q in v.selection()] == [max(0, E.inches(x) - 0.25) for x in spaces]
+vk(":space 1.5in\n"); assert all(v.item(q)["space"] == "1.5in" for q in v.selection()) and v.anchor
+assert v.item((0, 0))["space"] != "1.5in", "outside the selection, nothing changes"
+vk("W"); ws = {v.item(q)["width"] for q in v.selection()}; assert len(ws) == 1, "W sets them all one way"
+before = [v.item(q)["problem"]["prompt"] for q in v.selection()]
+other = v.item((0, 0))["problem"]["prompt"]
+vk("r"); assert [v.item(q)["problem"]["prompt"] for q in v.selection()] != before and v.anchor
+assert v.item((0, 0))["problem"]["prompt"] == other
+n_undo = len(v.undo)
+vk("u"); assert v.anchor is None and len(v.undo) == n_undo - 1, "one u undoes the whole batch"
+assert [v.item(q)["problem"]["prompt"] for q in [(0, 2), (1, 0)]] == before[:2]
+vk("gv"); assert v.anchor == (0, 2) and v.cur == (1, 0), "gv brings the selection back"
+vk("\x1b"); assert v.anchor is None
+vk("gv")
+cut = [v.item(q)["problem"]["prompt"] for q in v.selection()]
+vk("d"); assert v.anchor is None and len(sh.items(v.sheet)) == 4 and v.reg["kind"] == "items"
+assert v.cur == (0, 2) or v.cur[0] == 0, v.cur
+vk("G"); vk("p"); assert prompts(v)[-2:] == cut, "p pastes the cut block"
+vk("u"); vk("u"); assert len(sh.items(v.sheet)) == 6
+vk(":1\n"); vk("v"); vk("j"); vk("y"); assert v.anchor is None and len(v.reg["what"]) == 2 and len(sh.items(v.sheet)) == 6
+vk("v"); vk("v"); assert v.anchor is None, "v again ends it"
+vk("vJ"); assert v.anchor is None, "moving a problem ends the selection"
+vk("u")
+
+# :group pulls the selection into a new section
+vk(":1\n"); vk("jv"); vk("j"); vk("jj")
+picked = [v.item(q)["problem"]["prompt"] for q in v.selection()]
+vk(":group Challenge\n"); assert v.anchor is None and "Challenge" in titles(v)
+gi = titles(v).index("Challenge"); assert v.cur == (gi, -1)
+assert [it["problem"]["prompt"] for it in v.sheet["sections"][gi]["items"]] == picked
+assert gi == 1 and len(v.sheet["sections"][0]["items"]) == 1, "it follows the first problem's section"
+vk("u"); vk(":1\n"); vk("v"); vk("]]]]"); vk("k")
+vk(":group\n"); assert titles(v)[0] == "" and len(v.sheet["sections"]) == 2, "emptied sections go"
+vk("u")
+vk("zM"); vk("v"); assert v.anchor is None and v.err, "no selecting while folded"
+vk("zR\tv"); assert v.anchor is None and v.err, "v selects only on the sheet"
+
 # ---- the empty sheet
 e = T.App(seed=1); ek = driver(e)
 assert "No problems yet" in text(e)

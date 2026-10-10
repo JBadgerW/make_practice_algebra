@@ -208,6 +208,27 @@ the sheet never holds the same problem twice.
 On a section title, `W`, `+`, `-`, `:space`, and `:width` change every problem
 in the section; on the header, every problem on the sheet.
 
+**Selecting.** `v` starts a selection at the cursor; move with any of the
+keys above and every problem between the start and the cursor is
+highlighted, across sections (when a section title ends the selection, its
+whole section is in it). The status line shows `VISUAL` and how many are
+selected. Then:
+
+| Keys | On every selected problem |
+|---|---|
+| `+` `-` (`3+`), `:space 1.5in` | Work space up or down, or set |
+| `W`, `:width full` | Half / full width: all of them the same way (the first one's toggled) |
+| `r` | Reroll them |
+| `d` `x` / `y` | Cut / copy them all; `p` pastes them as one block, so this moves them |
+| `:group TITLE` | Move them into a new section, just after the section of the first one. Sections this empties go; with no title, the section prints no header. |
+| `Esc` or `v` | End the selection. `gv` brings the last one back. |
+
+`+`, `-`, `W`, `r`, `:space`, and `:width` keep the selection, so you can press
+`+` again or reroll until you like what you get; `d`, `y`, and `:group` end it,
+as does anything that moves problems around (`J`, `p`, undo). One `u` undoes
+a whole change to a selection. Without a selection, `:group` works on what
+the cursor is on.
+
 **Checking.** Drawn problems are checked when they are drawn. An edited
 problem is solved again and checked. An answer you write is checked by
 substituting it into the problem. The sheet marks an answer that fails with
@@ -245,8 +266,9 @@ through earlier commands.
 | `:groups 9 8 3+4=Warm-up 1` | Sort the problems already on the sheet into sections by type, as with `--groups`. `:groups` alone: one section per type, in sequence order. |
 | `:shuffle` | Every problem in one shuffled section with no title |
 | `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |
-| `:space 1.5in`, `:width full` | Set work space or width (problem, section, or sheet, by where the cursor is) |
+| `:space 1.5in`, `:width full` | Set work space or width (the selection, or problem, section, or sheet, by where the cursor is) |
 | `:join` | Merge the section below into the cursor's section |
+| `:group TITLE` | Move the selected problems (or the cursor's) into a new section |
 | `:rename TEXT` | Retitle the cursor's section |
 | `:clear` | Clear the sheet |
 | `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting |

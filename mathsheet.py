@@ -10,7 +10,8 @@ fixed banks in banks/ (written problems, such as the lesson's fifty), then
 the settings. l adds a problem; o opens a bank or a type. The right pane is the
 sheet itself, laid out like the page: Tab into it to move through the
 problems, reroll them, change their width and work space, edit them, and
-cut, copy, and paste them between sections; the banks stay beside it, and
+cut, copy, and paste them between sections (v selects several at once,
+as in vim); the banks stay beside it, and
 ^W o widens the sheet to the whole screen and back. :w writes exactly what
 it shows.
 Press ? inside for the full key list.
@@ -50,7 +51,9 @@ u ^R .   undo, redo, repeat         o O  cS cI  new section; title, instr.
 Tab ^W w switch panes               zM zR       fold to sections / unfold
 za zs    answers / compact          ✗ an answer fails its check
 gt gT    next / previous version    ? an answer can't be checked
-^W o     the sheet full width, or beside the banks again
+^W o     sheet full width / split   v  gv       select (Esc ends); reselect
+                                    + - W r     change all selected
+                                    d y :group  cut, copy, new section
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|key|slides] [N]
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
@@ -79,6 +82,8 @@ class App:
         self.open = {mp.BANK}           # banks open in the tree
         self.open_types = set()         # (bank, type) of fixed banks showing their problems
         self.cur = SHEET
+        self.anchor = None              # where v was pressed: a selection runs from here to the cursor
+        self.last_sel = None            # (anchor, cursor) of the last selection, for gv
         self.answers = self.compact = self.folded = False
         self.wide = False               # the sheet fills the screen while it has focus
         self.pv_top = 0
@@ -173,18 +178,24 @@ class App:
     def change(self, fn):
         """Run fn, which edits self.s; undoable. A ValueError or RuntimeError
         undoes it and becomes the message. Returns True if it worked."""
-        before = self.snapshot()
+        before, layout = self.snapshot(), self.layout()
         try:
             fn()
         except (ValueError, RuntimeError) as e:
             self.s = before
             self.say(f"E: {e}".splitlines()[0], True)
             return False
+        if self.anchor is not None and self.layout() != layout:
+            self.end_visual()                  # its positions no longer mean the same problems
         if self.s != before:
             self.undo.append(before)
             self.redo.clear()
         self.clamp()
         return True
+
+    def layout(self):
+        """Which problem is where (by identity), to tell a change that moves them."""
+        return [[id(it) for it in sec["items"]] for sec in self.sheet["sections"]]
 
     def say(self, msg, err=False):
         self.msg, self.err = msg, err
@@ -306,6 +317,7 @@ class App:
                 return self.say("Already at oldest change")
             self.redo.append(self.snapshot())
             self.s = self.undo.pop()
+            self.end_visual()
         self.clamp()
         self.say(f"{n} change{'s' * (n > 1)} undone")
 
@@ -315,6 +327,7 @@ class App:
                 return self.say("Already at newest change")
             self.undo.append(self.snapshot())
             self.s = self.redo.pop()
+            self.end_visual()
         self.clamp()
         self.say(f"{n} change{'s' * (n > 1)} redone")
 
@@ -387,10 +400,80 @@ class App:
             prv = [t for t in heads if t[0] < si or (t[0] == si and self.cur[1] >= 0)]
             self.cur = prv[-1] if prv else SHEET
 
+    # -- selecting (v) ---------------------------------------------------
+    def span(self):
+        """The stops from the anchor to the cursor, in reading order."""
+        ts = self.targets()
+        a, b = sorted((ts.index(self.anchor), ts.index(self.cur)))
+        return ts[a:b + 1]
+
+    def selection(self):
+        """The problems selected, in reading order: those between the anchor and the
+        cursor, and every problem of a section whose title ends the selection."""
+        span = self.span()
+        si, ii = span[-1]
+        ps = {t for t in span if t[1] >= 0}
+        if ii < 0:
+            ps |= set(E.positions(self.sheet, None if si < 0 else si))
+        return sorted(ps)
+
+    def selected(self):
+        """What the sheet pane highlights: the selection and the titles inside it."""
+        if self.anchor is None:
+            return set()
+        return set(self.span()) | set(self.selection())
+
+    def start_visual(self):
+        if self.folded:
+            return self.say("v selects problems: zR to unfold first", True)
+        self.anchor = self.cur
+        self.say("-- VISUAL --  + - W r :space :width change them; d y cut or copy; :group TITLE; Esc ends")
+
+    def end_visual(self):
+        if self.anchor is not None:
+            self.last_sel = (self.anchor, self.cur)
+        self.anchor = None
+
+    def reselect(self):
+        """gv: the last selection again."""
+        ts = self.targets()
+        if not self.last_sel or self.folded or not all(t in ts for t in self.last_sel):
+            return self.say("no selection to bring back", True)
+        self.anchor, self.cur = self.last_sel
+
+    def cut_selection(self, keep=False):
+        """d / y on a selection: cut or copy every problem in it (across sections)."""
+        ps = self.selection()
+        self.end_visual()
+        self.cur = min(ps + [self.cur]) if ps else self.cur
+        if not ps:
+            return self.say("no problems selected", True)
+        secs = self.sheet["sections"]
+        self.reg = dict(kind="items", what=copy.deepcopy([self.item(p) for p in ps]), cut=not keep)
+        if not keep:
+            def go():
+                for si, ii in reversed(ps):
+                    del secs[si]["items"][ii]
+            self.change(go)
+        what = f"{len(ps)} problem{'s' * (len(ps) > 1)}"
+        self.say(f"{what} copied: p pastes new ones like them" if keep else f"{what} cut: p pastes them")
+
+    def group(self, title):
+        """:group TITLE: the selection (or what the cursor is on) into a new section."""
+        ps = self.scope()
+        self.end_visual()
+        def go():
+            self.cur = (E.group(self.sheet, ps, title), -1)
+        if self.change(go):
+            self.say(f"{len(ps)} problem{'s' * (len(ps) > 1)} grouped" + (f" under {title}" if title else ""))
+
     # -- changes on the sheet ---------------------------------------------
     def scope(self):
-        """The items a change applies to: the problem under the cursor, every
-        problem of a section on its header, or every problem on the sheet header."""
+        """The items a change applies to: the selection, the problem under the
+        cursor, every problem of a section on its header, or every problem on the
+        sheet header."""
+        if self.anchor is not None:
+            return self.selection()
         si, ii = self.cur
         if ii >= 0:
             return [self.cur]
@@ -400,6 +483,8 @@ class App:
         si, ii = self.cur
         if everything:
             ps = E.positions(self.sheet)
+        elif self.anchor is not None and not section:
+            ps = self.selection()
         elif section or ii < 0:
             ps = E.positions(self.sheet, None if si < 0 else si)
         else:
@@ -818,6 +903,8 @@ class App:
             self.set_width(rest)
         elif cmd == "join":
             self.join()
+        elif cmd in ("group", "gr"):
+            self.group(rest)
         elif cmd == "rename":
             self.rename(rest) if rest else self.say("usage: :rename NEW TITLE (empty title: cS, then Enter)", True)
         elif cmd == "clear":
@@ -937,6 +1024,8 @@ class App:
                     self.row = min((n or 1) - 1, len(self.rows()) - 1)
             elif combo == "gt":
                 self.version = min(n, self.sheet["versions"]) - 1 if n else (self.version + 1) % self.sheet["versions"]
+            elif combo == "gv":
+                self.reselect() if sheet else self.say("gv selects on the sheet (Tab to it)", True)
             elif combo == "gT":
                 self.version = (self.version - (n or 1)) % self.sheet["versions"]
             elif combo == "dd":
@@ -961,6 +1050,8 @@ class App:
                 self.fold_banks(combo == "zM")
             elif combo in ("zM", "zR"):
                 self.folded = combo == "zM"
+                if self.folded:
+                    self.end_visual()
                 if self.folded and self.cur[1] >= 0:
                     self.cur = (self.cur[0], -1)
                 self.clamp()
@@ -983,7 +1074,14 @@ class App:
         had_count = bool(self.count)
         self.count = ""
 
-        if c and c in "gdcZz\x17y][":
+        if sheet and self.anchor is not None and c in ("d", "x", "y"):
+            self.cut_selection(keep=(c == "y"))
+        elif c == "\x1b":
+            self.end_visual()
+        elif c == "v":
+            self.end_visual() if self.anchor is not None else \
+                self.start_visual() if sheet else self.say("v selects on the sheet (Tab to it)", True)
+        elif c and c in "gdcZz\x17y][":
             if c == "y" and not sheet:
                 return
             self.pending = c
@@ -1087,6 +1185,8 @@ class App:
         return "left" if self.focus == "preview" else "preview"
 
     def set_focus(self, f):
+        if f != "preview":
+            self.end_visual()
         self.focus = f
         if f == "preview" and self.cur == SHEET and sh.items(self.sheet) and not self.folded:
             self.cur = next(t for t in self.targets() if t[1] >= 0)
@@ -1210,7 +1310,9 @@ class Screen:
                                          (curses.COLOR_YELLOW, bg), (curses.COLOR_GREEN, bg),
                                          (curses.COLOR_BLACK, curses.COLOR_BLUE),
                                          (curses.COLOR_BLACK, curses.COLOR_GREEN),
-                                         (curses.COLOR_BLACK, curses.COLOR_YELLOW)], 1):
+                                         (curses.COLOR_BLACK, curses.COLOR_YELLOW),
+                                         (curses.COLOR_BLACK, curses.COLOR_MAGENTA),
+                                         (curses.COLOR_BLACK, curses.COLOR_CYAN)], 1):
                 curses.init_pair(i, fg, b)
             P = curses.color_pair
         italic = getattr(curses, "A_ITALIC", curses.A_DIM)
@@ -1218,7 +1320,9 @@ class Screen:
                        dim=curses.A_DIM, count=P(4) | curses.A_BOLD, err=P(2) | curses.A_BOLD,
                        title=curses.A_BOLD, ital=italic, page=P(3) | curses.A_DIM,
                        normal=P(5) | curses.A_BOLD, insert=P(6) | curses.A_BOLD,
-                       command=P(7) | curses.A_BOLD, search=P(7) | curses.A_BOLD)
+                       command=P(7) | curses.A_BOLD, search=P(7) | curses.A_BOLD,
+                       visual=P(8) | curses.A_BOLD,
+                       sel=P(9) if curses.has_colors() else curses.A_UNDERLINE)   # the cursor is reversed
 
     def put(self, y, x, text, attr=0, width=None):
         h, w = self.scr.getmaxyx()
@@ -1263,11 +1367,14 @@ class Screen:
             elif last >= app.pv_top + body:
                 app.pv_top = min(first - 2, last - body + 1)
         app.pv_top = max(0, min(app.pv_top, len(lines) - body))
+        sel = app.selected()
         for y, segs in enumerate(lines[app.pv_top:app.pv_top + body], 1):
             for x, text, style, tgt in segs:
                 attr = st[style]
                 if tgt is not None and tgt == app.cur:
                     attr |= curses.A_REVERSE if on_sheet else curses.A_UNDERLINE
+                elif tgt in sel:
+                    attr = st["sel"]
                 self.put(y, px + x, text, attr, pw - x)
         where = ""
         if len(lines) > body:
@@ -1354,15 +1461,17 @@ class Screen:
 
     def status(self, app, h, w, where):
         st = self.st
+        look = "visual" if app.mode == "normal" and app.anchor is not None else app.mode
         mode = {"normal": "NORMAL", "insert": "INSERT", "command": "COMMAND",
-                "search": "SEARCH", "help": "HELP"}[app.mode]
+                "search": "SEARCH", "help": "HELP", "visual": "VISUAL"}[look]
         self.put(h - 2, 0, " " * (w - 1), curses.A_REVERSE)
-        self.put(h - 2, 0, f" {mode} ", st[app.mode if app.mode in st else "normal"])
+        self.put(h - 2, 0, f" {mode} ", st[look if look in st else "normal"])
         un, bad = app.statuses()
         v = app.sheet["versions"]
         info = (f" {app.total()} problem{'s' * (app.total() != 1)} × {v} version{'s' * (v != 1)}"
                 + (f"  ·  {bad} failing" if bad else "") + (f"  ·  {un} unchecked" if un else "")
-                + ("  ·  [+]" if app.dirty() else ""))
+                + ("  ·  [+]" if app.dirty() else "")
+                + (f"  ·  {len(app.selection())} selected" if app.anchor is not None else ""))
         self.put(h - 2, len(mode) + 2, info, curses.A_REVERSE)
         right = (f"{app.count}{app.pending.replace(chr(23), '^W')}  "
                  + (f"{app.where()}  sheet {where}" if app.focus == "preview" else "types") + " ")

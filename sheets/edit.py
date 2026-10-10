@@ -212,6 +212,25 @@ def join(sheet, si):
     if nxt.get("auto") != secs[si].get("auto"):
         secs[si]["auto"] = ""               # a mix is no longer one type's own section
 
+def group(sheet, positions, title=""):
+    """Move the items at these positions (in reading order) into a new section
+    with this title, just after the section of the first of them (or in its
+    place, if that empties it). Sections the move empties go. Returns the new
+    section's index."""
+    secs = sheet["sections"]
+    if not positions:
+        raise ValueError("no problems to group")
+    sources = [secs[si] for si in sorted({si for si, _ in positions})]
+    first = secs[positions[0][0]]
+    moved = [secs[si]["items"][ii] for si, ii in positions]
+    for si, ii in reversed(positions):
+        del secs[si]["items"][ii]
+    sec = new_section(title)
+    sec["items"] = moved
+    secs.insert(secs.index(first) + 1, sec)
+    secs[:] = [x for x in secs if x["items"] or not any(x is y for y in sources)]
+    return next(i for i, x in enumerate(secs) if x is sec)
+
 def fresh_copy(sheet, it, seed):
     """A new item like it (same entry, width, space) with a newly drawn problem."""
     seen = seen_of(sheet)
