@@ -77,6 +77,7 @@ NAME = FAMILY = "literal"
 FIXED = False
 TITLE = "Literal Equations"
 INSTRUCTIONS = "Solve each equation for the indicated variable."
+COURSES = {"Algebra 1": "Equations"}
 
 ENTRIES = []
 _lesson = original_prompts()

@@ -1,8 +1,12 @@
 """Drive mathsheet.App with scripted keys (no terminal needed).
 Run from the project folder:  python3 tests/test_mathsheet.py"""
-import sys, tempfile
+import os, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never the teacher's own config
+(Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet").mkdir()
+(Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet" / "config.json").write_text(
+    '{"library": "%s"}' % tempfile.mkdtemp(prefix="emptylib_"))          # nor their library
 import mathsheet as T, make_practice as mp
 from sheets import sheet as sh, edit as E
 OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
@@ -181,15 +185,16 @@ assert T.pretty("x = (2 m + n)/(5 - m)") == "x = (2m + n)/(5 − m)"
 # ---- banks: the tree, a fixed bank, and a bank of plain Typst problems
 import json
 from sheets import banks
-from sheets.banks.fixed import FixedBank
-f = Path(OUT) / "words.json"
+from sheets import library
+LIB = Path(tempfile.mkdtemp(prefix="lib_"))
+f = LIB / "words.json"
 f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
     "types": [{"key": "rate", "title": "Rate Problems", "width": "full", "space": "2in"}],
     "problems": [{"id": "w1", "type": "rate", "prompt": "A train goes $60$ miles in $1.5$ hours. How fast?",
                   "answer": "$40$ mph", "text": "A train goes 60 miles in 1.5 hours. How fast?"},
                  {"id": "w2", "type": "rate", "prompt": "Pat walks $3$ miles in $1$ hour. How far in $4$?",
                   "answer": "$12$ miles"}]}))
-banks._fixed["words"] = FixedBank(f)
+library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
 assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "literal"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
@@ -222,7 +227,7 @@ wk("A\x15$13$ miles\n"); assert w.item()["problem"]["answer"] == "$13$ miles" an
 wk(f":out {OUT}\n:name words\n:w\n"); assert not w.err and "1 unchecked" in w.msg, w.msg
 key = (Path(OUT) / "words_v1_key.typ").read_text()
 assert "A train goes $60$ miles" in key and "$13$ miles" in key and "#section-head[Rate Problems]" in key
-del banks._fixed["words"]
+library.rescan()
 
 # ---- systems of three equations: a second family
 y = T.App(seed=8); yk = driver(y)

@@ -102,6 +102,35 @@ default section `instructions`, optional `look`/`move`) and provides
 name a checker family. The lesson's `lesson_1-4_literal_seq_bank.json`
 becomes the first fixed bank.
 
+## Library and courses
+
+Decided with the teacher on 2026-10-10. A **course** (Algebra 1, Algebra 2,
+Precalculus, ...) is a tag on a bank, not a folder, since one bank fits
+several courses. Courses only decide what the banks pane shows; sheets never
+depend on them, and a sheet may mix courses.
+
+- **Where:** generators in `sheets/banks/` (found automatically, never from
+  the library: a shared folder mustn't run code); the built-in fixed banks
+  and starter `courses.json` in `banks/`; the teacher's own banks (any
+  `*.json`, any subfolder) and `courses.json` in a library folder set in
+  `~/.config/mathsheet/config.json` (default `~/Documents/mathsheet-library`).
+  A library bank replaces a built-in one of the same name.
+- **courses.json** lists the courses in order, each with its units in order.
+  The library's adds courses or replaces one of the same title.
+- **Tags:** `"courses": {"Algebra 1": "Equations", "Algebra 2": null}` (or a
+  list) on a bank (`COURSES` in a generator); a type's own `"courses"`
+  replaces the bank's for that type. Unknown courses and units are warnings
+  with a suggestion, never errors.
+- **Scanning:** every start, and `:rescan`. It takes under a millisecond
+  past loading sympy, so there is no cache to go stale.
+- **The app:** a course row atop the banks pane (`h`/`l`, ending in All
+  banks), `:course NAME` with Tab completion, banks under unit headings in
+  the course's order (no unit: Other, last), `:library DIR`, `/` searches
+  the course. The sheet stores its course; a new sheet starts in the last
+  one used. The class name follows the course while it is the default or
+  the previous course's title. A sheet whose bank is gone still opens and
+  prints, its problems marked.
+
 ## TUI
 
 **Left pane, the bank browser:** a tree `Bank > Type > (items)`. `l` or
@@ -167,3 +196,10 @@ and `:w` still use the same data and the same functions.
    coefficients to 7 and constants to 60; half width, 2.5in. Checked by
    solving again with sympy; 1400 samples checked for their type's structure.
    Also: `--mix BANK/ENTRY:N` on the command line.
+6. **Library and courses** (see above).
+   1. ✅ Library core: `sheets/library.py` (config, scan, courses.json, tags,
+      warnings), generators found automatically, tags on the three banks,
+      `tests/test_library.py`. No change on screen yet.
+   2. The app: course row, units, `:course`, `:rescan`, `:library`, class
+      name, the sheet's course, missing banks.
+   3. Docs: MANUAL, and tagging in EXTENDING.md.

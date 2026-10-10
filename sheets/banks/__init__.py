@@ -18,48 +18,25 @@
     edit_text(p), from_edit(text, p), answer_edit_text(p), with_answer(p, text)
                                   hand editing; the last two return (problem, status)
 
-Generator banks are modules in this package (NAMES). Fixed banks are JSON
-files in the project's banks/ folder (see fixed.py).
+    COURSES                       optional: the courses it belongs to (see sheets/library.py);
+                                  a type may carry its own "courses"
+
+Generator banks are modules in this package, found automatically. Fixed
+banks are JSON files: the built-in ones in the project's banks/ folder, and
+your own in the library folder (see fixed.py and sheets/library.py).
 """
-import importlib
-from .. import ROOT
-
-NAMES = ("literal", "systems")
-FIXED_DIR = ROOT / "banks"
-_fixed, _errors = {}, {}
-
-def _scan():
-    from .fixed import FixedBank
-    for f in sorted(FIXED_DIR.glob("*.json")) if FIXED_DIR.is_dir() else []:
-        if not any(b.path == f for b in _fixed.values()) and f not in _errors:
-            try:
-                b = FixedBank(f)
-            except (ValueError, KeyError, TypeError, OSError) as e:
-                _errors[f] = f"{f.name}: {e}"
-                continue
-            if b.NAME in NAMES or b.NAME in _fixed:
-                _errors[f] = f"{f.name}: a bank named {b.NAME!r} already exists"
-                continue
-            _fixed[b.NAME] = b
+from .. import library
 
 def errors():
-    """Messages for bank files in banks/ that couldn't be read."""
-    _scan()
-    return list(_errors.values())
+    """What went wrong reading the library: unreadable files, unknown courses."""
+    return list(library.current().warnings)
 
 def names():
     """Every bank: the generators, then the fixed banks by name."""
-    _scan()
-    return list(NAMES) + sorted(_fixed)
+    return library.current().names()
 
 def get(name):
-    if name in NAMES:
-        return importlib.import_module(f"{__name__}.{name}")
-    if name not in _fixed:
-        _scan()
-    if name not in _fixed:
-        raise KeyError(f"no bank named {name!r}")
-    return _fixed[name]
+    return library.current().get(name)
 
 def problems(name):
     """A fixed bank's problems (empty for a generator)."""

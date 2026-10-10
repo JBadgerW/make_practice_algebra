@@ -1,0 +1,11 @@
+{
+ "format": 1,
+ "courses": [
+  {"title": "Prealgebra", "units": []},
+  {"title": "Algebra 1", "units": ["Equations"]},
+  {"title": "Geometry", "units": []},
+  {"title": "Algebra 2", "units": []},
+  {"title": "Precalculus", "units": []},
+  {"title": "Calculus", "units": []}
+ ]
+}

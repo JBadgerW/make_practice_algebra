@@ -3,6 +3,7 @@
  "name": "lesson_1-4",
  "title": "Lesson 1-4",
  "family": "literal",
+ "courses": {"Algebra 1": "Equations"},
  "types": [
   {
    "key": "1",

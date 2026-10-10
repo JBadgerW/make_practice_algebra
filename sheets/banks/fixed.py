@@ -5,10 +5,12 @@
      "name": "lesson_1-4",                        (default: the file name)
      "title": "Lesson 1-4",
      "family": "literal",                         (optional; see below)
+     "courses": {"Algebra 1": "Equations"},        (optional; see sheets/library.py)
      "instructions": "Solve each equation for the indicated variable.",
      "types": [{"key": "3", "title": "Clear One Denominator",
                 "width": "half", "space": "1in",   (defaults: half, 1in)
-                "look": "...", "move": "...", "special": false}, ...],
+                "look": "...", "move": "...", "special": false,
+                "courses": [...]}, ...],          (optional: replaces the bank's for this type)
      "problems": [{"id": "13", "type": "3", ...the family's fields...}, ...]
     }
 
@@ -31,15 +33,18 @@ FORMAT = 1
 class FixedBank:
     FIXED = True
 
-    def __init__(self, path):
-        from . import get
+    def __init__(self, path, families):
+        """families: the generator banks by name, for "family"."""
         d = json.loads(Path(path).read_text())
         if not isinstance(d, dict) or d.get("format") != FORMAT:
-            raise ValueError(f"{path}: not a bank file (it needs \"format\": {FORMAT})")
+            raise ValueError(f"not a bank file (it needs \"format\": {FORMAT})")
         self.path = Path(path)
         self.NAME = d.get("name") or self.path.stem
         self.TITLE = d.get("title") or self.NAME
-        self.fam = get(d["family"]) if d.get("family") else None
+        if d.get("family") and d["family"] not in families:
+            raise ValueError(f'no generator bank {d["family"]!r} for "family"')
+        self.fam = families[d["family"]] if d.get("family") else None
+        self.COURSES = d.get("courses")
         self.FAMILY = self.fam.NAME if self.fam else self.NAME
         self.INSTRUCTIONS = d.get("instructions") or (self.fam.INSTRUCTIONS if self.fam else "")
         self.types = {}
