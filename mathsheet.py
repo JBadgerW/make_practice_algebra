@@ -10,7 +10,9 @@ fixed banks in banks/ (written problems, such as the lesson's fifty), then
 the settings. l adds a problem; o opens a bank or a type. The right pane is the
 sheet itself, laid out like the page: Tab into it to move through the
 problems, reroll them, change their width and work space, edit them, and
-cut, copy, and paste them between sections. :w writes exactly what it shows.
+cut, copy, and paste them between sections; the banks stay beside it, and
+^W o widens the sheet to the whole screen and back. :w writes exactly what
+it shows.
 Press ? inside for the full key list.
 """
 import copy, curses, os, random, re, shlex, subprocess, sys, textwrap
@@ -34,7 +36,7 @@ SETTING_HINTS = {
 }
 
 HELP = """\
-BANKS PANE                          THE SHEET (Tab to it; it widens)
+BANKS PANE                          THE SHEET (Tab to it; ^W o widens it)
 j k gg G  move   /text n N  search  j k  h l    next/prev; left/right
 l + ^A  add to the type's section   ]] [[       next / previous section
 L  add at the sheet cursor (3L)     gg G  5G    top, bottom; problem 5
@@ -48,11 +50,12 @@ u ^R .   undo, redo, repeat         o O  cS cI  new section; title, instr.
 Tab ^W w switch panes               zM zR       fold to sections / unfold
 za zs    answers / compact          ✗ an answer fails its check
 gt gT    next / previous version    ? an answer can't be checked
+^W o     the sheet full width, or beside the banks again
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|key|slides] [N]
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
-:title :class :instructions :versions :name :out  :set [no]compact
+:title :class :instructions :versions :name :out  :set [no]compact [no]wide
 Types 1-11, A, B: the lesson's sequence. 3f: real formulas. banks/: fixed."""
 
 SHEET = (-1, -1)                       # the sheet cursor on the header (title, instructions)
@@ -76,6 +79,7 @@ class App:
         self.open_types = set()         # (bank, type) of fixed banks showing their problems
         self.cur = SHEET
         self.answers = self.compact = self.folded = False
+        self.wide = False               # the sheet fills the screen while it has focus
         self.pv_top = 0
         self.mode = "normal"            # normal, insert, command, search, help
         self.buf, self.editing = "", None
@@ -840,7 +844,7 @@ class App:
                 break
         for opt in opts:
             flag = opt.rstrip("!").removeprefix("no")
-            if flag in ("answers", "compact"):
+            if flag in ("answers", "compact", "wide"):
                 val = (not getattr(self, flag)) if opt.endswith("!") else not opt.startswith("no")
                 setattr(self, flag, val)
             elif "=" in opt:
@@ -964,6 +968,11 @@ class App:
                     self.section_jump(1 if c == "]" else -1)
             elif p == "\x17" and c in ("w", "\x17", "h", "l"):
                 self.set_focus({"h": "left", "l": "preview"}.get(c) or self.other_focus())
+            elif p == "\x17" and c == "o":
+                self.wide = not self.wide
+                if self.wide:
+                    self.set_focus("preview")
+                self.say("the sheet full width (^W o splits)" if self.wide else "the sheet beside the banks")
             return
 
         if c.isdigit() and (c != "0" or self.count):
@@ -1224,8 +1233,11 @@ class Screen:
             return self.cmdline(app, h, w)
         body = h - 3                                   # title, status, command lines
         on_sheet = app.focus == "preview"
-        LEFT_W = 0 if on_sheet else max(40, min(55, w - 50))
-        self.put(0, 0, " mathsheet · " + app.sheet["title"], st["head"])
+        LEFT_W = 0 if on_sheet and app.wide else max(40, min(55, w - 50))
+        tab = lambda on: st["normal"] if on else st["dim"]      # the focused pane's label stands out
+        if LEFT_W:
+            self.put(0, 1, " BANKS ", tab(not on_sheet))
+        self.put(0, LEFT_W + 1, " SHEET · " + app.sheet["title"] + " ", tab(on_sheet), w - LEFT_W - 14)
         self.put(0, w - 12, "? for help", st["dim"])
         if LEFT_W:
             self.types_view(app, body, LEFT_W)
@@ -1257,7 +1269,7 @@ class Screen:
         st = self.st
         rows = app.rows()
         nset = len(SETTINGS)
-        lines = [("BANKS", None)] + [(None, i) for i in range(len(rows) - nset)] + \
+        lines = [(None, i) for i in range(len(rows) - nset)] + \
                 [("", None), ("SETTINGS", None)] + [(None, i) for i in range(len(rows) - nset, len(rows))]
         app.row = min(app.row, len(rows) - 1)
         cur = next(j for j, (_, i) in enumerate(lines) if i == app.row)

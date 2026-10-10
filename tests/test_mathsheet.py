@@ -134,6 +134,11 @@ keys("/Warm\n"); assert a.cur == (0, -1)
 # L adds the type under the types cursor where the sheet cursor is
 keys(":1\n"); n0 = len(a.sheet["sections"][0]["items"])
 keys("\t"); assert a.focus == "left"
+keys("\x17o"); assert a.wide and a.focus == "preview", "^W o widens the sheet and moves to it"
+keys("\t"); assert a.focus == "left" and a.wide, "Tab back shows the banks; the sheet stays wide for next time"
+keys("\x17o"); assert not a.wide and a.focus == "left"
+keys(":set wide\n"); assert a.wide
+keys(":set nowide\n"); assert not a.wide
 keys("ggj"); keys("2L"); assert len(a.sheet["sections"][0]["items"]) == n0 + 2
 assert [it["entry"] for it in a.sheet["sections"][0]["items"]][1:3] == ["1", "1"]
 

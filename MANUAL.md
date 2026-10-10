@@ -151,9 +151,12 @@ bank, the problems of a type you open (`●` marks one on the sheet). Then the
 settings, and a hint for the row under the cursor. On the right is **the sheet**, laid out like the page:
 the header, the instructions in italics, bold section titles, problems in
 one or two columns with their work space as blank lines, and a dashed line
-where a new page probably starts. `Tab` moves between the panes; the sheet
-widens to the whole screen while it has focus. `:w` writes exactly what the
-sheet shows.
+where a new page probably starts. `Tab` moves between the panes, and the
+label of the one you are in (BANKS or SHEET, at the top) is highlighted. Both
+stay on screen: you can add problems from the banks and arrange them on the
+sheet without losing either. `^W o` widens the sheet to the whole screen (for
+a closer look at two-column rows) and splits it again; `:set wide` and
+`:set nowide` do the same. `:w` writes exactly what the sheet shows.
 
 The status line shows the totals, how many answers fail their check or
 can't be checked, `[+]` when there are unwritten changes, and, on the sheet,
@@ -219,6 +222,7 @@ edited problems are the same in every version. `gt` `gT` show the versions.
 |---|---|
 | `u` `Ctrl-R` `.` | Undo, redo, repeat the last change (`3u`, `3.`) |
 | `Tab`, `Ctrl-W w` `h` `l` | Switch panes |
+| `Ctrl-W o` | The sheet full width, or beside the banks again (`:set [no]wide`) |
 | `za` `zs` | Answers on / off; compact (no work space) on / off |
 | `gt` `gT` | Next / previous version |
 | `?` | The keys |

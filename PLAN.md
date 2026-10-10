@@ -109,7 +109,8 @@ Enter adds a problem of that type to the section under the preview cursor;
 `5l` adds five. Each type shows how many of its problems are on the sheet.
 `/` searches every bank.
 
-**Right pane, the sheet:** widens when focused. Header block, bold section
+**Right pane, the sheet:** stays beside the bank browser; `^W o` widens it
+to the whole screen and back. Header block, bold section
 headers, italic instructions (dim where italics aren't supported), one or
 two columns, work space as blank rows (about one row per 1/4 in; `zs`
 toggles compact), and estimated page breaks.
