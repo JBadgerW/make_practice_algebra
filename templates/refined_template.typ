@@ -104,7 +104,7 @@
     // Original behavior: one choice per line
     stack(
       dir: ttb,
-      spacing: 3em,
+      spacing: 1em,
       ..labeled.map(((label, item)) => [
         #grid(
           columns: (auto, 1fr),
@@ -133,7 +133,7 @@
 
     stack(
       dir: ttb,
-      spacing: 3em,
+      spacing: 1em,
       ..pairs.map(((a, b)) =>
         grid(
           columns: (1fr, 1fr),
@@ -172,8 +172,8 @@
   instructions: none,
 ) = block(
   sticky: true,
-  above: 1.1em,
-  below: 1em,
+  above: 2em,
+  below: 1.5em,
   {
     text(weight: "bold", size: 14pt)[#txt]
     if instructions != none {
@@ -197,7 +197,6 @@
     [#set text(size: 15pt, weight: "bold"); #worksheet-title],
     align(right)[Date #answer-blank(3.5cm) Ver: #version],
   )
-  #v(3em)
 ]
 
 // ==================================================
@@ -209,7 +208,6 @@
 #let version = "1"
 
 #first-page-header(class-name, worksheet-title, version: version)
-#v(-2.2em)
 #instructions-block([Solve each equation for the indicated variable.])
 
 #section-head()[Type 1: One Step] 
