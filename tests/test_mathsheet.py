@@ -49,7 +49,7 @@ keys("."); assert counts(a)["4"] == 4, "repeat"
 keys("u"); assert counts(a)["4"] == 5, "undo"
 keys("\x12"); assert counts(a)["4"] == 4, "redo"
 keys("dd"); assert "4" not in counts(a) and titles(a) == [mp.L.heading("3")], "an emptied type section goes"
-keys("ggjjj"); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
+a.row = a.rows().index(("count", ("literal", "1"))); keys("l"); assert titles(a)[0] == mp.L.heading("1"), "type 1's section goes first"
 keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
 keys("G"); assert a.row == len(a.rows()) - 1
 keys("/square\n"); assert a.rid() == ("step", ("literal_by_type", 13)), "the sequence's step, by its note"
@@ -208,7 +208,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "literal"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "inequalities"), ("bank", "literal"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -270,6 +270,33 @@ try:
     mp.parse_mix(["systems/9:1"]); raise AssertionError("bad entry accepted")
 except ValueError as e:
     assert "1, 2, 3, 4, 5, A, B" in str(e)
+
+# ---- inequalities: number lines, and an instruction line per type
+q = T.App(seed=4); qk = driver(q)
+qk(":mix inequalities/1:2 inequalities/3:1 inequalities/6:1\n")
+assert q.sheet["instructions"] == "" and titles(q)[0] == "Type 1: Write the Inequality", titles(q)
+assert [s["instructions"] for s in q.sheet["sections"]] == [
+    "Write the inequality shown by each graph.", "Graph each inequality.",
+    "Solve each compound inequality. Then graph its solution."]
+assert "graph: " in text(q) and all(it["status"] == "checked" for it in sh.items(q.sheet))
+qk("\t:1\n"); qk("cc"); qk("x <= 1\n")
+assert q.item()["problem"]["graph"] == [None, [1, True]] and q.item()["status"] == "checked", q.item()
+qk("cc"); qk("-4 < x <= 1\n"); assert q.err and "ray" in q.msg, "type 1 is a ray"
+qk("A\x15x < 1\n"); assert q.item()["status"] == "failed"
+qk("A\x151 >= x\n"); assert q.item()["status"] == "checked", "any equivalent answer checks"
+qk(":4\n"); qk("cc"); qk("9 <= 2x + 7 <= 17\n")
+p = q.item()["problem"]
+assert p["answer"] == "1 <= x <= 5" and p["graph"] == [[1, True], [5, True]] and q.item()["status"] == "checked", p
+qk("cc"); qk("2x - 1 > -5 and x + 3 <= 8\n")
+assert q.item()["problem"]["answer"] == "-2 < x <= 5" and q.item()["status"] == "checked"
+assert q.item()["problem"]["prompt"] == '2x - 1 > -5 quad "and" quad x + 3 <= 8'
+qk("cc"); qk("2x <= 3 and x > -4\n"); assert q.err and "whole number" in q.msg
+qk(f":out {OUT}\n:name ineq\n:w\n"); assert not q.err, q.msg
+ws, key = (Path(OUT) / "ineq_v1.typ").read_text(), (Path(OUT) / "ineq_v1_key.typ").read_text()
+assert ws.count("#let numline") == 1 and key.count("#let numline") == 1
+assert "ink: red" in key and "ink: red" not in ws, "the key draws the graphs in red"
+assert "$1 >= x$" in key, "the key prints the teacher's answer as written"
+assert "#let numline" not in (Path(OUT) / "systems_v1.typ").read_text(), "only sheets that need it"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
@@ -346,7 +373,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert "4 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert "5 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
@@ -354,7 +381,7 @@ ck("o"); assert c.rid() == ("course", None)
 c.open.add("ints"); assert [r for r in c.rows() if r[0] == "count"] == [("count", ("ints", "add")), ("count", ("ints", "mul"))]
 ck("l"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Algebra 1"
 assert [r for r in c.rows() if r[0] == "count" and r[1][0] == "ints"] == [("count", ("ints", "add"))], "mul is Prealgebra only"
-assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Equations", ["literal", "lesson_1-4"])]
+assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Equations", ["literal", "lesson_1-4"]), (None, ["inequalities"])]
 assert library.config()["course"] == "Algebra 1", "remembered for the next sheet"
 ck("h"); assert c.course == "Prealgebra"
 ck("h"); assert c.course is None and c.sheet["class_name"] == "Prealgebra", "All banks leaves the class alone"
@@ -383,7 +410,7 @@ assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
 dk("\tG"); assert "ints (missing)" not in d.msg
 dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
 dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
-dk(f":library {lib}\n"); assert not d.missing() and not d.err and "4 banks" in d.msg, d.msg
+dk(f":library {lib}\n"); assert not d.missing() and not d.err and "5 banks" in d.msg, d.msg
 assert library.config()["library"] == str(lib)
 dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]
 dk(":warnings\n"); assert d.msg == "no warnings"
@@ -406,7 +433,7 @@ assert q.rows()[:6] == [("course", None), ("seq", "by_move"), ("step", ("by_move
                         ("step", ("by_move", 3)), ("step", ("by_move", 4))], q.rows()[:6]
 assert ("seq", "other") not in q.rows() and ("bank", "literal") in q.rows(), "a sequence shows in its own course"
 qk(":course all\n"); tops = [r for r in q.rows() if r[0] in ("seq", "bank")]
-assert tops[:4] == [("seq", "by_move"), ("seq", "literal_by_type"), ("seq", "other"), ("bank", "literal")], \
+assert tops[:4] == [("seq", "by_move"), ("seq", "literal_by_type"), ("seq", "other"), ("bank", "inequalities")], \
     "sequences first"
 qk(":course Algebra 1\n")
 qk("ggjj"); assert q.rid() == ("step", ("by_move", 1))

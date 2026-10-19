@@ -195,7 +195,9 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     first = banks.get(fams.pop()) if len(fams) == 1 else L       # one family: its instructions for the sheet
     if title == DEFAULTS["title"] and first is not L:
         title = f"{first.TITLE} Practice"
-    sheet = sh.new_sheet(title, class_name, first.INSTRUCTIONS, versions)
+    types = {first.type_of(it["entry"]) for it in drawn}
+    ins = banks.instructions(first, types.pop()) if len(types) == 1 and first is not L else first.INSTRUCTIONS
+    sheet = sh.new_sheet(title, class_name, ins, versions)
     sheet["sections"] = [dict(sh.new_section(), items=drawn)]
     (shuffle_all(sheet, rng) if shuffle else regroup(sheet, groups, rng))
     return sh.fill_versions(sheet, seen)
@@ -349,7 +351,8 @@ def regroup(sheet, groups, rng):
         tag = f"{b.FAMILY}:{typ}"
         sec = next((x for x in secs if x["auto"] == tag), None)
         if sec is None:
-            ins = b.INSTRUCTIONS if b.INSTRUCTIONS != sheet["instructions"] else ""
+            ins = banks.instructions(b, typ)
+            ins = ins if ins != sheet["instructions"] else ""
             sec = sh.new_section(b.heading(typ), ins, auto=tag)
             secs.append(sec)
         sec["items"].append(it)
@@ -457,8 +460,9 @@ def main():
     a = parser().parse_args()
     seed = a.seed if a.seed is not None else random.randrange(10**6)
     if a.selftest:
-        from sheets.banks import systems
-        sys.exit(0 if selftest(a.selftest, seed) and systems.selftest(a.selftest, seed) else 1)
+        from sheets.banks import systems, inequalities
+        sys.exit(0 if selftest(a.selftest, seed) and systems.selftest(a.selftest, seed)
+                 and inequalities.selftest(a.selftest, seed) else 1)
     try:
         if a.sheet:
             sheet = read_sheet(a.sheet)

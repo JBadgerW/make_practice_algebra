@@ -50,7 +50,8 @@ def type_section(sheet, bank, entry):
         if fam == b.FAMILY and t in order and order.index(t) > order.index(typ):
             at = i
             break
-    ins = b.INSTRUCTIONS if b.INSTRUCTIONS != sheet["instructions"] else ""
+    ins = banks.instructions(b, typ)
+    ins = ins if ins != sheet["instructions"] else ""
     sheet["sections"].insert(at, new_section(b.heading(typ), ins, auto=tag))
     return at
 
