@@ -70,12 +70,15 @@ A second family, in the `systems` bank, sorted the same way: by the first move.
 | 3 | One Variable Missing | One equation has only two of the variables |
 | 4 | Eliminate | Every variable everywhere; some coefficients are 1 or −1 |
 | 5 | Eliminate and Scale | Every variable everywhere; no coefficient is 1 or −1 |
+| 6 | Clear Fractions and Decimals (Precalculus) | Fraction and decimal coefficients; each equation is missing a variable |
 | A | Special Case: No Solution | Left sides combine; constants don't |
 | B | Special Case: Infinitely Many Solutions | One equation is a combination of the other two |
 
 Solutions are integers from −9 to 9, coefficients at most 7 (or 12 in a
 combined equation), constants at most 60, and no equation has a common
-factor. Answers are ordered triples, `(2, −1, 3)`, or the words *no solution*
+factor. Type 6 mixes fraction equations (like 1/3 x − 1/4 y = 2, right
+sides with denominators up to 6) and decimal ones (like 0.4y + 0.2z = 2, in
+tenths); clearing them leaves an integer system. Answers are ordered triples, `(2, −1, 3)`, or the words *no solution*
 or *infinitely many solutions*. Each system is half width with 2.5in of work
 space, its terms lined up in columns.
 

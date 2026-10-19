@@ -34,6 +34,9 @@ TYPES = [
     dict(key="5", title="Eliminate and Scale",
          look="Every variable in every equation, and no coefficient is 1 or −1.",
          move="Multiply one or both equations so a variable's coefficients are opposites, then add; do it for two pairs."),
+    dict(key="6", title="Clear Fractions and Decimals", courses=["Precalculus"],
+         look="Fractions and decimals for coefficients, and each equation is missing a variable.",
+         move="Multiply each equation by the LCD or a power of 10 to clear it; then solve the integer system."),
     dict(key="A", title="No Solution", special=True,
          look="Two equations' left sides combine to make the third's, but the constants don't.",
          move="Eliminate as usual. A false statement such as 0 = 7 means there is no solution."),
@@ -217,7 +220,65 @@ def special_case(r, consistent):
     r.shuffle(rows)
     return [eq(r, a, s, c) for a, c in rows], None
 
-TEMPLATES = {"1": t1, "2": t2, "3": t3, "4": t4, "5": t5,
+def fraction_row(r, i, j, s):
+    """Fraction coefficients on variables i and j, each with a different denominator:
+    1/3 x - 1/4 y = 2 (an integer row 4x - 3y = 24, divided by 12)."""
+    a = [Fraction(0)] * 3
+    for k in (i, j):
+        a[k] = Fraction(r.choice([1, 1, 1, 1, 2, 3]) * r.choice([-1, 1]), r.choice([2, 3, 4, 5, 6, 8]))
+    need(all(a[k].denominator > 1 for k in (i, j)) and a[i].denominator != a[j].denominator)
+    c = dot(a, s)
+    need(c.denominator <= 6)
+    return a, c
+
+def decimal_row(r, i, j, s):
+    """Decimal coefficients on variables i and j, tenths mostly: 0.4y + 0.2z = 2."""
+    a = [Fraction(0)] * 3
+    for k in (i, j):
+        a[k] = r.choice([-1, 1]) * (Fraction(r.randint(1, 9), 10) if r.random() < 0.8
+                                     else Fraction(r.choice([5, 15, 25, 75]), 100))
+    c = dot(a, s)
+    need(a[i] != a[j] and 10 % c.denominator == 0)   # the constant in tenths at most
+    return a, c
+
+def number(q):
+    """A Fraction as written in a fraction equation: 5/2, -3, 1/3."""
+    return str(q) if q.denominator == 1 else f"{'-' if q < 0 else ''}{abs(q.numerator)}/{q.denominator}"
+
+def decimal(q):
+    """A Fraction with a power-of-ten denominator as a decimal: 0.4, -1.25, 3."""
+    from decimal import Decimal
+    d = (Decimal(q.numerator) / Decimal(q.denominator)).normalize()
+    return f"{d:f}" if d % 1 else str(int(d))
+
+def written(a, c, show):
+    """a . (x, y, z) = c with each coefficient written by show; 1/3 x keeps a space
+    so the fraction is just 1/3."""
+    lead = next(x for x in a if x)
+    out = ""
+    for x, v in zip(a, V):
+        if x == 0:
+            continue
+        mag = show(abs(x)) + (" " if "/" in show(abs(x)) else "")
+        out += (("-" if x < 0 else "") if not out else (" - " if x < 0 else " + ")) + mag + v
+    return f"{out} = {show(c)}"
+
+def t6(r):
+    s = solution(r)
+    pairs = [(0, 1), (1, 2), (0, 2)]                 # each equation is missing one variable
+    kinds = r.choice([["f", "f", "d"], ["f", "d", "d"]])
+    r.shuffle(kinds)
+    rows = []
+    for (i, j), kind in zip(pairs, kinds):
+        a, c = (fraction_row if kind == "f" else decimal_row)(r, i, j, s)
+        if a[i] < 0 and r.random() < 0.8:
+            a, c = [-x for x in a], -c
+        rows.append((a, c, number if kind == "f" else decimal))
+    need(det([a for a, _, _ in rows]) != 0)
+    need(all(abs(c) <= 12 for _, c, _ in rows))
+    return [written(a, c, show) for a, c, show in rows], s
+
+TEMPLATES = {"1": t1, "2": t2, "3": t3, "4": t4, "5": t5, "6": t6,
              "A": lambda r: special_case(r, False), "B": lambda r: special_case(r, True)}
 
 def generate(entry, rng, seen, tries=400):
@@ -250,7 +311,7 @@ def solve_system(prompt):
     from ..check import side_diff
     syms = sp.symbols("x y z")
     try:
-        exprs = [side_diff(e) for e in equations(prompt)]
+        exprs = [sp.nsimplify(side_diff(e), rational=True) for e in equations(prompt)]   # 0.4 -> 2/5
     except Exception as e:
         raise ValueError(f"can't read the equations: {e}") from None
     if any(e.free_symbols - set(syms) for e in exprs):
@@ -299,13 +360,14 @@ def answer_of(sol):
 # ------------------------------------------------------------------
 # Showing
 # ------------------------------------------------------------------
-TERM = re.compile(r"\s*([+-]?)\s*(\d*)\s*([xyz])")
+TERM = re.compile(r"\s*([+-]?)\s*(\d+/\d+ |\d*\.\d+|\d*)\s*([xyz])")   # 2x, 1/3 x, 0.4x
+NUMBER = r"\s*-?\d+(/\d+|\.\d+)?\s*"
 
 def cells(eq):
     """'2x - 3y + z = 13' -> the seven cells of an aligned row, or None if it isn't
     in standard form (terms in x, y, z order, a number on the right)."""
     left, _, right = eq.partition("=")
-    if not re.fullmatch(r"\s*-?\d+\s*", right):
+    if not re.fullmatch(NUMBER, right):
         return None
     out, pos, last = ["", "", "", "", ""], 0, -1
     for m in TERM.finditer(left):
@@ -329,7 +391,10 @@ def typst(p, gap="0.3em"):
     rows = [cells(e) for e in eqs]
     if all(rows):
         body = ";\n    ".join(", ".join(c for c in row) for row in rows)
-        return (f"$display(mat(delim: #(\"{{\", none), align: #right, column-gap: #0.2em,\n"
+        rowgap = ""
+        if "/" in body:                                # full-size fractions, with room between rows
+            body, rowgap = re.sub(r"(\d+)/(\d+)", r"display(\1/\2)", body), " row-gap: #0.6em,"
+        return (f"$display(mat(delim: #(\"{{\", none), align: #right, column-gap: #0.2em,{rowgap}\n"
                 f"    {body}))$")
     return f"$display(cases({', '.join(eqs)}))$"
 
@@ -350,7 +415,7 @@ def answer_text(p):
 
 def height(p):
     """Inches the prompt takes on the page (three stacked rows), for page estimates."""
-    return 0.65
+    return 0.85 if "/" in p["prompt"] else 0.65
 
 # ------------------------------------------------------------------
 # Hand editing: "eq1 ; eq2 ; eq3" in Typst math

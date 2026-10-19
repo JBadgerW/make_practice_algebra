@@ -60,6 +60,7 @@ gt gT    next / previous version    ? an answer can't be checked
 ^W o     sheet full width / split   v  gv       select (Esc ends); reselect
                                     + - W r     change all selected
                                     d y :group  cut, copy, new section
+                                    gs          shuffle selection / section
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|key|slides] [N]
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
@@ -602,7 +603,7 @@ class App:
         if self.folded:
             return self.say("v selects problems: zR to unfold first", True)
         self.anchor = self.cur
-        self.say("-- VISUAL --  + - W r :space :width change them; d y cut or copy; :group TITLE; Esc ends")
+        self.say("-- VISUAL --  + - W r :space :width change them; gs shuffles; d y cut or copy; :group TITLE; Esc ends")
 
     def end_visual(self):
         if self.anchor is not None:
@@ -671,6 +672,23 @@ class App:
         if self.change(lambda: E.reroll(self.sheet, ps, self.seeds())):
             self.say(f"{len(ps)} rerolled" if len(ps) > 1 else "rerolled")
         self.last_change = lambda: self.reroll(n, section, everything)
+
+    def shuffle(self):
+        """gs: the selection, or the section the cursor is in (each section on the
+        sheet header), in a new order in the same places."""
+        if self.anchor is not None:
+            groups = [self.selection()]
+        else:
+            si = self.cur[0]
+            groups = [E.positions(self.sheet, i) for i in (range(len(self.sheet["sections"])) if si < 0 else [si])]
+        n = sum(len(g) for g in groups)
+        if n < 2:
+            return self.say("nothing to shuffle here", True)
+        anchor, cur = self.anchor, self.cur
+        if self.change(lambda: [E.shuffle(self.sheet, g, self.rng) for g in groups]):
+            self.anchor, self.cur = anchor, cur        # the same places, so gs again reshuffles them
+            self.say(f"{n} problems shuffled")
+        self.last_change = self.shuffle
 
     def toggle_width(self):
         ps = self.scope()
@@ -1081,6 +1099,8 @@ class App:
                 self.regroup(shlex.split(rest))
             except ValueError as e:
                 self.say(f"E: {e}", True)
+        elif cmd == "shuffle" and self.anchor is not None:
+            self.shuffle()
         elif cmd == "shuffle":
             self.change(lambda: mp.shuffle_all(self.sheet, self.rng))
             self.cur = SHEET
@@ -1248,6 +1268,8 @@ class App:
                     self.row = min((n or 1) - 1, len(self.rows()) - 1)
             elif combo == "gt":
                 self.version = min(n, self.sheet["versions"]) - 1 if n else (self.version + 1) % self.sheet["versions"]
+            elif combo == "gs":
+                self.shuffle() if sheet else self.say("gs shuffles on the sheet (Tab to it)", True)
             elif combo == "gv":
                 self.reselect() if sheet else self.say("gv selects on the sheet (Tab to it)", True)
             elif combo == "gT":

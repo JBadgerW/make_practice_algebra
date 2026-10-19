@@ -269,7 +269,7 @@ assert [s["instructions"] for s in mixed["sections"]] == ["", "Solve each system
 try:
     mp.parse_mix(["systems/9:1"]); raise AssertionError("bad entry accepted")
 except ValueError as e:
-    assert "1, 2, 3, 4, 5, A, B" in str(e)
+    assert "1, 2, 3, 4, 5, 6, A, B" in str(e)
 
 # ---- inequalities: number lines, and an instruction line per type
 q = T.App(seed=4); qk = driver(q)
@@ -330,6 +330,20 @@ vk("u"); vk("u"); assert len(sh.items(v.sheet)) == 6
 vk(":1\n"); vk("v"); vk("j"); vk("y"); assert v.anchor is None and len(v.reg["what"]) == 2 and len(sh.items(v.sheet)) == 6
 vk("v"); vk("v"); assert v.anchor is None, "v again ends it"
 vk("vJ"); assert v.anchor is None, "moving a problem ends the selection"
+vk("u")
+
+# gs shuffles the selection in place (or the cursor's section), drawing nothing
+secs0 = [[it["problem"]["prompt"] for it in sec["items"]] for sec in v.sheet["sections"]]
+vk(":1\n"); vk("v"); vk("jj")
+picked = [v.item(q)["problem"]["prompt"] for q in v.selection()]
+vk("gs"); assert v.anchor == (0, 0) and v.cur == (0, 2), "gs keeps the selection"
+now = [v.item(q)["problem"]["prompt"] for q in v.selection()]
+assert sorted(now) == sorted(picked) and now != picked, now
+assert prompts(v)[3:] == [q for sec in secs0 for q in sec][3:], "the rest stay put"
+vk("\x1b"); vk("u"); assert [[it["problem"]["prompt"] for it in sec["items"]] for sec in v.sheet["sections"]] == secs0
+vk(":1\n"); vk("gs")
+assert [sorted(it["problem"]["prompt"] for it in sec["items"]) for sec in v.sheet["sections"]] == [sorted(x) for x in secs0], \
+    "a section's problems stay in it"
 vk("u")
 
 # :group pulls the selection into a new section

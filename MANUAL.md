@@ -343,12 +343,13 @@ selected. Then:
 | `+` `-` (`3+`), `:space 1.5in` | Work space up or down, or set |
 | `W`, `:width full` | Half / full width: all of them the same way (the first one's toggled) |
 | `r` | Reroll them |
+| `gs`, `:shuffle` | Shuffle them: the same problems in the same places, in a new order. Without a selection, `gs` shuffles the cursor's section (every section, each in itself, on the sheet header). |
 | `d` `x` / `y` | Cut / copy them all; `p` pastes them as one block, so this moves them |
 | `:group TITLE` | Move them into a new section, just after the section of the first one. Sections this empties go; with no title, the section prints no header. |
 | `Esc` or `v` | End the selection. `gv` brings the last one back. |
 
-`+`, `-`, `W`, `r`, `:space`, and `:width` keep the selection, so you can press
-`+` again or reroll until you like what you get; `d`, `y`, and `:group` end it,
+`+`, `-`, `W`, `r`, `gs`, `:space`, and `:width` keep the selection, so you can press
+`+` again or reroll or shuffle until you like what you get; `d`, `y`, and `:group` end it,
 as does anything that moves problems around (`J`, `p`, undo). One `u` undoes
 a whole change to a selection. Without a selection, `:group` works on what
 the cursor is on.
@@ -400,7 +401,7 @@ through earlier commands.
 | `:mix 3:6 3f:2 A:1` | Draft a new sheet (`all:N`, `allf:N` work). The title and settings stay. |
 | `:draft SEQ 5-6 [x6] [review 1-4\|none] [pinned]` | Draft a new sheet from a sequence's steps, with review (see *Drafting from a sequence*) |
 | `:groups 9 8 3+4=Warm-up 1` | Sort the problems already on the sheet into sections by type, as with `--groups`. `:groups` alone: one section per type, in sequence order. |
-| `:shuffle` | Every problem in one shuffled section with no title |
+| `:shuffle` | Every problem in one shuffled section with no title (with a selection: shuffle just those, in place, like `gs`) |
 | `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |
 | `:space 1.5in`, `:width full` | Set work space or width (the selection, or problem, section, or sheet, by where the cursor is) |
 | `:join` | Merge the section below into the cursor's section |

@@ -143,6 +143,19 @@ def reroll(sheet, positions, seeds):
         sheet["sections"] = before
         raise
 
+def shuffle(sheet, positions, rng):
+    """Put the items at these positions back in them in a new random order (a
+    different one, unless they can't differ)."""
+    secs = sheet["sections"]
+    its = [secs[si]["items"][ii] for si, ii in positions]
+    order = list(its)
+    for _ in range(20 if len(its) > 1 else 0):
+        rng.shuffle(order)
+        if any(a is not b for a, b in zip(order, its)):
+            break
+    for (si, ii), it in zip(positions, order):
+        secs[si]["items"][ii] = it
+
 def positions(sheet, si=None):
     """Every item position, or those of section si."""
     return [(i, j) for i, sec in enumerate(sheet["sections"]) if si is None or i == si
