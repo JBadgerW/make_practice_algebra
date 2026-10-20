@@ -24,9 +24,8 @@ def titles(app):
 def prompts(app):
     return [it["problem"]["prompt"] for it in sh.items(app.sheet)]
 def banks_first(app):
-    """Fold the built-in sequence and start on the literal bank's first type,
-    for the tests of the banks themselves."""
-    app.open.discard("literal_by_type")
+    """Open the literal bank and start on its first type, for the tests of the banks themselves."""
+    app.open.add("literal")
     app.row = app.rows().index(("count", ("literal", "1")))
     return app
 def text(app, width=80):
@@ -35,8 +34,9 @@ def text(app, width=80):
 
 # ---- the types pane: counts make sections in sequence order
 a = T.App(seed=12)
-assert a.rows()[1:3] == [("seq", "literal_by_type"), ("step", ("literal_by_type", 1))] and a.row == 2, \
-    "the built-in sequence comes first, open, and the cursor starts on its first step"
+assert a.rows()[1] == ("seq", "literal_by_type") and a.row == 1 and not a.open, \
+    "everything starts closed; the cursor starts on the built-in sequence, which comes first"
+assert all(r[0] in ("course", "seq", "bank", "set") for r in a.rows()), "no steps or types showing"
 banks_first(a); keys = driver(a)
 keys("4j"); assert a.rid() == ("count", ("literal", "3")), a.rid()
 keys("3l"); assert counts(a) == {"3": 3}, counts(a)
@@ -462,6 +462,8 @@ sl = Path(tempfile.mkdtemp(prefix="seqlib_"))
     "steps": [{"entry": "literal/2"}]}))
 library.save_config(library=str(sl), course="Algebra 1"); library.rescan()
 q = T.App(seed=9); qk = driver(q)
+assert q.rid() == ("seq", "by_move") and ("step", ("by_move", 1)) not in q.rows(), "closed, the cursor on it"
+qk("o")
 assert q.rows()[:6] == [("course", None), ("seq", "by_move"), ("step", ("by_move", 1)), ("step", ("by_move", 2)),
                         ("step", ("by_move", 3)), ("step", ("by_move", 4))], q.rows()[:6]
 assert ("seq", "other") not in q.rows() and ("bank", "literal") in q.rows(), "a sequence shows in its own course"

@@ -89,7 +89,7 @@ class App:
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         self.undo, self.redo = [], []
         self.row, self.focus, self.version = 2, "left", 0
-        self.open = {mp.BANK} | set(library.current().sequences)    # banks and sequences open in the tree
+        self.open = set()               # banks and sequences open in the tree: all closed at start
         self.open_types = set()         # (bank, type) showing its problems; (sequence, step) its examples
         self.cur = SHEET
         self.anchor = None              # where v was pressed: a selection runs from here to the cursor
@@ -109,7 +109,7 @@ class App:
         self.reg = None                 # dict(kind="items"|"section", what=..., cut=bool)
         self.last_build = None
         self.quit = False
-        self.row = next((i for i, r in enumerate(self.rows()) if r[0] in ("step", "count")), 0)   # the first to add from
+        self.row = next((i for i, r in enumerate(self.rows()) if r[0] in ("seq", "bank")), 0)   # the first to open
         self.clamp()
         if banks.errors():
             self.say("E: " + "; ".join(banks.errors()), True)
