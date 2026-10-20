@@ -1,6 +1,6 @@
 """Drive mathsheet.App with scripted keys (no terminal needed).
 Run from the project folder:  python3 tests/test_mathsheet.py"""
-import os, shlex, sys, tempfile
+import os, re, shlex, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never the teacher's own config
@@ -208,7 +208,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "inequalities"), ("bank", "literal"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -297,6 +297,25 @@ assert ws.count("#let numline") == 1 and key.count("#let numline") == 1
 assert "ink: red" in key and "ink: red" not in ws, "the key draws the graphs in red"
 assert "$1 >= x$" in key, "the key prints the teacher's answer as written"
 assert "#let numline" not in (Path(OUT) / "systems_v1.typ").read_text(), "only sheets that need it"
+
+# ---- modeling compound inequalities: word problems, a story per entry, parallel versions
+m = T.App(seed=5); mk = driver(m)
+mk(":mix modeling/1a:1 modeling/3D:1\n:versions 2\n")
+assert titles(m) == ["Type 1: One Serving", "Type 3: Fractional Servings"], titles(m)
+assert all(it["status"] == "checked" for it in sh.items(m.sheet))
+it = sh.items(m.sheet)[1]
+assert it["problem"]["story"] == it["alts"][0]["story"] == "d", "versions keep the story"
+assert re.search(r"(1/2|1 1/2|2|2 1/2) bottles? of fruit juice", it["problem"]["prompt"]), it["problem"]["prompt"]
+mk("\t:1\n"); mk("cc")
+mk("\x15Nia is planning a diet for a dog named River. River should get between 510 and 540 Calories each day. "
+   "River eats 1 1/2 servings of dog food each day, and the rest of the Calories come from treats. A serving "
+   "of dog food has 320 Calories, and a treat has 15 Calories. How many treats can River have each day?\n")
+assert m.item()["problem"]["answer"] == "510 <= 1.5(320) + 15t <= 540; 2 <= t <= 4" and m.item()["status"] == "checked"
+mk("cc"); mk("\x15River eats a lot.\n"); assert m.err and "wording" in m.msg
+mk("A\x15510 <= 480 + 15t <= 540; 2 <= t <= 5\n"); assert m.item()["status"] == "failed"
+mk(f":out {OUT}\n:name model\n:w\n"); assert "1 failing answer" in m.msg, m.msg
+key = (Path(OUT) / "model_v1_key.typ").read_text()
+assert "$510 <= 480 + 15t <= 540$ \\ $2 <= t <= 5$ \\ 2 to 4 treats" in key and "$1 1/2$ servings" in key, "the teacher's answer as written; the count from the prompt"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
@@ -387,7 +406,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert "5 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert "6 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
@@ -395,7 +414,7 @@ ck("o"); assert c.rid() == ("course", None)
 c.open.add("ints"); assert [r for r in c.rows() if r[0] == "count"] == [("count", ("ints", "add")), ("count", ("ints", "mul"))]
 ck("l"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Algebra 1"
 assert [r for r in c.rows() if r[0] == "count" and r[1][0] == "ints"] == [("count", ("ints", "add"))], "mul is Prealgebra only"
-assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Equations", ["literal", "lesson_1-4"]), (None, ["inequalities"])]
+assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Equations", ["literal", "lesson_1-4"]), (None, ["inequalities", "modeling"])]
 assert library.config()["course"] == "Algebra 1", "remembered for the next sheet"
 ck("h"); assert c.course == "Prealgebra"
 ck("h"); assert c.course is None and c.sheet["class_name"] == "Prealgebra", "All banks leaves the class alone"
@@ -424,7 +443,7 @@ assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
 dk("\tG"); assert "ints (missing)" not in d.msg
 dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
 dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
-dk(f":library {lib}\n"); assert not d.missing() and not d.err and "5 banks" in d.msg, d.msg
+dk(f":library {lib}\n"); assert not d.missing() and not d.err and "6 banks" in d.msg, d.msg
 assert library.config()["library"] == str(lib)
 dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]
 dk(":warnings\n"); assert d.msg == "no warnings"

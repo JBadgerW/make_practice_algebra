@@ -460,9 +460,9 @@ def main():
     a = parser().parse_args()
     seed = a.seed if a.seed is not None else random.randrange(10**6)
     if a.selftest:
-        from sheets.banks import systems, inequalities
+        from sheets.banks import systems, inequalities, modeling
         sys.exit(0 if selftest(a.selftest, seed) and systems.selftest(a.selftest, seed)
-                 and inequalities.selftest(a.selftest, seed) else 1)
+                 and inequalities.selftest(a.selftest, seed) and modeling.selftest(a.selftest, seed) else 1)
     try:
         if a.sheet:
             sheet = read_sheet(a.sheet)

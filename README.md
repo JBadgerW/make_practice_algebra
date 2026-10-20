@@ -32,6 +32,9 @@ python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 # Systems of three equations (another bank: name it before the entry)
 python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 
+# Lesson 1-6: Compound Inequalities (modeling): every story at every type, two parallel versions
+python3 make_practice.py --mix modeling/all:1 --versions 2 --title "Lesson 1-6: Compound Inequalities"
+
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 mathsheet.py
@@ -82,6 +85,30 @@ tenths); clearing them leaves an integer system. Answers are ordered triples, `(
 or *infinitely many solutions*. Each system is half width with 2.5in of work
 space, its terms lined up in columns.
 
+### Lesson 1-6: Compound Inequalities
+
+Word problems in the `modeling` bank. Each one is the same model, a total
+between two numbers made of a fixed part plus some count of a smaller item:
+`low ≤ (amount)(one unit) + (one item)·n ≤ high`. Only the story changes, so
+students set up the inequality instead of recognizing a story. The types
+change only the amount of the fixed part:
+
+| Key | Type | The fixed part |
+|---|---|---|
+| 1 | One Serving | one unit: 1 serving, 1 hour, 1 mile, 1 bottle |
+| 2 | Whole-Number Servings | 2, 3, or 4 units |
+| 3 | Fractional Servings | ½, 1½, 2, or 2½ units |
+
+An entry is a type plus a story: `a` a dog's Calories (food and treats), `b` a
+party budget (pavilion hours and guests), `c` workout minutes (miles run and
+circuits), `d` punch ounces (bottles of juice and cans). So `modeling/3b:2` is
+two fractional-hours party problems, and `modeling/all:1` is all twelve.
+Versions of an entry keep its story and change its names and numbers. Bounds
+are inclusive and built so the solved inequality has whole-number ends. The
+key gives the model, written with the amount as a decimal (`510 ≤ 1.5(320) + 15t ≤ 540`),
+the solved inequality (`2 ≤ t ≤ 4`), and the answer (*2 to 4 treats*). Each
+problem is full width with 1.75in of work space.
+
 ## Files
 
 | File | What it is |
@@ -90,6 +117,7 @@ space, its terms lined up in columns.
 | `sheets/library.py` | The library: finds every bank (generators, `banks/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
+| `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |

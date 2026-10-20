@@ -134,6 +134,18 @@ and no equation has a common factor that would turn it into a Type 4. In the
 terminal app, `i` edits a system as `eq1 ; eq2 ; eq3` (solved again), and `A`
 takes `(x, y, z)`, `no solution`, or `infinitely many solutions`.
 
+### Lesson 1-6: Compound Inequalities
+
+`--mix modeling/2c:3` draws from the `modeling` bank: entry `2c` is Type 2
+(whole-number servings) in story `c` (workout time). Entries are `1a`–`3d`;
+`modeling/all:1` is one of each. Problems are built backward from the fewest
+and most items. The check doesn't use how they were built: it reads the
+numbers back out of the prompt's words, tries every whole-number count, and
+solves the key's model with sympy. In the terminal app, `i` edits the prompt.
+Keep the story's wording and change only names and numbers; the key is
+recomputed. `A` takes `model; solved`, like
+`510 <= 1.5(320) + 15t <= 540; 2 <= t <= 4`.
+
 ## 3. mathsheet, the terminal app
 
 ```sh
