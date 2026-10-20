@@ -111,8 +111,8 @@ def group_token(g):
 # ------------------------------------------------------------------
 # Drafting a sheet from a recipe
 # ------------------------------------------------------------------
-DEFAULTS = dict(versions=1, shuffle=False, title="Literal Equations Practice",
-                class_name="Algebra 1", out="practice", name="literal_practice")
+DEFAULTS = dict(versions=1, shuffle=False, title="Untitled Worksheet",     # placeholders: drafting from
+                class_name="Algebra 1", out="practice", name="untitled")      # one bank fills in its title
 
 def parse_mix(tokens):
     """["3:6", "3f:2", "all:1", "systems/4:2"] -> {"3": 7, "3f": 2, ..., "systems/4": 2};
@@ -192,8 +192,8 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     seen = {}                                  # (the literal bank never draws the lesson's own 50)
     drawn = [sh.new_item(*split_key(k), rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
     fams = {banks.get(it["bank"]).FAMILY for it in drawn}
-    first = banks.get(fams.pop()) if len(fams) == 1 else L       # one family: its instructions for the sheet
-    if title == DEFAULTS["title"] and first is not L:
+    first = banks.get(next(iter(fams))) if len(fams) == 1 else L  # one family: its instructions for the sheet
+    if title == DEFAULTS["title"] and len(fams) == 1:             # and its title
         title = f"{first.TITLE} Practice"
     types = {first.type_of(it["entry"]) for it in drawn}
     ins = banks.instructions(first, types.pop()) if len(types) == 1 and first is not L else first.INSTRUCTIONS
@@ -382,7 +382,8 @@ def from_practice_json(path):
     if not vs:
         raise ValueError(f"{path.name}: no NAME_v1.json beside it")
     probs = vs[0]
-    sheet = sh.new_sheet(a.title, a.class_name, L.INSTRUCTIONS, len(vs))
+    title = f"{L.TITLE} Practice" if a.title == DEFAULTS["title"] else a.title    # older files were all literal
+    sheet = sh.new_sheet(title, a.class_name, L.INSTRUCTIONS, len(vs))
     sheet["command"] = d["command"]
     lay = layout(parse_groups(a.groups), {p["type"]: 1 for p in probs})
     secs = [sh.new_section()] if a.shuffle else \

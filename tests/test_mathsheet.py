@@ -183,11 +183,11 @@ keys("za"); assert a.answers and " = " in text(a)
 # write, then reopen exactly
 keys(f":out {OUT}\n")
 keys(":w\n"); assert not a.err and not a.dirty(), a.msg
-written = sh.load(a.last_build["out"] / "literal_practice.sheet.json")
+written = sh.load(a.last_build["out"] / "untitled.sheet.json")
 assert written["sections"] == a.sheet["sections"], ":w writes exactly what the sheet pane shows"
-assert written["command"].endswith("literal_practice.sheet.json")
-b = T.App(); b.load(str(a.last_build["out"] / "literal_practice.sheet.json"))
-assert b.sheet["sections"] == a.sheet["sections"] and b.s["name"] == "literal_practice" and not b.dirty()
+assert written["command"].endswith("untitled.sheet.json")
+b = T.App(); b.load(str(a.last_build["out"] / "untitled.sheet.json"))
+assert b.sheet["sections"] == a.sheet["sections"] and b.s["name"] == "untitled" and not b.dirty()
 keys("D"); assert a.total() == 0; keys("u"); assert a.total() > 0
 keys(":q\n"); assert a.quit
 
@@ -266,6 +266,12 @@ assert "mat(delim:" in key and "$(1, 3, 2)$" not in key and "infinitely many sol
 mixed = mp.draft(mp.parse_mix(["3:1", "systems/2:1"]), 1, 4)
 assert [s["instructions"] for s in mixed["sections"]] == ["", "Solve each system of equations."], \
     "a second family's section carries its own instructions"
+assert mixed["title"] == mp.DEFAULTS["title"] == "Untitled Worksheet", "no one bank's title for a mix"
+assert mp.draft(mp.parse_mix(["3:1"]), 1, 4)["title"] == "Literal Equations Practice", "one bank: its title"
+n = T.App()
+assert (n.sheet["title"], n.sheet["instructions"], n.s["name"]) == ("Untitled Worksheet", "", "untitled"), "placeholders"
+driver(n)(":mix modeling/1a:1\n")
+assert n.sheet["title"] == "Lesson 1-6: Compound Inequalities Practice" and n.sheet["instructions"] == mp.banks.get("modeling").INSTRUCTIONS
 try:
     mp.parse_mix(["systems/9:1"]); raise AssertionError("bad entry accepted")
 except ValueError as e:
@@ -545,7 +551,7 @@ g = T.App(seed=4); gk = driver(g)
 gk(":title My Quiz\n:draft lo\t"); assert g.buf == "draft long", g.buf
 gk(" 2-3 x4\n"); assert not g.err and g.total() == 4 + 4 + 4 and "review of 1" in g.msg, g.msg
 assert g.sheet["title"] == "My Quiz", "a title you typed stays"
-gk(":title Literal Equations Practice\n:draft long 3\n"); assert g.sheet["title"] == "Long: Step 3"
+gk(":title Untitled Worksheet\n:draft long 3\n"); assert g.sheet["title"] == "Long: Step 3"
 gk(":draft long 4\n"); assert g.sheet["title"] == "Long: Step 4", "a drafted title follows the next draft"
 gk("u"); assert g.sheet["title"] == "Long: Step 3"
 gk(":draft long 9\n"); assert g.err and "steps 1-8" in g.msg
@@ -594,10 +600,10 @@ try:
     ck("\x1b")
 
     ck(":mix 1:2\n:out ~/Desktop\n:w\n"); assert not c.err, c.msg
-    assert (home / "Desktop" / "literal_practice.sheet.json").exists() and '"~/Desktop/"' in c.msg, c.msg
-    assert str(home / "Desktop" / "literal_practice.sheet.json") in c.last_build["sheet"]["command"]
-    ck(":out sets\n:w\n"); assert (here / "sets" / "literal_practice.sheet.json").exists(), "relative: the current folder"
-    d = T.App(); d.load("~/Desktop/literal_practice.sheet.json"); assert d.s["out"] == "~/Desktop", d.s["out"]
+    assert (home / "Desktop" / "untitled.sheet.json").exists() and '"~/Desktop/"' in c.msg, c.msg
+    assert str(home / "Desktop" / "untitled.sheet.json") in c.last_build["sheet"]["command"]
+    ck(":out sets\n:w\n"); assert (here / "sets" / "untitled.sheet.json").exists(), "relative: the current folder"
+    d = T.App(); d.load("~/Desktop/untitled.sheet.json"); assert d.s["out"] == "~/Desktop", d.s["out"]
 finally:
     os.environ["HOME"] = saved_home; os.chdir(saved_cwd)
 

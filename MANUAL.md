@@ -60,10 +60,10 @@ python3 make_practice.py [options]
 | `--seed S` | Same seed → same sheet | random (printed) |
 | `--shuffle` | One section with every problem shuffled, no headings | grouped |
 | `--groups G ...` | Order and combine the headed sections (see below) | sequence order |
-| `--title TEXT` | Title on the worksheet and slides | Literal Equations Practice |
+| `--title TEXT` | Title on the worksheet and slides | Untitled Worksheet; a sheet from one bank gets that bank's title plus "Practice" |
 | `--class NAME` | Class name in the worksheet and slide header | Algebra 1 |
 | `--out DIR` | Output folder: `~` is home; a relative path starts in the current folder | `practice` |
-| `--name NAME` | File prefix | `literal_practice` |
+| `--name NAME` | File prefix | `untitled` |
 | `--draft SEQ STEPS ...` | Draft from a sequence instead of `--mix`: `--draft by_move 5-6 review 1-4` (see *Drafting from a sequence*) | |
 | `--sheet FILE` | Print a saved `.sheet.json` again, or convert an older `NAME_v1.json` set (with its other versions) and print it in the current style | |
 | `--no-compile` | Write `.typ` files only | compile |
@@ -151,7 +151,7 @@ recomputed. `A` takes `model; solved`, like
 ```sh
 python3 mathsheet.py                                      # start empty
 python3 mathsheet.py --mix 3:6 8:4 --seed 12              # start from a draft
-python3 mathsheet.py practice/literal_practice.sheet.json # open a sheet
+python3 mathsheet.py practice/untitled.sheet.json        # open a sheet
 ```
 
 It takes the same drafting options as `make_practice.py` (`--mix`,

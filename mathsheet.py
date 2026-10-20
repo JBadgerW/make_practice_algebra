@@ -84,7 +84,7 @@ PAGE_IN, HEADER_IN, LINE_IN, TITLE_IN, PLAIN_IN, FRAC_IN = 9.5, 0.62, 0.25, 0.30
 class App:
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
-        self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"], mp.L.INSTRUCTIONS),
+        self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"]),
                       out=out or library.config().get("out") or mp.DEFAULTS["out"],   # the folder written to last
                       name=name or mp.DEFAULTS["name"])
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
@@ -845,7 +845,7 @@ class App:
             new = mp.draft_sequence(plan, self.sheet["versions"], self.rng.randrange(2**31))
             self.sheet["sections"] = new["sections"]
             defaults = [banks.get(n) for n in banks.names()]
-            if self.sheet["instructions"] in [b.INSTRUCTIONS for b in defaults]:   # still a bank's default
+            if self.sheet["instructions"] in ["", *[b.INSTRUCTIONS for b in defaults]]:   # empty, or a bank's default
                 self.sheet["instructions"] = new["instructions"]
             if self.sheet["title"] in [mp.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults] \
                     or re.search(r": Steps? [\d–,]+$", self.sheet["title"]):           # still a drafted title
@@ -875,7 +875,7 @@ class App:
             new = mp.draft(mix, self.sheet["versions"], self.rng.randrange(2**31))
             self.sheet["sections"] = new["sections"]
             defaults = [banks.get(n) for n in banks.names()]
-            if self.sheet["instructions"] in [b.INSTRUCTIONS for b in defaults]:   # still a bank's default
+            if self.sheet["instructions"] in ["", *[b.INSTRUCTIONS for b in defaults]]:   # empty, or a bank's default
                 self.sheet["instructions"] = new["instructions"]
             if self.sheet["title"] in [mp.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults]:
                 self.sheet["title"] = new["title"]
@@ -1983,7 +1983,7 @@ def main():
         sys.exit(str(e))
     sheet = mp.draft_sequence(plan, a.versions, seed, a.title, a.class_name) if plan else \
         mp.draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name) if mix else \
-        sh.new_sheet(a.title, a.class_name, mp.L.INSTRUCTIONS, a.versions)
+        sh.new_sheet(a.title, a.class_name, versions=a.versions)
     app = App(seed, sheet, a.out, a.name)
     if a.file:
         app.load(a.file)
