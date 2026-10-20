@@ -41,7 +41,8 @@ python3 mathsheet.py
 ```
 
 The practice files go into `practice/` in the folder you run from (`--out`, or
-`:out ~/Desktop` in mathsheet, changes it). See [MANUAL.md](MANUAL.md) for the
+`:out ~/Desktop` in mathsheet, changes it; mathsheet remembers the folder you
+last wrote to). See [MANUAL.md](MANUAL.md) for the
 details.
 
 ## The types

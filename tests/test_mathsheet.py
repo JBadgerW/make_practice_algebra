@@ -315,6 +315,9 @@ mk("cc"); mk("\x15River eats a lot.\n"); assert m.err and "wording" in m.msg
 mk("A\x15510 <= 480 + 15t <= 540; 2 <= t <= 5\n"); assert m.item()["status"] == "failed"
 mk(f":out {OUT}\n:name model\n:w\n"); assert "1 failing answer" in m.msg, m.msg
 key = (Path(OUT) / "model_v1_key.typ").read_text()
+from sheets import library as _lib
+assert T.App().s["out"] == T.home_path(OUT) == _lib.config()["out"], "the next session starts in the folder written to last"
+assert T.App(out="elsewhere").s["out"] == "elsewhere", "--out overrides it"
 assert "$510 <= 480 + 15t <= 540$ \\ $2 <= t <= 5$ \\ 2 to 4 treats" in key and "$1 1/2$ servings" in key, "the teacher's answer as written; the count from the prompt"
 
 # ---- selecting with v: changes apply to every selected problem

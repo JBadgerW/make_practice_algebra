@@ -85,7 +85,8 @@ class App:
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
         self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"], mp.L.INSTRUCTIONS),
-                      out=out or mp.DEFAULTS["out"], name=name or mp.DEFAULTS["name"])
+                      out=out or library.config().get("out") or mp.DEFAULTS["out"],   # the folder written to last
+                      name=name or mp.DEFAULTS["name"])
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         self.undo, self.redo = [], []
         self.row, self.focus, self.version = 2, "left", 0
@@ -1011,6 +1012,10 @@ class App:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
         self.written, self.last_build = self.snapshot(), r
+        try:
+            library.save_config(out=home_path(r["out"]))   # the next session starts here
+        except OSError:
+            pass
         where = dir_label(r["out"])
         un, bad = self.statuses()
         warn = (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "") + \
@@ -1565,6 +1570,14 @@ class App:
 # ------------------------------------------------------------------
 # Paths
 # ------------------------------------------------------------------
+def home_path(p):
+    """A folder in full, with your home folder as ~, so it means the same from anywhere."""
+    p = Path(p).expanduser().resolve()
+    try:
+        return str(Path("~") / p.relative_to(Path.home()))
+    except ValueError:
+        return str(p)
+
 def dir_label(p):
     """A folder as you'd type it: from the folder mathsheet started in if it's
     inside it, else from ~ if it's in your home folder, else in full."""
@@ -1952,7 +1965,7 @@ def parse_args(argv):
     ap.add_argument("--shuffle", action="store_true")
     ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP")
     ap.add_argument("--title", default=mp.DEFAULTS["title"])
-    ap.add_argument("--out", default=mp.DEFAULTS["out"])
+    ap.add_argument("--out", help="default: the folder written to last, else practice")
     ap.add_argument("--name", default=mp.DEFAULTS["name"])
     ap.add_argument("--class", dest="class_name", default=mp.DEFAULTS["class_name"], metavar="NAME")
     return ap.parse_args(argv)
