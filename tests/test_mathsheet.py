@@ -264,8 +264,10 @@ yk(f":out {OUT}\n:name systems\n:w\n"); assert not y.err, y.msg
 key = (Path(OUT) / "systems_v1_key.typ").read_text()
 assert "mat(delim:" in key and "$(1, 3, 2)$" not in key and "infinitely many solutions" in key
 mixed = mp.draft(mp.parse_mix(["3:1", "systems/2:1"]), 1, 4)
-assert [s["instructions"] for s in mixed["sections"]] == ["", "Solve each system of equations."], \
-    "a second family's section carries its own instructions"
+assert mixed["instructions"] == "" and [s["instructions"] for s in mixed["sections"]] == [
+    mp.L.INSTRUCTIONS, "Solve each system of equations."], "a mix: each family's section carries its own instructions"
+assert mp.draft(mp.parse_mix(["modeling/1a:1", "3:1"]), 1, 4)["sections"][1]["items"][0]["entry"] == "1a", \
+    "an entry that isn't a literal one, mixed with literal"
 assert mixed["title"] == mp.DEFAULTS["title"] == "Untitled Worksheet", "no one bank's title for a mix"
 assert mp.draft(mp.parse_mix(["3:1"]), 1, 4)["title"] == "Literal Equations Practice", "one bank: its title"
 n = T.App()

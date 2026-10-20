@@ -195,8 +195,10 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     first = banks.get(next(iter(fams))) if len(fams) == 1 else L  # one family: its instructions for the sheet
     if title == DEFAULTS["title"] and len(fams) == 1:             # and its title
         title = f"{first.TITLE} Practice"
-    types = {first.type_of(it["entry"]) for it in drawn}
-    ins = banks.instructions(first, types.pop()) if len(types) == 1 and first is not L else first.INSTRUCTIONS
+    types = {(it["bank"], banks.get(it["bank"]).type_of(it["entry"])) for it in drawn}   # each by its own bank
+    ins = "" if len(fams) > 1 else \
+        banks.instructions(first, types.pop()[1]) if len(types) == 1 and first is not L else first.INSTRUCTIONS
+                                                                  # a mix: each section has its own
     sheet = sh.new_sheet(title, class_name, ins, versions)
     sheet["sections"] = [dict(sh.new_section(), items=drawn)]
     (shuffle_all(sheet, rng) if shuffle else regroup(sheet, groups, rng))
@@ -334,7 +336,8 @@ def regroup(sheet, groups, rng):
         mix[typ(it)] = mix.get(typ(it), 0) + 1
     secs = []
     for g in layout(groups, mix):
-        sec = sh.new_section(heading(g), auto=f"{BANK}:{g['types'][0]}" if len(g["types"]) == 1 else "")
+        own = L.INSTRUCTIONS if L.INSTRUCTIONS != sheet["instructions"] else ""   # as the other banks' below
+        sec = sh.new_section(heading(g), own, auto=f"{BANK}:{g['types'][0]}" if len(g["types"]) == 1 else "")
         sec["items"] = sorted((it for it in mine if typ(it) in g["types"]),     # stable: lesson, letters, formulas
                               key=lambda it: (it["bank"] == BANK, KEYS.index(it["entry"]) if it["entry"] in KEYS else 0))
         if len(g["types"]) > 1:
