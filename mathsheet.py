@@ -1499,14 +1499,14 @@ class App:
     def completing(self):
         """What Tab completes in the line being typed: (start, what), or None, with
         what "dirs", "files", "courses", or "sequences". The out setting, :out, and
-        :library complete folders; :e files too; the course row and :course,
+        :library complete folders; :e the sheets it can open too; the course row and :course,
         courses; :draft, a sequence's name."""
         if self.mode == "insert" and self.editing and self.editing[0] == "row":
             return {("set", "out"): (0, "dirs"), ("course", None): (0, "courses")}.get(self.rid(self.editing[1]))
         if self.mode == "command":
             m = re.match(r"\s*(?:(out|e|edit|library|lib|course)\s+|set\s+out=)", self.buf)
             if m:
-                return m.end(), {"e": "files", "edit": "files", "course": "courses"}.get(m.group(1), "dirs")
+                return m.end(), {"e": "sheets", "edit": "sheets", "course": "courses"}.get(m.group(1), "dirs")
             m = re.match(r"\s*draft\s+(?=\S*$)", self.buf)            # the sequence's name, the first word
             if m:
                 return m.end(), "sequences"
@@ -1523,7 +1523,7 @@ class App:
             start, what = where
             word = self.buf[start:]
             matches = complete_course(word) if what == "courses" else complete_sequence(word) \
-                if what == "sequences" else complete_path(word, what == "dirs")
+                if what == "sequences" else complete_path(word, what == "dirs", openable if what == "sheets" else None)
             if not matches:
                 self.comp = None
                 return
@@ -1599,10 +1599,15 @@ def complete_sequence(text):
     """The sequence names that start with text."""
     return [n for n in sorted(library.current().sequences) if n.startswith(text.strip())]
 
-def complete_path(text, dirs_only=False):
+def openable(name):
+    """Can :e open a file by this name? A sheet, or an older set's first version."""
+    return name.endswith(".sheet.json") or re.search(r"_v1\.json$", name) is not None
+
+def complete_path(text, dirs_only=False, keep=None):
     """The names a partly typed path could become, as Neovim completes them:
     ~ is home, a relative path starts in the current folder, folders end in /,
-    and hidden names show only when the part typed starts with a dot."""
+    and hidden names show only when the part typed starts with a dot. keep(name)
+    picks the files to offer (default: every file)."""
     if text == "~":
         return ["~/"]
     head, sep, frag = text.rpartition("/")
@@ -1621,7 +1626,7 @@ def complete_path(text, dirs_only=False):
             continue
         if is_dir:
             out.append(head + sep + e.name + "/")
-        elif not dirs_only:
+        elif not dirs_only and (keep is None or keep(e.name)):
             out.append(head + sep + e.name)
     return out
 

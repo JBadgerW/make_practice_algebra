@@ -597,7 +597,7 @@ try:
     ck(":out ~/Desk\t"); assert c.buf == "out ~/Desktop/", c.buf
     ck("\n"); assert c.s["out"] == "~/Desktop/"
     ck(":set out=~/Dow\t\n"); assert c.s["out"] == "~/Downloads/"
-    ck(":e ~/Doc\t"); assert c.buf == "e ~/Doc notes.txt", c.buf
+    ck(":e ~/Doc\t"); assert c.buf == "e ~/Documents/", "only what :e can open: not notes.txt"
     ck("\x1b:title Doc\t"); assert c.buf == "title Doc", "Tab completes paths only"
     ck("\x1b")
 
@@ -606,6 +606,15 @@ try:
     assert str(home / "Desktop" / "untitled.sheet.json") in c.last_build["sheet"]["command"]
     ck(":out sets\n:w\n"); assert (here / "sets" / "untitled.sheet.json").exists(), "relative: the current folder"
     d = T.App(); d.load("~/Desktop/untitled.sheet.json"); assert d.s["out"] == "~/Desktop", d.s["out"]
+    (home / "Desktop" / "old_v1.json").write_text("{}"); (home / "Desktop" / "old_v2.json").write_text("{}")
+    (home / "Desktop" / "Unit 1").mkdir()
+    assert any(f.suffix == ".pdf" for f in (home / "Desktop").iterdir()) or not c.last_build["compiled"]
+    ck(":e ~/Desktop/\t"); assert c.buf == "e ~/Desktop/Unit 1/", c.buf
+    assert c.comp["options"] == ["~/Desktop/Unit 1/", "~/Desktop/old_v1.json", "~/Desktop/untitled.sheet.json", "~/Desktop/"], \
+        "folders and the sheets :e opens, not the PDFs and Typst beside them; then what was typed: " + repr(c.comp["options"])
+    ck("\t"); assert c.buf == "e ~/Desktop/old_v1.json"
+    ck("\t"); assert c.buf == "e ~/Desktop/untitled.sheet.json"
+    ck("\x1b")
 finally:
     os.environ["HOME"] = saved_home; os.chdir(saved_cwd)
 

@@ -396,13 +396,14 @@ in the folder you ran mathsheet from. mathsheet starts in the folder you
 last wrote a sheet to (saved in its config file as a full path, so it's the
 same folder wherever you start mathsheet); the first time, it's `practice`,
 a `practice/` folder where you started it. `--out` overrides it for one
-session. The folder is made if it doesn't exist. While
-typing it, `Tab` completes a folder name: `~/Docu` becomes `~/Documents/`.
-When several match, the first fills in, the rest show on the status line,
-and each `Tab` moves to the next (`Shift-Tab` back; past the last, you're
-back to what you typed). `:e` completes the same way, files included. Names
-starting with a dot show only when you type the dot. Opening a sheet sets
-*out* to the sheet's folder.
+session. The folder is made if it doesn't exist. While typing it, `Tab`
+completes a folder name: `~/Docu` becomes `~/Documents/`. When several
+match, the first fills in, the rest show on the status line, and each `Tab`
+moves to the next (`Shift-Tab` back; past the last, you're back to what you
+typed). `:e` completes the same way, offering folders and the files it can
+open (`.sheet.json`, and an older set's `NAME_v1.json`), not the PDFs and
+Typst beside them. Names starting with a dot show only when you type the
+dot. Opening a sheet sets *out* to the sheet's folder.
 
 **Commands.** Type `:` and the command, then press Enter. `↑` and `↓` scroll
 through earlier commands.
