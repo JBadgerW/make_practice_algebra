@@ -2,7 +2,8 @@
 solve an inequality before graphing it.
 
 Every number on a problem, and every number met while solving it, is
-between -15 and 15. Solving never ends by dividing by a negative.
+between -15 and 15. Solving types 5 and 6 never ends by dividing by a
+negative; solving type 7 always does, so its sign flips.
 
 A problem: dict(type, prompt, answer, graph, line, source).
     graph   the solution set: [lower, upper], each [value, closed?], or null
@@ -11,7 +12,7 @@ A problem: dict(type, prompt, answer, graph, line, source).
     prompt  the inequality in Typst math ("" for a graph to read)
     answer  the solution as the key writes it: "x <= 1", "-4 < x <= 1"
 
-Types 1 and 2 print the graph and ask for the inequality; types 3-6 print
+Types 1 and 2 print the graph and ask for the inequality; types 3-7 print
 the inequality and a blank number line, and the key draws the graph on it
 in red. check() solves the prompt and the answer again with sympy and
 compares both with the graph at every boundary and between them.
@@ -51,15 +52,20 @@ TYPES = [
          instructions="Solve each compound inequality. Then graph its solution.",
          look="x in an expression between two numbers, or two inequalities joined by \"and\".",
          move="Do each step to all three parts (or solve each half). Then graph x between two numbers."),
+    dict(key="7", title="Solve, Flipping the Sign, Then Graph",
+         instructions="Solve each inequality. Then graph its solution.",
+         look="Any of types 5 and 6, but x ends up with a negative number in front of it.",
+         move="Solve it as before. The last step multiplies or divides by a negative number: flip every inequality sign when you do. Then graph."),
 ]
 TYPE = {t["key"]: t for t in TYPES}
 KEYS = [t["key"] for t in TYPES]
-SPACE = {"1": "0.5in", "2": "0.5in", "3": "0.35in", "4": "0.35in", "5": "1.5in", "6": "1.5in"}
+SPACE = {"1": "0.5in", "2": "0.5in", "3": "0.35in", "4": "0.35in", "5": "1.5in", "6": "1.5in", "7": "1.5in"}
 ENTRIES = [dict(key=k, type=k, kind="numbers", title=TYPE[k]["title"], width="half", space=SPACE[k])
            for k in KEYS]
 ENTRY = {e["key"]: e for e in ENTRIES}
 GRAPHED = ("1", "2")                  # types whose prompt is a graph
 COMPOUND = ("2", "4", "6")
+EITHER = ("7",)                       # types whose solution may be a ray or a segment
 BIG = 15                              # every number stays within -BIG..BIG
 SPAN = 10                             # a number line shows SPAN + 1 integers
 
@@ -107,7 +113,7 @@ def plus(c):
 
 def lin(a, c=0):
     """a x + c: lin(2, 7) = "2x + 7", lin(1, -3) = "x - 3"."""
-    return ("" if a == 1 else str(a)) + "x" + plus(c)
+    return ("" if a == 1 else "-" if a == -1 else str(a)) + "x" + plus(c)
 
 def canon(graph):
     """The solution as the key writes it, x on the left: "x <= 1", "-4 < x <= 1"."""
@@ -256,8 +262,68 @@ def t6_and(r, ops, lo, hi):
 
 T6 = [t6_one_step, t6_times, t6_two_step, t6_two_step, t6_distribute, t6_fraction, t6_and]
 
+# Type 7: type 5's and 6's templates with x's coefficient negative, so the
+# last step multiplies or divides by a negative and every sign flips. Each
+# template takes the answer's operator(s) and ends, as type 5's or 6's does.
+def neg(r):
+    return -r.randint(1, 5) if r.random() < 0.2 else -r.randint(2, 5)
+
+def t7_two_step(r, op, b):
+    a, c = neg(r), nz(r, 1, 12)
+    d = a * b + c
+    small(a * b, d)
+    return f"{lin(a, c)} {flip(op)} {d}"
+
+def t7_reversed(r, op, b):
+    a, c = neg(r), nz(r, 1, 12)
+    d = a * b + c
+    small(a * b, d)
+    return f"{d} {op} {lin(a, c)}"
+
+def t7_distribute(r, op, b):
+    a, c = -r.randint(2, 4), nz(r, 1, 9)
+    d = a * (b + c)
+    small(b + c, a * c, a * b, d)
+    return f"{a}({lin(1, c)}) {flip(op)} {d}"
+
+def t7_both_sides(r, op, b):
+    a = r.randint(1, 4)
+    e = a + r.randint(1, 4)                            # more x on the right: x's coefficient ends negative
+    c = nz(r, 1, 12)
+    d = (a - e) * b + c
+    small(e, (a - e) * b, d, d - c)
+    return f"{lin(a, c)} {flip(op)} {lin(e, d)}"
+
+def t7_fraction(r, op, b):
+    a = r.randint(2, 5)
+    need(b % a == 0)
+    c = nz(r, 1, 12)
+    d = -(b // a) + c
+    small(d)
+    return f"-x/{a}{plus(c)} {flip(op)} {d}"
+
+def t7_compound(r, ops, lo, hi):
+    """lo < x < hi times a negative: the ends trade places and the signs turn around."""
+    a, c = -r.randint(2, 4), nz(r, 1, 9)
+    d1, d2 = a * hi + c, a * lo + c
+    small(a * lo, a * hi, d1, d2)
+    form = lin(a, c) if r.random() < 0.7 else f"{c} - {-a}x"
+    return f"{d1} {ops[1]} {form} {ops[0]} {d2}"
+
+T7 = [("ray", t7_two_step), ("ray", t7_two_step), ("ray", t7_reversed), ("ray", t7_distribute),
+      ("ray", t7_both_sides), ("ray", t7_fraction), ("segment", t7_compound)]
+
 def draw(entry, r, tpl):
-    """(prompt, graph) for one problem of the type; tpl picks type 5's or 6's template."""
+    """(prompt, graph) for one problem of the type; tpl picks type 5's, 6's, or 7's template."""
+    if entry == "7":
+        shape, make = T7[tpl % len(T7)]
+        graph = ray(r) if shape == "ray" else segment(r)
+        if shape == "segment":
+            lo, hi = graph
+            return make(r, (sign(lo[1]), sign(hi[1])), lo[0], hi[0]), graph
+        lo, hi = graph
+        b, closed = lo or hi
+        return make(r, sign(closed, less=not lo), b), graph
     if entry in ("1", "3", "5"):
         graph = ray(r)
     else:
@@ -428,7 +494,7 @@ def typst(p, gap="0.3em"):
     return f"${p['prompt']}$ \\\n    {numline(p)}"
 
 def key_typst(p, gap="0.3em"):
-    """The key's prompt: types 3-6 have the graph drawn on the number line."""
+    """The key's prompt: types 3-7 have the graph drawn on the number line."""
     if p["type"] in GRAPHED:
         return typst(p, gap)
     return f"${p['prompt']}$ \\\n    {numline(p, graphed=True, ink='red')}"
@@ -461,14 +527,14 @@ def text(p):
 def answer_text(p):
     if p["type"] in ("3", "4"):
         return glyph(p["graph"])
-    return f"{pretty(p['answer'])}  {glyph(p['graph'])}" if p["type"] in ("5", "6") else pretty(p["answer"])
+    return f"{pretty(p['answer'])}  {glyph(p['graph'])}" if p["type"] in ("5", "6", "7") else pretty(p["answer"])
 
 def height(p):
     """Inches the prompt takes on the page, for page estimates."""
     return 0.4 if p["type"] in GRAPHED else 0.65
 
 # ------------------------------------------------------------------
-# Hand editing. Types 1-2: the inequality the graph shows. Types 3-6: the prompt.
+# Hand editing. Types 1-2: the inequality the graph shows. Types 3-7: the prompt.
 # ------------------------------------------------------------------
 def edit_text(p):
     return p["answer"] if p["type"] in GRAPHED else p["prompt"].replace(AND, " and ")
@@ -480,7 +546,7 @@ def from_edit(text, old):
     graph = to_graph(solution(t))
     if old["type"] in COMPOUND and not all(graph):
         raise ValueError(f"Type {old['type']} is a compound inequality: its solution is a segment, like -4 < x <= 1")
-    if old["type"] not in COMPOUND and all(graph):
+    if old["type"] not in COMPOUND + EITHER and all(graph):
         raise ValueError(f"Type {old['type']} has one boundary: its solution is a ray, like x <= 1")
     prompt = "" if old["type"] in GRAPHED else re.sub(r"\s+and\s+", AND, t)
     new = dict(old, prompt=prompt, answer=canon(graph), graph=graph, source="edited")
