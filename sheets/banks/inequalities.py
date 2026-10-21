@@ -22,7 +22,7 @@ import sympy as sp
 
 NAME = FAMILY = "inequalities"
 FIXED = False
-TITLE = "Inequalities and Number Lines"
+TITLE = "Lesson 1-5: Solving Inequalities in One Variable"
 INSTRUCTIONS = ""                     # each type has its own (type_instructions)
 COURSES = ["Algebra 1"]
 
