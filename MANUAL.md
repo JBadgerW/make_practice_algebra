@@ -187,7 +187,7 @@ what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
 |---|---|
 | `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search the course's banks (type names, and the text of fixed problems), opening what they find, and the settings. |
 | `h` `l` on COURSE | The previous / next course, then *All banks*. `i` types one (`Tab` completes). |
-| `o` | Open or close a bank; on a fixed bank's type, list its problems. `zM` `zR` close or open every bank. |
+| `o` | Open or close a bank; on a fixed bank's type, list its problems. `O` closes every bank if any is open, or else opens them all; `zM` `zR` close or open every bank. |
 | `l` `+` `→` `Ctrl-A` | On a type: add one problem to the type's own section (made, in sequence order, if needed); `3l` adds three. From a fixed bank, it is an unused problem picked at random. On a problem: add that problem. On *versions*: add a version. |
 | `L` | Add one (or that problem) where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
 | `h` `-` `←` `Ctrl-X` | Remove the last problem of that type, or that problem. A type's own section disappears when it's empty. |

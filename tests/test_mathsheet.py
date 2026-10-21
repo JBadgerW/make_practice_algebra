@@ -507,6 +507,9 @@ qk("u"); assert q.total() == 4
 qk("/fraction bar\n"); assert q.rid() == ("step", ("by_move", 2)), "/ finds a step by its note"
 qk("zM"); assert ("step", ("by_move", 1)) not in q.rows() and q.rid() == ("seq", "by_move")
 qk("gg"); qk("zR"); assert ("step", ("by_move", 1)) in q.rows() and q.rid() == ("course", None), "zR on COURSE"
+qk("O"); assert not any(r[0] in ("step", "count") for r in q.rows()), "O closes all when any is open"
+qk("O"); assert ("step", ("by_move", 1)) in q.rows() and "literal" in q.open, "O opens all when all are closed"
+qk("O"); qk("ggj"); qk("o"); qk("O"); assert not q.open, "one open is enough to close all"
 qk("/Algebra 1\n"); assert q.rid() == ("course", None) and not q.err, "/ can land on COURSE"
 qk("/V = (1/3)\n"); assert q.rid() == ("example", ("by_move", 2, "lesson_1-4", "13")), q.rid()
 assert ("by_move", 2) in q.open_types, "/ opens the step it finds an example in"

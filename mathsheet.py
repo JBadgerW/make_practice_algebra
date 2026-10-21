@@ -51,7 +51,7 @@ h - ^X  remove the last one         r 3r R      reroll it / 3 / section
 x dd  remove all   D  clear sheet   W           half / full width
 i a cc  type a count or a setting   + -         work space ±0.25in
 r  reroll all of this type          i  A        edit problem / answer
-o  open a bank, sequence, or list   dd yy p P   cut, copy (redraws), paste
+o O  open one / open or close all   dd yy p P   cut, copy (redraws), paste
 EVERYWHERE                          J K         move problem or section
 u ^R .   undo, redo, repeat         o O  cS cI  new section; title, instr.
 Tab ^W w switch panes               zM zR       fold to sections / unfold
@@ -1361,6 +1361,8 @@ class App:
             self.add_here(n)
         elif c == "o":
             self.toggle_open()
+        elif c == "O":
+            self.fold_banks(any(r[0] in ("bank", "seq") and r[1] in self.open for r in self.rows()))
         elif c == "x":
             self.zero()
         elif c == "D":
