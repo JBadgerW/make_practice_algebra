@@ -286,7 +286,7 @@ Courses are tags, not folders (`sheets/library.py` has the details). A
 generator module declares them at the top, next to `TITLE`:
 
 ```python
-COURSES = {"Algebra 1": "Equations", "Algebra 2": None}   # course -> unit, or None
+COURSES = {"Algebra 1": "Lessons", "Algebra 2": None}     # course -> unit, or None
 COURSES = ["Algebra 2", "Precalculus"]                    # or: no units
 ```
 
@@ -298,6 +298,9 @@ bank file), which replaces the bank's for that type only.
   built-in one is `banks/courses.json`; the teacher's library may have its
   own). Don't invent a course or unit: ask the teacher, and add it to
   `courses.json` if they agree.
+- Every built-in course has two units: `Lessons`, for a lesson's own
+  sequence of problems, and `Additional Practice`, for banks not keyed to a
+  lesson. Title a lesson's bank `Lesson 1-5: ...` so it sorts into place.
 - A bank with no `COURSES` shows only under *All banks*. That's a fine
   state while a family is being built.
 - Check with `:rescan` and `:warnings` in the app, or

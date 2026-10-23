@@ -221,7 +221,7 @@ In the banks pane, a course's sequences come first under their unit, marked
 `≡`, with their steps in order:
 
 ```
-Equations
+Additional Practice
 ▾ ≡ Literal Equations by First Move       3
      1  One Step                          1
      2  Add or Subtract, Then Divide      ·
@@ -290,7 +290,8 @@ into your library and edit the copy.
 A **course** (Algebra 1, Geometry, ...) is a tag on a bank, not a folder, so
 one bank can belong to several courses. The COURSE row at the top of the
 banks pane picks which course's banks you see, grouped under the course's
-units in order (banks without a unit come last, under *Other*); *All banks*
+units in order, and under each unit by title, so Lesson 1-4 comes before
+Lesson 1-5 (banks without a unit come last, under *Other*); *All banks*
 shows everything. A bank may tag some of its types for other courses, and
 then a course shows only its own types.
 
@@ -491,7 +492,7 @@ its type.
  "name": "quiz_bank",
  "title": "Quiz Bank",
  "family": "literal",
- "courses": {"Algebra 1": "Equations", "Algebra 2": null},
+ "courses": {"Algebra 1": "Additional Practice", "Algebra 2": null},
  "types": [{"key": "3", "title": "Clear One Denominator", "space": "1in"}],
  "problems": [{"id": "q1", "type": "3", "prompt": "A = 1/2 b h", "target": "b",
                "answer": "b = (2 A)/h"}]
@@ -518,7 +519,9 @@ its type.
 
 **A course, or a unit.** The courses and their units live in
 `courses.json`. The app comes with one in `banks/` (Prealgebra, Algebra 1,
-Geometry, Algebra 2, Precalculus, Calculus); a `courses.json` in your library
+Geometry, Algebra 2, Precalculus, Calculus), each with two units: *Lessons*,
+for the problems that go with a lesson, and *Additional Practice*, for banks
+not keyed to one. A `courses.json` in your library
 folder adds courses to it, or replaces one with the same title:
 
 ```json
@@ -545,7 +548,7 @@ bank, tagged with `courses` the same way:
  "kind": "sequence",
  "name": "literal_by_move",
  "title": "Literal Equations by First Move",
- "courses": {"Algebra 1": "Equations"},
+ "courses": {"Algebra 1": "Additional Practice"},
  "steps": [
   {"entry": "literal/1", "note": "one operation to undo"},
   {"entry": "literal/2", "note": "two operations: add or subtract, then divide"},

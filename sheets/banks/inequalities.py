@@ -25,7 +25,7 @@ NAME = FAMILY = "inequalities"
 FIXED = False
 TITLE = "Lesson 1-5: Solving Inequalities in One Variable"
 INSTRUCTIONS = ""                     # each type has its own (type_instructions)
-COURSES = ["Algebra 1"]
+COURSES = {"Algebra 1": "Lessons"}
 
 TYPES = [
     dict(key="1", title="Write the Inequality",

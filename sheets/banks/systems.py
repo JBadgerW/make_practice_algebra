@@ -16,7 +16,7 @@ NAME = FAMILY = "systems"
 FIXED = False
 TITLE = "Systems of Three Equations"
 INSTRUCTIONS = "Solve each system of equations."
-COURSES = ["Algebra 2", "Precalculus"]
+COURSES = {"Algebra 2": "Additional Practice", "Precalculus": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Back-Substitute",

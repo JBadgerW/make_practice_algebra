@@ -334,7 +334,8 @@ class Library:
     def view(self, course=None, sequences=False):
         """The banks to show: [(unit or None, [names])], in the course's unit
         order, those without a unit last; everything under None for no course.
-        With sequences, each unit's sequences (by name) come before its banks."""
+        In a unit, the banks go by title (Lesson 1-9 before Lesson 1-10); with
+        sequences, each unit's sequences (by title) come before its banks."""
         seqs = sorted(self.sequences) if sequences else []
         if course is None:
             return [(None, seqs + self.names())]
@@ -350,7 +351,11 @@ class Library:
             if self.types_in(name, course):
                 u = self.unit_of(name, course)
                 groups[u if u in groups else None].append(name)
-        return [(u, ns) for u, ns in groups.items() if ns]
+        def by_title(names):
+            title = lambda n: (self.sequences[n] if n in self.sequences else self.get(n)).TITLE.lower()
+            return sorted(names, key=lambda n: [int(w) if w.isdigit() else w for w in re.split(r"(\d+)", title(n))])
+        return [(u, by_title([n for n in ns if n in self.sequences]) + by_title([n for n in ns if n not in self.sequences]))
+                for u, ns in groups.items() if ns]
 
     def summary(self):
         n, q = len(self.warnings), len(self.sequences)

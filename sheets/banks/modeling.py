@@ -31,7 +31,7 @@ FIXED = False
 TITLE = "Lesson 1-6: Compound Inequalities"
 INSTRUCTIONS = ("Write a compound inequality that models each situation. "
                 "Solve it, then answer the question.")
-COURSES = ["Algebra 1"]
+COURSES = {"Algebra 1": "Lessons"}
 
 TYPES = [
     dict(key="1", title="One Serving",

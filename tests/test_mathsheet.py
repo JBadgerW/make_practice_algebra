@@ -408,7 +408,7 @@ assert mp.layout(mp.parse_groups(["3+4"]), {"3": 1}) == [dict(types=["3"], name=
 import json as _json
 lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 (lib / "courses.json").write_text(_json.dumps({"format": 1, "courses": [
-    {"title": "Algebra 1", "units": ["Foundations", "Equations"]}]}))
+    {"title": "Algebra 1", "units": ["Foundations", "Equations", "Lessons", "Additional Practice"]}]}))
 (lib / "ints.json").write_text(_json.dumps({"format": 1, "name": "ints", "title": "Integers",
     "courses": {"Prealgebra": None, "Algebra 1": "Foundations"},
     "types": [{"key": "add", "title": "Adding"}, {"key": "mul", "title": "Multiplying", "courses": ["Prealgebra"]}],
@@ -425,7 +425,8 @@ ck("o"); assert c.rid() == ("course", None)
 c.open.add("ints"); assert [r for r in c.rows() if r[0] == "count"] == [("count", ("ints", "add")), ("count", ("ints", "mul"))]
 ck("l"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Algebra 1"
 assert [r for r in c.rows() if r[0] == "count" and r[1][0] == "ints"] == [("count", ("ints", "add"))], "mul is Prealgebra only"
-assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Equations", ["literal", "lesson_1-4"]), (None, ["inequalities", "modeling"])]
+assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Lessons", ["lesson_1-4", "inequalities", "modeling"]),
+                                                ("Additional Practice", ["literal"])]
 assert library.config()["course"] == "Algebra 1", "remembered for the next sheet"
 ck("h"); assert c.course == "Prealgebra"
 ck("h"); assert c.course is None and c.sheet["class_name"] == "Prealgebra", "All banks leaves the class alone"
@@ -464,7 +465,7 @@ library.rescan()
 # ---- sequences in the banks pane: steps act as their entries, examples as their problems
 sl = Path(tempfile.mkdtemp(prefix="seqlib_"))
 (sl / "by_move.json").write_text(_json.dumps({"format": 1, "kind": "sequence", "title": "By First Move",
-    "courses": {"Algebra 1": "Equations"}, "steps": [
+    "courses": {"Algebra 1": "Lessons"}, "steps": [
         {"entry": "literal/1", "note": "one operation to undo"},
         {"entry": "literal/3", "note": "a fraction bar appears", "examples": ["lesson_1-4#13", "lesson_1-4#14"]},
         {"entry": "literal/44"},
