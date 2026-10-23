@@ -18,10 +18,10 @@ def bank(path, name, courses=None, types=(("1", None),), **extra):
 # ---- no config, no library folder: the built-in banks and courses
 lib = L.Library(Path(tempfile.mkdtemp()) / "missing")
 assert lib.names() == ["inequalities", "literal", "modeling", "systems", "lesson_1-4"] and lib.warnings == [], lib.warnings
-assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Precalculus", "Calculus"]
+assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus"]
 assert lib.view("Algebra 1") == [("Lessons", ["lesson_1-4", "inequalities", "modeling"]), ("Additional Practice", ["literal"])], \
     "in a unit, by title: Lesson 1-4, 1-5, 1-6"
-assert lib.view("algebra 2") == [("Additional Practice", ["systems"])] and lib.view("Precalculus") == [("Additional Practice", ["systems"])]
+assert lib.view("algebra 2") == [("Additional Practice", ["systems"])] and lib.view("Advanced Math") == [("Additional Practice", ["systems"])]
 assert lib.view("Geometry") == [] and lib.view() == [(None, lib.names())]
 assert lib.types_in("literal", "Algebra 1") == L.types(lib.get("literal")) and lib.types_in("literal", "Calculus") == []
 assert L.library_dir() == Path("~/Documents/mathsheet-library").expanduser(), "the default library"
@@ -52,7 +52,7 @@ root = Path(tempfile.mkdtemp(prefix="lib_"))
     {"title": "Algebra 1", "units": ["Foundations", "Equations", "Factoring", "Lessons", "Additional Practice"]},
     {"title": "Statistics", "units": ["Data"]}]}))
 bank(root / "alg" / "factoring.json", "factoring", {"Algebra 1": "Factoring", "Algebra 2": None},
-     types=[("1", None), ("2", None), ("9", ["Precalculus"])])
+     types=[("1", None), ("2", None), ("9", ["Advanced Math"])])
 bank(root / "alg" / "warmups.json", "warmups", ["Algebra 1"])
 bank(root / "found.json", "found", {"Algebra 1": "Foundations"})
 bank(root / "stats.json", "stats", {"Statistics": "Data"})
@@ -78,7 +78,7 @@ assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Factoring", ["fac
                                  ("Additional Practice", ["literal"]), (None, ["typos", "warmups"])], \
     "a unit courses.json lacks files the bank under Other"
 assert lib.types_in("factoring", "Algebra 1") == ["1", "2"], "type 9 has its own courses"
-assert lib.types_in("factoring", "Precalculus") == ["9"] and lib.view("Precalculus") == [("Additional Practice", ["systems"]), (None, ["factoring"])]
+assert lib.types_in("factoring", "Advanced Math") == ["9"] and lib.view("Advanced Math") == [("Additional Practice", ["systems"]), (None, ["factoring"])]
 assert lib.view("Algebra 2") == [("Additional Practice", ["systems"]), (None, ["factoring", "lesson_1-4"])]
 assert lib.summary() == "10 banks, 1 sequence, 7 courses, 5 warnings", lib.summary()
 

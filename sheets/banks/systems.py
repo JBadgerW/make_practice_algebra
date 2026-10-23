@@ -16,7 +16,7 @@ NAME = FAMILY = "systems"
 FIXED = False
 TITLE = "Systems of Three Equations"
 INSTRUCTIONS = "Solve each system of equations."
-COURSES = {"Algebra 2": "Additional Practice", "Precalculus": "Additional Practice"}
+COURSES = {"Algebra 2": "Additional Practice", "Advanced Math": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Back-Substitute",
@@ -34,7 +34,7 @@ TYPES = [
     dict(key="5", title="Eliminate and Scale",
          look="Every variable in every equation, and no coefficient is 1 or −1.",
          move="Multiply one or both equations so a variable's coefficients are opposites, then add; do it for two pairs."),
-    dict(key="6", title="Clear Fractions and Decimals", courses=["Precalculus"],
+    dict(key="6", title="Clear Fractions and Decimals", courses=["Advanced Math"],
          look="Fractions and decimals for coefficients, and each equation is missing a variable.",
          move="Multiply each equation by the LCD or a power of 10 to clear it; then solve the integer system."),
     dict(key="A", title="No Solution", special=True,

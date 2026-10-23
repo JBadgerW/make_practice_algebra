@@ -519,7 +519,7 @@ its type.
 
 **A course, or a unit.** The courses and their units live in
 `courses.json`. The app comes with one in `banks/` (Prealgebra, Algebra 1,
-Geometry, Algebra 2, Precalculus, Calculus), each with two units: *Lessons*,
+Geometry, Algebra 2, Advanced Math, Calculus), each with two units: *Lessons*,
 for the problems that go with a lesson, and *Additional Practice*, for banks
 not keyed to one. A `courses.json` in your library
 folder adds courses to it, or replaces one with the same title:

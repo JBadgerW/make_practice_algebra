@@ -14,7 +14,7 @@ each one needs, plus two **special cases**. There are two parts:
 
 The terminal app draws from a **library** of problem banks: generators, the
 lesson's fifty, and banks you write yourself, each tagged with the courses it
-belongs to (Algebra 1, Algebra 2, Precalculus, ...), so you see one course's
+belongs to (Algebra 1, Algebra 2, Advanced Math, ...), so you see one course's
 banks at a time.
 
 Every answer, and every line of every worked example, is checked
@@ -74,7 +74,7 @@ A second family, in the `systems` bank, sorted the same way: by the first move.
 | 3 | One Variable Missing | One equation has only two of the variables |
 | 4 | Eliminate | Every variable everywhere; some coefficients are 1 or −1 |
 | 5 | Eliminate and Scale | Every variable everywhere; no coefficient is 1 or −1 |
-| 6 | Clear Fractions and Decimals (Precalculus) | Fraction and decimal coefficients; each equation is missing a variable |
+| 6 | Clear Fractions and Decimals (Advanced Math) | Fraction and decimal coefficients; each equation is missing a variable |
 | A | Special Case: No Solution | Left sides combine; constants don't |
 | B | Special Case: Infinitely Many Solutions | One equation is a combination of the other two |
 

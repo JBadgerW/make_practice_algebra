@@ -287,7 +287,7 @@ generator module declares them at the top, next to `TITLE`:
 
 ```python
 COURSES = {"Algebra 1": "Lessons", "Algebra 2": None}     # course -> unit, or None
-COURSES = ["Algebra 2", "Precalculus"]                    # or: no units
+COURSES = ["Algebra 2", "Advanced Math"]                    # or: no units
 ```
 
 A bank file does the same with `"courses"`. A type that belongs elsewhere

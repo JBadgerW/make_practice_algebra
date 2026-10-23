@@ -105,7 +105,7 @@ becomes the first fixed bank.
 ## Library and courses
 
 Decided with the teacher on 2026-10-10. A **course** (Algebra 1, Algebra 2,
-Precalculus, ...) is a tag on a bank, not a folder, since one bank fits
+Advanced Math, ...) is a tag on a bank, not a folder, since one bank fits
 several courses. Courses only decide what the banks pane shows; sheets never
 depend on them, and a sheet may mix courses.
 
