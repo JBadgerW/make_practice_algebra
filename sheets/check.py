@@ -8,9 +8,9 @@ TR = standard_transformations + (implicit_multiplication, convert_xor)
 
 def to_sympy(s):
     s = s.replace("ell", "L_")       # keep 'ell' a single symbol
-    s = re.sub(r"\b(?!sqrt\b)([A-Za-z]\w*)\s*\(", r"\1*(", s)  # m(x + 2) is a product
+    s = re.sub(r"\b(?!(?:sqrt|abs)\b)([A-Za-z]\w*)\s*\(", r"\1*(", s)  # m(x + 2) is a product
     names = {n: sp.Symbol(n) for n in re.findall(r"[A-Za-z]\w*", s)}  # I, E, S are symbols, not sympy constants
-    names.update({"pi": sp.pi, "sqrt": sp.sqrt})
+    names.update({"pi": sp.pi, "sqrt": sp.sqrt, "abs": sp.Abs})
     return parse_expr(s, transformations=TR, local_dict=names)
 
 def side_diff(eq):

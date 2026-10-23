@@ -146,6 +146,16 @@ Keep the story's wording and change only names and numbers; the key is
 recomputed. `A` takes `model; solved`, like
 `510 <= 1.5(320) + 15t <= 540; 2 <= t <= 4`.
 
+### Lesson 1-7: Absolute Value Equations and Inequalities
+
+`--mix absolute/5:4` draws from the `absolute` bank; its types 1-8 run in
+teaching order (the README lists them). Problems are built backward from the
+value of the absolute value, so both solutions are integers. The check solves
+the prompt again with sympy and compares its solution set with the key's. In
+the terminal app, `i` edits the prompt, written with bars or `abs()`, like
+`2|x - 1| + 3 >= 11`; the key is recomputed. `A` takes `x = -2 or x = 6`,
+`-2 < x < 6`, `x <= -2 or x >= 6`, or `no solution`.
+
 ## 3. mathsheet, the terminal app
 
 ```sh

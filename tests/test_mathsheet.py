@@ -208,7 +208,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "absolute"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -417,7 +417,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert "6 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert "7 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
@@ -425,7 +425,7 @@ ck("o"); assert c.rid() == ("course", None)
 c.open.add("ints"); assert [r for r in c.rows() if r[0] == "count"] == [("count", ("ints", "add")), ("count", ("ints", "mul"))]
 ck("l"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Algebra 1"
 assert [r for r in c.rows() if r[0] == "count" and r[1][0] == "ints"] == [("count", ("ints", "add"))], "mul is Prealgebra only"
-assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Lessons", ["lesson_1-4", "inequalities", "modeling"]),
+assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Lessons", ["lesson_1-4", "inequalities", "modeling", "absolute"]),
                                                 ("Additional Practice", ["literal"])]
 assert library.config()["course"] == "Algebra 1", "remembered for the next sheet"
 ck("h"); assert c.course == "Prealgebra"
@@ -455,7 +455,7 @@ assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
 dk("\tG"); assert "ints (missing)" not in d.msg
 dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
 dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
-dk(f":library {lib}\n"); assert not d.missing() and not d.err and "6 banks" in d.msg, d.msg
+dk(f":library {lib}\n"); assert not d.missing() and not d.err and "7 banks" in d.msg, d.msg
 assert library.config()["library"] == str(lib)
 dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]
 dk(":warnings\n"); assert d.msg == "no warnings"
@@ -480,7 +480,7 @@ assert q.rows()[:6] == [("course", None), ("seq", "by_move"), ("step", ("by_move
                         ("step", ("by_move", 3)), ("step", ("by_move", 4))], q.rows()[:6]
 assert ("seq", "other") not in q.rows() and ("bank", "literal") in q.rows(), "a sequence shows in its own course"
 qk(":course all\n"); tops = [r for r in q.rows() if r[0] in ("seq", "bank")]
-assert tops[:4] == [("seq", "by_move"), ("seq", "literal_by_type"), ("seq", "other"), ("bank", "inequalities")], \
+assert tops[:4] == [("seq", "by_move"), ("seq", "literal_by_type"), ("seq", "other"), ("bank", "absolute")], \
     "sequences first"
 qk(":course Algebra 1\n")
 qk("ggjj"); assert q.rid() == ("step", ("by_move", 1))

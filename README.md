@@ -35,6 +35,9 @@ python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 # Lesson 1-6: Compound Inequalities (modeling): every story at every type, two parallel versions
 python3 make_practice.py --mix modeling/all:1 --versions 2 --title "Lesson 1-6: Compound Inequalities"
 
+# Lesson 1-7: Absolute Value Equations and Inequalities: two of each type
+python3 make_practice.py --mix absolute/all:2 --title "Lesson 1-7: Absolute Value Equations and Inequalities"
+
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 mathsheet.py
@@ -110,6 +113,28 @@ key gives the model, written with the amount as a decimal (`510 ≤ 1.5(320) + 1
 the solved inequality (`2 ≤ t ≤ 4`), and the answer (*2 to 4 treats*). Each
 problem is full width with 1.75in of work space.
 
+### Lesson 1-7: Absolute Value Equations and Inequalities
+
+The `absolute` bank, in teaching order. Every number on a problem and every
+number met while solving it is between −20 and 20, and every solution is an
+integer.
+
+| Key | Type | Example |
+|---|---|---|
+| 1 | Absolute Value of x | `\|x\| = 5` |
+| 2 | One Step Outside | `\|x\| + 4 = 12`, `\|x\| − 4 = 2`, `3\|x\| = 12`, `\|x\|/3 = 4` |
+| 3 | One Step Inside | `\|x + 2\| = 10`, `\|x − 2\| = 10`, `\|2x\| = 10`, `\|x/2\| = 3` |
+| 4 | Two Steps Inside | `\|2x − 3\| = 5`, `\|x/2 + 4\| = 5`, `\|(x − 1)/3\| = 5`, `\|10 − x\| = 4` |
+| 5 | Steps Inside and Outside | `3\|x + 4\| − 2 = 13`, `7 − \|6x\| = 1` |
+| 6 | No Solution | any of the above that reduces to `\|u\| = −3` |
+| 7 | Inequalities with \|x\| | `\|x\| < 5`, `\|x\| >= 5`, `8 >= \|x\|` |
+| 8 | Solving Absolute Value Inequalities | type 5's forms with <, >, ≤, ≥ |
+
+The key writes `x = −2 or x = 6`, `−2 < x < 6`, `x ≤ −2 or x ≥ 6`, or *no
+solution*. A problem never divides twice (no fraction inside a fraction).
+In type 8, `b − a|u|` turns the sign around when you undo it. Each problem
+is half width.
+
 ## Files
 
 | File | What it is |
@@ -119,6 +144,7 @@ problem is full width with 1.75in of work space.
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
+| `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
