@@ -47,7 +47,7 @@ BANKS PANE                          THE SHEET (Tab to it; ^W o widens it)
 j k gg G  move   /text n N  search  j k  h l    next/prev; left/right
 l + ^A  add to the type's section   ]] [[       next / previous section
   on a bank: any type (20l)         gg G  5G    top, bottom; problem 5
-L  add at the sheet cursor (3L)     I           details of problem/section
+L  add at the sheet cursor (3L)
 h - ^X  remove the last one         r 3r R      reroll it / 3 / section
 x dd  remove all   D  clear sheet   W           half / full width
 i a cc  type a count or a setting   + -         work space ±0.25in
@@ -59,7 +59,7 @@ Tab ^W w switch panes               zM zR       fold to sections / unfold
 za zs    answers / compact          ✗ an answer fails its check
 gt gT    next / previous version    ? an answer can't be checked
 ^W o     sheet full width / split   v  gv       select (Esc ends); reselect
-                                    + - W r     change all selected
+I        what's here, in a box      + - W r     change all selected
                                     d y :group  cut, copy, new section
                                     gs          shuffle selection / section
                                     :scope bank|type  reroll from bank / type
@@ -1423,10 +1423,10 @@ class App:
         elif c == "?":
             self.mode = "help"
         elif c == "I":
-            if sheet:
+            if sheet or self.act()[0] in ("bank", "count", "problem"):
                 self.mode = "info"
             else:
-                self.say("I shows what a problem or section is: Tab to the sheet", True)
+                self.say("I shows a bank, a type, or a problem: move to one", True)
         elif c == "\t":
             self.set_focus(self.other_focus())
         elif c == "\x03":
@@ -1434,6 +1434,7 @@ class App:
 
     # -- the info box ------------------------------------------------------
     INFO_KEYS = set("WrRAiajk+-\x01\x18u\x12.0123456789cgz][")    # what still works with the box open
+    INFO_KEYS_LEFT = set("lhLrxoiajk+-\x01\x18u\x12.0123456789c")  # ... on the banks pane
 
     def key_info(self, ch):
         """I's box stays open while these keys change what it shows; Esc, q, or I close it."""
@@ -1441,11 +1442,13 @@ class App:
         if c in ("\x1b", "q", "I", "\x03") and not self.pending:
             self.mode = "normal"
             return
-        if c == "b" and not self.pending:
+        sheet = self.focus == "preview"
+        if c == "b" and not self.pending and sheet:
             ps = self.scope()
             to = "type" if ps and all(sh.from_bank(self.item(q)) for q in ps) else "bank"
             return self.set_scope(to)
-        if not (self.pending or c in self.INFO_KEYS or ch in (curses.KEY_UP, curses.KEY_DOWN)):
+        keys = self.INFO_KEYS if sheet else self.INFO_KEYS_LEFT
+        if not (self.pending or c in keys or ch in (curses.KEY_UP, curses.KEY_DOWN)):
             return self.say("in the box: the keys it lists, j k to move, Esc to close", True)
         self.mode = "normal"
         self.key(ch)
@@ -1456,6 +1459,8 @@ class App:
 
     def info(self):
         """What I's box shows for the cursor: (title, [(label, value, keys)], footer)."""
+        if self.focus != "preview":
+            return self.info_row()
         si, ii = self.cur
         if self.anchor is not None:
             ps = self.selection()
@@ -1514,6 +1519,96 @@ class App:
                      f"the same in all {n} ({'edited' if it['edited'] else 'written'})" if fixed else
                      f"redrawn in each of {n}, same type; showing {self.version + 1} (gt gT)", ""))
         return rows
+
+    def info_row(self):
+        """The box for the banks pane's row: a bank, a type (or a step, which acts as
+        its type), or a fixed bank's problem; for anything else, how to get one."""
+        kind, key = self.act()
+        its = sh.items(self.sheet)
+        if kind == "bank":
+            return self.info_bank(key, its)
+        if kind == "count":
+            title, rows, foot = self.info_type(*key, its)
+            if self.rid()[0] == "step":
+                st = self.step(self.rid()[1])
+                rows.insert(0, ("Step", f"{st['n']} of {self.rid()[1][0]}: {st['title']}"
+                                + (f". What changes: {st['note']}" if st["note"] else ""), ""))
+            return title, rows, foot
+        if kind == "problem":
+            return self.info_problem(*key)
+        return "Banks", [("", "I shows a bank, a type, or a problem: move to one", "")], "Esc"
+
+    def info_bank(self, name, its):
+        b, lib = banks.get(name), library.current()
+        fixed = getattr(b, "FIXED", False)
+        shown = sh.bank_types(name, self.course)              # what l here draws from
+        every = library.types(b)
+        mine = [it for it in its if it["bank"] == name]
+        whole = sum(map(sh.from_bank, mine))
+        rows = [("Title", b.TITLE, ""),
+                ("Id", name + "  (permanent: sheets and sequences use it)"
+                 + (f"; formerly {', '.join(b.FORMERLY)}" if getattr(b, "FORMERLY", None) else ""), ""),
+                ("Kind", (f"{len(b.PROBLEMS)} written problem{'s' * (len(b.PROBLEMS) != 1)}"
+                          + (f", checked as {b.fam.TITLE}" if b.fam else "; their answers can't be checked by machine (?)"))
+                 if fixed else "draws new problems, each checked", ""),
+                ("File", self.bank_file(b), ""),
+                ("Courses", tags_text(library.bank_tags(b)), ""),
+                ("Types", f"{len(every)}" + (f", {len(shown)} of them in {self.course}" if self.course and
+                                             len(shown) != len(every) else ""), "o")]
+        if fixed:
+            rows.append(("Unused", f"{E.unused(self.sheet, name, shown)} of the "
+                         f"{sum(p['type'] in shown for p in b.PROBLEMS)} that l here can draw", ""))
+        rows += [("On sheet", f"{len(mine)}" + ("" if not whole else ", all from the whole bank" if whole == len(mine)
+                                                else f", {whole} from the whole bank"), "l h x"),
+                 ("Instr.", b.INSTRUCTIONS or "(none)", "")]
+        return (f"Bank: {b.TITLE}", rows,
+                "l 20l any type · h remove · i count · r reroll · x remove all · Esc")
+
+    def info_type(self, name, entry, its):
+        b = banks.get(name)
+        e, typ = b.ENTRY[entry], b.type_of(entry)
+        fixed = getattr(b, "FIXED", False)
+        rows = [("Bank", f"{b.TITLE}  ({name})", ""),
+                ("Type", f"{banks.label(b, entry)}  {e['title']}"
+                 + (" (real formulas)" if e.get("kind") == "formulas" else ""), ""),
+                ("Id", entry + ("  (shown as " + banks.label(b, entry) + ")" if banks.label(b, entry) != entry else "")
+                 + "  (permanent: sheets store it)", "")]
+        t = library.type_table(b).get(typ)
+        own = isinstance(t, dict) and t.get("courses") is not None
+        rows.append(("Courses", tags_text(library.bank_tags(b, typ)) + ("  (its own)" if own else ""), ""))
+        rows.append(("Layout", f"{e['width']} width, {e['space']} work space", ""))
+        h = b.hint(typ)
+        if h:
+            rows += [("Look for", prose(h[2]), ""), ("The move", prose(h[3]), "")]
+        if fixed:
+            rows.append(("Problems", f"{e['count']} written, {E.unused(self.sheet, name, [typ])} unused", "o"))
+        else:
+            rows.append(("Problems", "drawn new each time", ""))
+        n, whole = E.count(self.sheet, name, entry), sum(1 for it in its if it["bank"] == name
+                                                          and it["entry"] == entry and sh.from_bank(it))
+        rows.append(("On sheet", f"{n}" + (f", {whole} of them from the whole bank" if whole else ""), "l h x"))
+        rows.append(("Instr.", banks.instructions(b, typ) or "(none)", ""))
+        return (f"Type {banks.label(b, entry)}: {e['title']}", rows,
+                "l add · h remove · i count · L at cursor · r reroll · Esc")
+
+    def info_problem(self, name, pid):
+        b = banks.get(name)
+        p = b.problem(pid)
+        rows = [("Bank", f"{b.TITLE}  ({name})", ""),
+                ("Problem", f"#{pid}  ({name}#{pid}, as sequences pin it)", ""),
+                ("Type", f"{banks.label(b, p['type'])}  {b.ENTRY[p['type']]['title']}", ""),
+                ("Prompt", b.text(p), ""),
+                ("Answer", f"{b.answer_text(p)}  ({b.check(p)})", ""),
+                ("On sheet", "yes" if E.where_problem(self.sheet, name, pid) else "no", "l h")]
+        return f"Problem {name}#{pid}", rows, "l add · h remove · L at cursor · Esc"
+
+    def bank_file(self, b):
+        if getattr(b, "MISSING", False):
+            return "none: it's missing from the library"
+        src = getattr(b, "SOURCE", None)
+        if src:
+            return src if src.startswith("banks/") else f"{src} in your library ({dir_label(library.current().folder)})"
+        return os.path.relpath(b.__file__, Path(__file__).resolve().parent) + " (a generator)"
 
     def info_items(self, its):
         """Rows summing up several problems."""
@@ -1729,6 +1824,19 @@ def home_path(p):
         return str(p)
 
 INFO_LABEL, INFO_KEYS_W = 10, 6         # the info box's columns: label, then the keys at the right
+
+MATH_WORDS = {"times": "×", "div": "÷", "dot": "·", "plus.minus": "±", "minus": "−", "eq.not": "≠"}
+
+def prose(t):
+    """Hint text for the terminal: its $math$ readable, without the dollar signs."""
+    def math(m):
+        x = re.sub(r"[a-z]+(?:\.[a-z]+)?", lambda w: MATH_WORDS.get(w.group(0), w.group(0)), m.group(1))
+        return pretty(x + " ").strip() if len(x) > 1 else x
+    return re.sub(r"\$([^$]*)\$", math, t)
+
+def tags_text(tags):
+    """{course: unit or None} -> "Algebra 1 › Lessons; Algebra 2", or "none"."""
+    return "; ".join(f"{c} › {u}" if u else c for c, u in tags.items()) or "none: it shows only under All banks"
 
 def info_lines(rows, width):
     """The info box's rows wrapped to a box this wide: [(label, text, keys)], keys on the first line."""
@@ -2014,7 +2122,7 @@ class Screen:
         elif kind == "count":
             b = banks.get(key[0])
             h = b.hint(b.type_of(key[1]))
-            hint = f"Look for: {h[2]}  The move: {h[3]}" if h else b.ENTRY[key[1]]["title"]
+            hint = f"Look for: {prose(h[2])}  The move: {prose(h[3])}" if h else b.ENTRY[key[1]]["title"]
         elif kind == "problem":
             b = banks.get(key[0])
             p = b.problem(key[1])

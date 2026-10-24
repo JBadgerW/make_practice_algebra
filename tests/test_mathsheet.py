@@ -804,7 +804,33 @@ gk("q"); assert g.mode == "normal"
 gk("gg"); assert g.cur[0] < 0
 gk("I"); assert info(g)[0] == "The sheet" and "17" in info(g)[1]["Problems"][0]; gk("I"); assert g.mode == "normal"
 gk("]]jvjI"); assert info(g)[0] == "2 selected", info(g)[0]; gk("\x1b\x1b")
-gk("\t"); gk("I"); assert g.mode == "normal" and g.err, "the banks pane has no box (yet)"
+# I on the banks pane: a bank, a type (or a step), a fixed bank's problem
+gk("\t"); g.row = g.rows().index(("bank", L4)); assert g.focus == "left" and L4 in g.open
+gk("o"); assert ("count", (L4, "1")) not in g.rows(), "closed, so oj below opens it"
+gk("I"); assert g.mode == "info"
+title, rows = info(g)
+assert title == f"Bank: {lesson.TITLE}" and rows["Id"][0].startswith("lesson_1-4  (permanent")
+assert rows["Kind"][0] == "50 written problems, checked as Literal Equations" and rows["File"][0] == "banks/lesson_1-4.json"
+assert rows["Courses"][0] == "Algebra 1 › Lessons" and rows["Types"][0] == "13"
+on = E.count_from_bank(g.sheet, L4) + sum(1 for it in sh.items(g.sheet) if it["bank"] == L4 and not sh.from_bank(it))
+assert rows["On sheet"][0].startswith(f"{on}") and rows["Unused"][0] == f"{50 - on} of the 50 that l here can draw", rows
+assert "Bank: " in box(g)
+gk("2l"); assert g.mode == "info" and info(g)[1]["On sheet"][0].startswith(f"{on + 2}"), "l works with the box open"
+gk("2h"); assert info(g)[1]["On sheet"][0].startswith(f"{on}")
+gk("W"); assert g.mode == "info" and g.err, "a sheet key does nothing here"
+gk("oj"); assert g.rid() == ("count", (L4, "1")) and info(g)[0] == "Type 1: One Step", info(g)[0]
+rows = info(g)[1]
+assert rows["Look for"][0] == "The unknown is tied to the rest by a single operation: +, -, ×, or ÷.", rows["Look for"]
+assert rows["Layout"][0] == "half width, 0.75in work space" and rows["Problems"][0].startswith("8 written, ")
+n1 = E.count(g.sheet, L4, "1")
+gk("l"); assert E.count(g.sheet, L4, "1") == n1 + 1 and info(g)[1]["On sheet"][0].startswith(f"{n1 + 1}")
+gk("u"); assert E.count(g.sheet, L4, "1") == n1
+gk("o"); gk("j"); assert g.rid()[0] == "problem" and info(g)[0] == f"Problem lesson_1-4#{g.rid()[1][1]}"
+assert info(g)[1]["Answer"][0].endswith("(checked)")
+gk("\x1b"); assert g.mode == "normal"
+g.row = g.rows().index(("seq", "literal_by_type")); gk("I"); assert g.mode == "normal" and g.err, "nothing to show on a sequence's own row"
+gk("oj"); gk("I"); assert info(g)[1]["Step"][0].startswith("1 of literal_by_type: One Step") and info(g)[0] == "Type 1: One Step"
+gk("q"); g.row = 0; gk("I"); assert g.mode == "normal" and g.err, "nor on COURSE"
 gk("\t")
 gk("gg]]]]"); assert g.cur[0] == 1
 gk(":scope bank\n"); assert all(sh.from_bank(it) for it in g.sheet["sections"][1]["items"]), "a section's header: all of it"

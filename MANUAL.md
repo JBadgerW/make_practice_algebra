@@ -214,6 +214,7 @@ what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
 | `x` `dd` | Remove every problem of that type (or bank) (on *versions*, back to 1) |
 | `i` `a` `Enter`, `cc` `s` | Type a count or a setting (starting from the current value, or blank). On a bank, the count of problems drawn from the whole bank. |
 | `r` | Reroll every problem of that type (or bank) |
+| `I` | What the row is, in a box. On a bank: its title, its permanent id (and former names), what kind of bank it is, its file, its courses, its types, how many of its problems are unused, and how many are on the sheet. On a type (or a sequence's step): its id and label, courses, width and work space, *Look for* and *The move*, and its problems. On a fixed bank's problem: its id, prompt, answer, and whether it's on the sheet. `l` `h` `L` `x` `r` `o` `i` and `j` `k` work with the box open; `Esc`, `q`, or `I` closes it. |
 | `D` | Clear the whole sheet |
 
 A bank's types share sections with its family: Type 3 problems from the
@@ -381,7 +382,8 @@ in the section; on the header, every problem on the sheet. `:scope bank|type`
 sets where a problem's rerolls draw from: anywhere in its bank, or its own
 type.
 
-**The info box.** `I` opens a box about what the cursor is on. On a problem:
+**The info box.** `I` opens a box about what the cursor is on (on the banks
+pane, about a bank, a type, or a problem: see *The banks pane*). On a problem:
 its bank (title and id, and which of the bank's written problems it is), its
 type, where a reroll draws from (its type only, or the whole bank) and how
 many unused problems are left there, its width and work space (and whether
