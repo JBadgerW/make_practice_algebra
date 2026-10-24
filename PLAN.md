@@ -253,3 +253,24 @@ and `:w` still use the same data and the same functions.
       for the teacher to rewrite as what changes. Missing pinned examples
       are one warning per sequence; the cursor starts on the first row to
       add from.
+8. ✅ **Whole banks, provenance, and permanent ids.** Decided with the
+   teacher on 2026-10-24.
+   1. Permanent ids: a bank's `name` is its id (a warning when a file has
+      none) and its title is free; `"formerly"` (`FORMERLY`) keeps old names
+      working, and sheets and sequences take the new one. A type's `id`
+      (default its `key`) is what sheets store, its key the label shown, so
+      types can be renumbered; generators can give an entry a `label`. Lesson
+      1-4 is retitled *Lesson 1-4: Literal Equations and Formulas*.
+   2. Drawing from a whole bank: `draw_any` in `sheets/sheet.py` (every
+      unused problem of a fixed bank equally likely; every entry of a
+      generator; only the types the sheet's course shows). An item's
+      provenance is `"scope": "bank"` (absent: its own type). Rerolls keep
+      the scope and may change type, taking the new type's width and space
+      unless set by hand; versions keep the type. A bank's own section has
+      the auto tag `NAME:*`.
+   3. The app: `l` `h` `L` and a typed count on a bank's row; `:scope
+      bank|type`; `I`, a box describing the problem, section, sheet, or
+      selection, whose listed keys (and `b`, which switches the scope) work
+      while it stays open. A `∗` mark was tried and dropped for `I`.
+   4. `--mix BANK/any:N` (or `BANK/*:N`) and `:mix` likewise; `--groups`
+      keeps the bank's section.

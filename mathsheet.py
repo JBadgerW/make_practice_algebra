@@ -46,7 +46,8 @@ HELP = """\
 BANKS PANE                          THE SHEET (Tab to it; ^W o widens it)
 j k gg G  move   /text n N  search  j k  h l    next/prev; left/right
 l + ^A  add to the type's section   ]] [[       next / previous section
-L  add at the sheet cursor (3L)     gg G  5G    top, bottom; problem 5
+  on a bank: any type (20l)         gg G  5G    top, bottom; problem 5
+L  add at the sheet cursor (3L)     I           details of problem/section
 h - ^X  remove the last one         r 3r R      reroll it / 3 / section
 x dd  remove all   D  clear sheet   W           half / full width
 i a cc  type a count or a setting   + -         work space ±0.25in
@@ -61,6 +62,7 @@ gt gT    next / previous version    ? an answer can't be checked
                                     + - W r     change all selected
                                     d y :group  cut, copy, new section
                                     gs          shuffle selection / section
+                                    :scope bank|type  reroll from bank / type
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|key|slides] [N]
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
@@ -98,7 +100,8 @@ class App:
         self.answers = self.compact = self.folded = False
         self.wide = False               # the sheet fills the screen while it has focus
         self.pv_top = 0
-        self.mode = "normal"            # normal, insert, command, search, help
+        self.mode = "normal"            # normal, insert, command, search, help, info
+        self.resume_info = False        # back to the info box when an edit started from it ends
         self.buf, self.editing = "", None
         self.count, self.pending = "", ""
         self.msg, self.err = "Press ? for help.  l adds a problem; Tab moves to the sheet.", False
@@ -320,7 +323,11 @@ class App:
             else:
                 self.change(lambda: E.remove_problem(self.sheet, *key))
         elif kind == "bank":
-            return self.say("o opens the bank; l on a type adds a problem", True)
+            if n > 0:
+                if self.change(lambda: E.add_from_bank(self.sheet, key, n, self.seeds())):
+                    self.say(f"{n} from all of {banks.get(key).TITLE}")
+            else:
+                self.change(lambda: E.remove_last_from_bank(self.sheet, key, -n))
         elif kind == "seq":
             return self.say("o opens the sequence; l on a step adds a problem of it", True)
         elif key == "versions":
@@ -424,16 +431,18 @@ class App:
             return key
         if kind == "course":
             return self.set_course(text)
-        if kind in ("bank", "seq", "problem"):
-            return "type a count on a type's row"
-        if kind == "count" or key == "versions":
+        if kind in ("seq", "problem"):
+            return "type a count on a type's or a bank's row"
+        if kind in ("count", "bank") or key == "versions":
             if not text.isdigit():
-                return f"{'count' if kind == 'count' else key} must be a whole number"
+                return f"{'count' if kind in ('count', 'bank') else key} must be a whole number"
             n = int(text)
             if key == "versions":
                 if not 1 <= n <= 26:
                     return "versions must be 1-26"
                 self.set_versions(n)
+            elif kind == "bank":
+                self.change(lambda: E.set_bank_count(self.sheet, key, n, self.seeds()))
             else:
                 self.change(lambda: E.set_count(self.sheet, *key, n, self.seeds()))
         elif key in ("title", "class", "instructions"):
@@ -455,8 +464,8 @@ class App:
         kind, key = self.act()
         if kind == "missing":
             return self.say(key, True)
-        if kind not in ("count", "problem"):
-            return self.say("L adds the type or problem under the cursor where the sheet cursor is", True)
+        if kind not in ("count", "problem", "bank"):
+            return self.say("L adds the bank, type, or problem under the cursor where the sheet cursor is", True)
         def go():
             si, ii = self.cur
             if si < 0 and not self.sheet["sections"]:
@@ -465,6 +474,8 @@ class App:
             at = ii + 1 if ii >= 0 else None
             if kind == "problem":
                 return E.add_problem(self.sheet, *key, si, at)
+            if kind == "bank":
+                return E.add_from_bank(self.sheet, key, n, self.seeds(), si, at)
             for k in range(n):
                 E.add(self.sheet, si, *key, next(self.seeds()), None if at is None else at + k)
         if self.change(go):
@@ -712,6 +723,19 @@ class App:
         ps = self.scope()
         self.change(lambda: [self.item(p).__setitem__("space", E.length(x)) for p in ps])
 
+    def set_scope(self, text):
+        """:scope bank|type: rerolls of the selected problems (or the one under the
+        cursor, or a section's) draw from their whole bank, or from their type only."""
+        if text not in ("bank", "type"):
+            return self.say("usage: :scope bank|type", True)
+        ps = self.scope()
+        if not ps:
+            return self.say("no problems here", True)
+        self.change(lambda: [E.set_scope(self.item(p), text) for p in ps])
+        n = len(ps)
+        self.say(f"{'all ' + str(n) + ' ' if n > 1 else ''}reroll{'s' * (n == 1)} from "
+                 + ("the whole bank" if text == "bank" else "the type only"))
+
     def set_width(self, text):
         w = text.strip().lower()
         if w not in sh.WIDTHS:
@@ -939,7 +963,7 @@ class App:
             if not self.folded or si == 0:
                 emit()
             bk, _, typ = sec.get("auto", "").partition(":")
-            style = "special" if bk and typ and banks.get(bk).special(typ) else "head"
+            style = "special" if bk and typ and typ != "*" and banks.get(bk).special(typ) else "head"
             title = (0, sec["title"], style, H) if sec["title"] else (0, "(untitled section: no header)", "dim", H)
             extra = (len(title[1]) + 2, f"{len(sec['items'])} problem{'s' * (len(sec['items']) != 1)}", "dim", H) \
                 if self.folded else (0, "", "dim", H)
@@ -996,6 +1020,7 @@ class App:
             return f"section {si + 1}"
         n = E.positions(self.sheet).index(self.cur) + 1
         src = it["entry"] if it["bank"] == mp.BANK else f"{it['bank']}:{it['entry']}"
+        src += f" (rerolls from all of {it['bank']})" if sh.from_bank(it) else ""
         return f"#{n} {src} {it['width']} {it['space']}" + ("" if it["status"] == "checked" else f" {it['status']}")
 
     # -- files ---------------------------------------------------------
@@ -1124,6 +1149,8 @@ class App:
                 self.say(f"E: {e}", True)
         elif cmd == "width":
             self.set_width(rest)
+        elif cmd == "scope":
+            self.set_scope(rest)
         elif cmd == "join":
             self.join()
         elif cmd in ("group", "gr"):
@@ -1256,7 +1283,12 @@ class App:
             self.mode = "normal"
             return
         if self.mode in ("insert", "command", "search"):
-            return self.key_line(ch)
+            self.key_line(ch)
+            if self.mode == "normal" and self.resume_info:
+                self.mode, self.resume_info = "info", False
+            return
+        if self.mode == "info":
+            return self.key_info(ch)
         c = chr(ch) if 0 <= ch < 0x110000 else ""
         self.msg, self.err = "", False
         sheet = self.focus == "preview"
@@ -1390,10 +1422,126 @@ class App:
             self.search(self.search_q, -1)
         elif c == "?":
             self.mode = "help"
+        elif c == "I":
+            if sheet:
+                self.mode = "info"
+            else:
+                self.say("I shows what a problem or section is: Tab to the sheet", True)
         elif c == "\t":
             self.set_focus(self.other_focus())
         elif c == "\x03":
             self.say("Type  :q!  and press Enter to quit")
+
+    # -- the info box ------------------------------------------------------
+    INFO_KEYS = set("WrRAiajk+-\x01\x18u\x12.0123456789cgz][")    # what still works with the box open
+
+    def key_info(self, ch):
+        """I's box stays open while these keys change what it shows; Esc, q, or I close it."""
+        c = chr(ch) if 0 <= ch < 0x110000 else ""
+        if c in ("\x1b", "q", "I", "\x03") and not self.pending:
+            self.mode = "normal"
+            return
+        if c == "b" and not self.pending:
+            ps = self.scope()
+            to = "type" if ps and all(sh.from_bank(self.item(q)) for q in ps) else "bank"
+            return self.set_scope(to)
+        if not (self.pending or c in self.INFO_KEYS or ch in (curses.KEY_UP, curses.KEY_DOWN)):
+            return self.say("in the box: the keys it lists, j k to move, Esc to close", True)
+        self.mode = "normal"
+        self.key(ch)
+        if self.mode == "normal":
+            self.mode = "info"
+        elif self.mode == "insert":
+            self.resume_info = True         # editing from the box comes back to it
+
+    def info(self):
+        """What I's box shows for the cursor: (title, [(label, value, keys)], footer)."""
+        si, ii = self.cur
+        if self.anchor is not None:
+            ps = self.selection()
+            return (f"{len(ps)} selected", self.info_items([self.item(q) for q in ps]),
+                    "b scope · W + - width, space · r reroll · Esc")
+        if si < 0:
+            sheet = self.sheet
+            rows = [("Title", sheet["title"], ":title"), ("Class", sheet["class_name"], ":class"),
+                    ("Versions", str(sheet["versions"]), ":versions"),
+                    ("Sections", str(len(sheet["sections"])), "")]
+            return "The sheet", rows + self.info_items(sh.items(sheet)), "b scope · W + - · R reroll all · Esc"
+        if ii < 0:
+            sec = self.sheet["sections"][si]
+            bk, _, typ = sec.get("auto", "").partition(":")
+            kind = ("a section you made (or :group, :mix)" if not bk else
+                    f"the bank's own: l on {banks.get(bk).TITLE} adds here" if typ == "*" else
+                    f"its type's own: l on {banks.get(bk).heading(typ)} adds here")
+            rows = [("Title", sec["title"] or "(none: no header prints)", "cS"),
+                    ("Instr.", sec["instructions"] or "(none)", "cI"), ("Kind", kind, "")]
+            return (f"Section {si + 1}", rows + self.info_items(sec["items"]),
+                    "b scope · W + - · R reroll · gs shuffle · Esc")
+        return f"Problem {E.positions(self.sheet).index(self.cur) + 1}", self.info_item(self.item()), \
+            "r reroll · i edit · A answer · Esc"
+
+    def info_item(self, it):
+        b, p = banks.get(it["bank"]), sh.problem(it, self.version)
+        e = b.ENTRY.get(it["entry"])
+        src = p.get("source", "")
+        what = "written problems" if getattr(b, "FIXED", False) else "draws new problems"
+        rows = [("Bank", b.TITLE, ""),
+                ("", f"{it['bank']}, {what}" + (f"; the bank's #{src.split('#')[1]}" if "#" in src else "")
+                 + (" (missing from the library: :rescan once it's back)" if getattr(b, "MISSING", False) else ""), "")]
+        if e:
+            rows.append(("Type", f"{banks.label(b, it['entry'])}  {e['title']}"
+                         + (" (real formulas)" if e.get("kind") == "formulas" else ""), ""))
+        if sh.from_bank(it):
+            keep = sh.bank_types(it["bank"], self.sheet.get("course"))
+            left = E.unused(self.sheet, it["bank"], keep)
+            how = "from the whole bank, any type" + ("" if left is None else f": {left} unused left")
+        else:
+            left = E.unused(self.sheet, it["bank"], [b.type_of(it["entry"])]) if e else None
+            how = "from its type only" + ("" if left is None else f": {left} unused left")
+        if it["edited"]:
+            how += "; edited by hand, so r draws a fresh one"
+        rows.append(("Rerolls", how, "b"))
+        for k, keys in (("width", "W"), ("space", "+ -")):
+            dflt = e and e[k]
+            note = "" if not e else " (the type's)" if it[k] == dflt else f" (by hand; the type's is {dflt})"
+            rows.append((k.title(), it[k] + note, keys))
+        status = {"checked": "checked", "unchecked": "can't be checked by machine",
+                  "failed": "FAILS its check"}.get(it["status"], it["status"])
+        rows.append(("Answer", f"{b.answer_text(p)}  ({status})", "A"))
+        fixed = getattr(b, "FIXED", False) or it["edited"] or it["seed"] is None
+        n = self.sheet["versions"]
+        rows.append(("Versions", "one" if n == 1 else
+                     f"the same in all {n} ({'edited' if it['edited'] else 'written'})" if fixed else
+                     f"redrawn in each of {n}, same type; showing {self.version + 1} (gt gT)", ""))
+        return rows
+
+    def info_items(self, its):
+        """Rows summing up several problems."""
+        if not its:
+            return [("Problems", "none", "")]
+        by = {}                                         # bank -> entry -> how many, in the bank's order
+        for it in its:
+            by.setdefault(it["bank"], {}).setdefault(it["entry"], 0)
+            by[it["bank"]][it["entry"]] += 1
+        def kinds(bank, es):
+            b = banks.get(bank)
+            order = [e["key"] for e in b.ENTRIES]
+            return ", ".join((banks.label(b, e) if e in b.ENTRY else e) + (f" ×{es[e]}" if es[e] > 1 else "")
+                             for e in sorted(es, key=lambda e: order.index(e) if e in order else len(order)))
+        mix = "; ".join(f"{banks.get(bk).TITLE}: {kinds(bk, es)}" for bk, es in by.items())
+        nb = sum(map(sh.from_bank, its))
+        scope = ("all from their whole bank" if nb == len(its) else "all from their own type" if not nb else
+                 f"{nb} from their whole bank, {len(its) - nb} from their type")
+        widths = [it["width"] for it in its]
+        spaces = sorted({it["space"] for it in its}, key=E.inches)
+        un = sum(it["status"] == "unchecked" for it in its)
+        bad = sum(it["status"] == "failed" for it in its)
+        checks = ", ".join(x for x in (f"{bad} FAIL" if bad else "", f"{un} can't be checked" if un else "") if x)
+        return [("Problems", f"{len(its)}  ({mix})", ""),
+                ("Rerolls", scope, "b"),
+                ("Width", ", ".join(f"{widths.count(w)} {w}" for w in sh.WIDTHS if w in widths), "W"),
+                ("Space", spaces[0] if len(spaces) == 1 else f"{spaces[0]} to {spaces[-1]}", "+ -"),
+                ("Answers", checks or "all checked", "")]
 
     def key_sheet(self, c, ch, n):
         """Keys that mean something else on the sheet. True if handled here."""
@@ -1579,6 +1727,16 @@ def home_path(p):
         return str(Path("~") / p.relative_to(Path.home()))
     except ValueError:
         return str(p)
+
+INFO_LABEL, INFO_KEYS_W = 10, 6         # the info box's columns: label, then the keys at the right
+
+def info_lines(rows, width):
+    """The info box's rows wrapped to a box this wide: [(label, text, keys)], keys on the first line."""
+    out = []
+    for label, value, keys in rows:
+        for i, l in enumerate(textwrap.wrap(value, max(10, width - 4 - INFO_LABEL - INFO_KEYS_W)) or [""]):
+            out.append((label if i == 0 else "", l, keys if i == 0 else ""))
+    return out
 
 def dir_label(p):
     """A folder as you'd type it: from the folder mathsheet started in if it's
@@ -1848,9 +2006,11 @@ class Screen:
             hint = f"Answer: {b.answer_text(b.problem(key[3]))}.  l adds this example, h removes it, L puts it at the sheet cursor."
         elif kind == "bank":
             b = banks.get(key)
-            hint = (f"{b.TITLE}: written problems. o opens it; o on a type lists its problems. l on a type adds one "
-                    f"at random; l on a problem adds that one." if getattr(b, "FIXED", False) else
-                    f"{b.TITLE}: draws new problems. o opens or closes it. l on a type adds one.")
+            hint = (f"{b.TITLE}: written problems. l here adds one from any type (20l: twenty), in a section of "
+                    f"its own; o opens it; l on a type adds one of it; l on a problem adds that one."
+                    if getattr(b, "FIXED", False) else
+                    f"{b.TITLE}: draws new problems. l here adds one of any type (20l: twenty), in a section of "
+                    f"its own; o opens it; l on a type adds one of it.")
         elif kind == "count":
             b = banks.get(key[0])
             h = b.hint(b.type_of(key[1]))
@@ -1869,7 +2029,7 @@ class Screen:
         st = self.st
         look = "visual" if app.mode == "normal" and app.anchor is not None else app.mode
         mode = {"normal": "NORMAL", "insert": "INSERT", "command": "COMMAND",
-                "search": "SEARCH", "help": "HELP", "visual": "VISUAL"}[look]
+                "search": "SEARCH", "help": "HELP", "info": "INFO", "visual": "VISUAL"}[look]
         self.put(h - 2, 0, " " * (w - 1), curses.A_REVERSE)
         self.put(h - 2, 0, f" {mode} ", st[look if look in st else "normal"])
         un, bad = app.statuses()
@@ -1887,7 +2047,29 @@ class Screen:
             self.wildmenu(app, h, w)
         if app.mode == "help":
             self.help(h, w)
+        if app.mode == "info":
+            self.info_box(app, h, w)
         self.cmdline(app, h, w)
+
+    def info_box(self, app, h, w):
+        """I: what the cursor is on, each line with the keys that change it."""
+        title, rows, foot = app.info()
+        lines = info_lines(rows, min(w - 2, 76))
+        bw = min(w - 2, 76)
+        room = max(1, h - 5)                              # the status lines stay visible
+        if len(lines) > room:
+            lines = lines[:room - 1] + [("", "…", "")]
+        bh = len(lines) + 4
+        y0, x0 = max(0, (h - 2 - bh) // 2), max(0, (w - bw) // 2)
+        for y in range(bh):
+            self.put(y0 + y, x0, " " * bw, curses.A_REVERSE)
+        self.put(y0, x0 + 2, f" {title} ", curses.A_REVERSE | curses.A_BOLD, bw - 4)
+        for y, (label, text, keys) in enumerate(lines, 1):
+            self.put(y0 + y, x0 + 2, label, curses.A_REVERSE | curses.A_BOLD, INFO_LABEL)
+            self.put(y0 + y, x0 + 2 + INFO_LABEL, text, curses.A_REVERSE, bw - 4 - INFO_LABEL - INFO_KEYS_W)
+            if keys:
+                self.put(y0 + y, x0 + bw - 2 - len(keys), keys, curses.A_REVERSE | curses.A_BOLD)
+        self.put(y0 + bh - 2, x0 + bw - 2 - min(len(foot), bw - 4), foot, curses.A_REVERSE, bw - 4)
 
     def wildmenu(self, app, h, w):
         """Over the status line while Tab cycles: the matches, the current one lit."""

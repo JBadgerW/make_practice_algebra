@@ -3,7 +3,11 @@
     Sheet   dict(format, title, class_name, instructions, versions, command, sections)
     Section dict(title, instructions, items, auto) an empty title prints no header;
                                                    auto "bank:type" marks a type's own section
-    Item    dict(bank, entry, seed, width, space, problem, alts, edited, status)
+    Item    dict(bank, entry, seed, width, space, problem, alts, edited, status, scope)
+
+An item's scope is where a reroll may draw from: "bank" (any type of its
+bank the sheet's course shows), or, with no scope, its own entry. Its entry is
+always the type it holds now.
 
 An item's problem is version 1. For a generated item (it has a seed and was
 not edited by hand) alts holds versions 2, 3, ...: the same entry redrawn
@@ -38,17 +42,60 @@ def _draw(bank, entry, seed, seen):
     on.add(b.seen_key(p))
     return p
 
+def bank_types(bank, course=None):
+    """The types a whole-bank draw may use: those the course shows (all of them
+    when it shows none, or for no course)."""
+    from . import library
+    lib = library.current()
+    return lib.types_in(bank, course) or lib.types_in(bank)
+
+def draw_any(bank, seed, seen, keep=None):
+    """Draw from any type of a bank (keep: the types allowed, default all). A
+    fixed bank's unused problems are equally likely; a generator's entries are.
+    Returns (entry, problem); RuntimeError if nothing is left."""
+    b = banks.get(bank)
+    keep = set(bank_types(bank) if keep is None else keep)
+    rng = random.Random(f"{seed}:any")
+    if getattr(b, "FIXED", False):
+        on = seen.setdefault(b.FAMILY, set())
+        avoid = on | b.initial_seen()
+        pool = [p for p in b.PROBLEMS if p["type"] in keep and b.seen_key(p) not in avoid]
+        if not pool:
+            raise RuntimeError(f"no unused problems left in {b.TITLE}")
+        p = b.problem(rng.choice(pool)["id"])
+        on.add(b.seen_key(p))
+        return p["type"], p
+    entries = [e["key"] for e in b.ENTRIES if e["type"] in keep]
+    while entries:
+        e = rng.choice(entries)
+        try:
+            return e, _draw(bank, e, seed, seen)
+        except RuntimeError:                # this entry is used up (a formula pool): try another
+            entries.remove(e)
+    raise RuntimeError(f"nothing new left to draw in {b.TITLE}")
+
 def drawn_status(bank, p):
     """Generators check what they draw; a fixed bank's problem is checked now."""
     b = banks.get(bank)
     return b.check(p) if getattr(b, "FIXED", False) else "checked"
 
-def new_item(bank, entry, seed, seen):
-    """A freshly drawn item. seen: dict family -> no-repeat set (see seen_of)."""
+def new_item(bank, entry, seed, seen, scope="type", keep=None):
+    """A freshly drawn item. seen: dict family -> no-repeat set (see seen_of).
+    With scope "bank", entry is ignored: any of the keep types (see draw_any)."""
+    if scope == "bank":
+        entry, p = draw_any(bank, seed, seen, keep)
+    else:
+        p = _draw(bank, entry, seed, seen)
     e = banks.get(bank).ENTRY[entry]
-    p = _draw(bank, entry, seed, seen)
-    return dict(bank=bank, entry=entry, seed=seed, width=e["width"], space=e["space"],
-                problem=p, alts=[], edited=False, status=drawn_status(bank, p))
+    it = dict(bank=bank, entry=entry, seed=seed, width=e["width"], space=e["space"],
+              problem=p, alts=[], edited=False, status=drawn_status(bank, p))
+    if scope == "bank":
+        it["scope"] = "bank"
+    return it
+
+def from_bank(it):
+    """Does a reroll of this item draw from its whole bank?"""
+    return it.get("scope") == "bank"
 
 def fixed_item(bank, pid):
     """An item holding one particular problem of a fixed bank."""

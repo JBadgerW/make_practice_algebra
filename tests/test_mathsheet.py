@@ -622,4 +622,200 @@ try:
 finally:
     os.environ["HOME"] = saved_home; os.chdir(saved_cwd)
 
+# ---- adding from a whole bank: one section, any type; rerolls stay in the bank
+library.rescan(EMPTY_LIB)
+lesson, L4 = banks.get("lesson_1-4"), "lesson_1-4"
+seeds = iter(range(10**6))
+s = sh.new_sheet("Whole bank"); s["course"] = "Algebra 1"
+E.add_from_bank(s, L4, 20, seeds)
+assert [(x["title"], x["auto"]) for x in s["sections"]] == [(lesson.TITLE, "lesson_1-4:*")], s["sections"]
+its = sh.items(s)
+assert len(its) == 20 and all(sh.from_bank(it) and it["bank"] == L4 for it in its)
+assert len({lesson.seen_key(it["problem"]) for it in its}) == 20, "no repeats"
+assert len({it["entry"] for it in its}) >= 5, "spread over the types"
+assert all(it["entry"] == it["problem"]["type"] and (it["width"], it["space"]) ==
+           (lesson.ENTRY[it["entry"]]["width"], lesson.ENTRY[it["entry"]]["space"]) for it in its), "each its type's layout"
+E.add_from_bank(s, L4, 5, seeds); assert len(s["sections"]) == 1 and E.count_from_bank(s, L4) == 25, "the same section again"
+E.set_count(s, L4, "4", 2 + E.count(s, L4, "4"), seeds)
+assert len(s["sections"]) == 2 and not any(sh.from_bank(it) for it in s["sections"][1]["items"]), \
+    "a type's own problems: its own section, drawn from the type"
+E.set_bank_count(s, L4, 3, seeds); assert E.count_from_bank(s, L4) == 3 and len(s["sections"]) == 2
+E.remove_last_from_bank(s, L4, 10); assert [x["auto"] for x in s["sections"]] == ["literal:4"], "the emptied bank section goes"
+
+# every unused problem equally likely: types turn up as often as they have problems
+freq = {}
+for k in range(3000):
+    e, _ = sh.draw_any(L4, k, {})
+    freq[e] = freq.get(e, 0) + 1
+for t in lesson.types:
+    want = sum(p["type"] == t for p in lesson.PROBLEMS) / len(lesson.PROBLEMS)
+    assert abs(freq.get(t, 0) / 3000 - want) < 0.03, (t, freq.get(t, 0) / 3000, want)
+assert sh.draw_any(L4, 7, {}) == sh.draw_any(L4, 7, {}), "a seed always gives the same problem"
+assert all(sh.draw_any(L4, k, {}, keep=["1", "2"])[0] in ("1", "2") for k in range(50)), "only the types kept"
+assert sh.bank_types(L4, "Calculus") == sh.bank_types(L4) == list(lesson.types), "a course that hides it: every type"
+
+# rerolls: a whole-bank item may change type, and its layout follows unless set by hand
+s = sh.new_sheet("Rerolls")
+E.add_from_bank(s, L4, 2, seeds); E.set_count(s, L4, "4", 1 + E.count(s, L4, "4"), seeds)
+a, b, t4 = sh.items(s)
+b["space"] = "3in"
+types_seen = set()
+for _ in range(15):
+    E.reroll(s, E.positions(s), seeds)
+    types_seen.add(a["entry"])
+    assert sh.from_bank(a) and (a["width"], a["space"]) == (lesson.ENTRY[a["entry"]]["width"], lesson.ENTRY[a["entry"]]["space"])
+    assert b["space"] == "3in" and t4["entry"] == "4" and not sh.from_bank(t4)
+assert len(types_seen) > 2, types_seen
+E.set_scope(t4, "bank"); assert sh.from_bank(t4); E.set_scope(t4, "type"); assert "scope" not in t4
+copy_ = E.fresh_copy(s, a, next(seeds)); assert sh.from_bank(copy_), "yy p keeps the scope"
+
+# the pool runs out: nothing left raises, and a reroll that can't changes nothing
+s = sh.new_sheet("All fifty")
+E.add_from_bank(s, L4, 50, seeds); assert len({lesson.seen_key(it["problem"]) for it in sh.items(s)}) == 50
+try:
+    E.add_from_bank(s, L4, 1, seeds); raise AssertionError("none left")
+except RuntimeError as e:
+    assert "no unused problems" in str(e)
+before = json.dumps(s)
+try:
+    E.reroll(s, E.positions(s)[:1], seeds); raise AssertionError("none left to reroll to")
+except RuntimeError:
+    assert json.dumps(s) == before
+
+# a generator: an entry whose formula pool is used up is skipped
+seen = {}
+for k in range(500):
+    try:
+        sh._draw("literal", "3f", k, seen)
+    except RuntimeError:
+        break
+else:
+    raise AssertionError("the formula pool should run out")
+assert all(sh.draw_any("literal", k, seen, keep=["3"])[0] == "3" for k in range(20))
+
+# versions: parallel, so a whole-bank item keeps its type in every version
+s = sh.new_sheet("Versions"); s["versions"] = 3
+E.add_from_bank(s, "inequalities", 8, seeds)
+assert all(len(it["alts"]) == 2 and all(p["type"] == it["entry"] for p in it["alts"]) for it in sh.items(s))
+assert len({it["entry"] for it in sh.items(s)}) > 1
+
+# a generator's bank section sits apart from its type sections, which keep their order
+s = sh.new_sheet("Mixed")
+E.add_from_bank(s, "literal", 2, seeds); E.set_count(s, "literal", "3", 1, seeds); E.set_count(s, "literal", "1", 1, seeds)
+assert [x["auto"] for x in s["sections"]] == ["literal:*", "literal:1", "literal:3"], [x["auto"] for x in s["sections"]]
+f = Path(OUT) / "whole.sheet.json"; sh.save(s, f)
+assert sh.load(f) == s and [sh.from_bank(it) for it in sh.items(s)] == [True, True, False, False], "scope is saved"
+
+# --mix BANK/any:N (or BANK/*:N): from every type of a bank, in the bank's own section
+import random as _random, shlex as _shlex, subprocess as _sp
+assert mp.parse_mix(["lesson_1-4/*:5", "lesson_1-4/any:2", "literal/3:2", "3:1"]) == {"lesson_1-4/*": 7, "literal/3": 2, "3": 1}
+for bad in ("nope/any:2", "lesson_1-4/any:x"):
+    try:
+        mp.parse_mix([bad]); raise AssertionError(bad)
+    except ValueError as e:
+        assert "any (every type at once)" in str(e) or "no bank" in str(e), e
+mixw = mp.parse_mix(["lesson_1-4/any:6", "3:2"])
+d = mp.draft(mixw, 2, 11)
+assert d == mp.draft(mixw, 2, 11), "a seed gives the same sheet"
+assert [(x["title"], x["auto"]) for x in d["sections"]] == [(mp.L.heading("3"), "literal:3"), (lesson.TITLE, "lesson_1-4:*")]
+assert all(sh.from_bank(it) for it in d["sections"][1]["items"]) and len(d["sections"][1]["items"]) == 6
+assert not any(sh.from_bank(it) for it in d["sections"][0]["items"])
+assert len({it["entry"] for it in d["sections"][1]["items"]}) > 1
+order = [id(it) for it in d["sections"][1]["items"]]
+mp.regroup(d, [], _random.Random(1))
+assert [id(it) for it in d["sections"][-1]["items"]] == order and d["sections"][-1]["auto"] == "lesson_1-4:*", \
+    ":groups keeps the bank's section, in its order"
+cmd = mp.command_for(mixw, 1, 11)
+assert "'lesson_1-4/*:6'" in cmd, cmd
+toks = _shlex.split(cmd)
+assert mp.parse_mix(toks[toks.index("--mix") + 1:toks.index("--versions")]) == mixw, "the saved command drafts it again"
+r = _sp.run([sys.executable, "make_practice.py", "--mix", "lesson_1-4/any:4", "--seed", "3", "--no-compile",
+             "--out", OUT, "--name", "cli"], capture_output=True, text=True, cwd=Path(__file__).resolve().parent.parent)
+assert r.returncode == 0, r.stderr
+cli = sh.load(Path(OUT) / "cli.sheet.json")
+assert [x["title"] for x in cli["sections"]] == [lesson.TITLE] and all(sh.from_bank(it) for it in sh.items(cli))
+m = T.App(seed=2); mk = driver(m)
+mk(":mix lesson_1-4/any:3 1:1\n"); assert not m.err and titles(m) == [mp.L.heading("1"), lesson.TITLE], (m.msg, titles(m))
+
+# the banks pane: l, h, a typed count, and L on a bank's row; the sheet marks and rescopes
+g = T.App(seed=5); gk = driver(g)
+g.set_course("Algebra 1")
+g.row = g.rows().index(("bank", L4))
+gk("20l"); assert titles(g) == [lesson.TITLE] and E.count_from_bank(g.sheet, L4) == 20 and g.value(g.row) == 20, g.msg
+assert not g.err and "20 from all of" in g.msg, g.msg
+gk("5h"); assert E.count_from_bank(g.sheet, L4) == 15
+gk("cc8\n"); assert E.count_from_bank(g.sheet, L4) == 8, g.msg
+gk("u"); assert E.count_from_bank(g.sheet, L4) == 15, "undo"
+before = prompts(g)
+gk("r"); assert prompts(g) != before and E.count_from_bank(g.sheet, L4) == 15, "r on the bank rerolls them all, from the bank"
+gk("o"); g.row = g.rows().index(("count", (L4, "4"))); gk("2l")
+assert titles(g) == [lesson.TITLE, mp.L.heading("4")] and not sh.from_bank(g.sheet["sections"][1]["items"][-1])
+gk("\tgg]]j"); assert g.cur == (0, 0) and "rerolls from all of lesson_1-4" in g.where(), g.where()
+gk(":scope type\n"); assert not sh.from_bank(g.item()) and "all of" not in g.where() and not g.err
+gk(":scope bank\n"); assert sh.from_bank(g.item())
+gk(":scope sideways\n"); assert g.err and "usage" in g.msg
+
+# I: a box of what the cursor is on; the keys it lists still work while it's open
+class FakeScr:
+    def __init__(self, h, w):
+        self.h, self.w, self.grid = h, w, [[" "] * w for _ in range(h)]
+    def getmaxyx(self):
+        return self.h, self.w
+    def addstr(self, y, x, text, attr=0):
+        for i, ch in enumerate(text[:self.w - x]):
+            self.grid[y][x + i] = ch
+    def text(self):
+        return "\n".join("".join(r) for r in self.grid)
+def box(app, h=24, w=80):
+    scr = object.__new__(T.Screen); scr.scr = FakeScr(h, w)
+    scr.info_box(app, h, w)
+    return scr.scr.text()
+def info(app):
+    title, rows, foot = app.info()
+    return title, {label: (value, keys) for label, value, keys in rows if label}
+gk("I"); assert g.mode == "info"
+title, rows = info(g)
+assert title == "Problem 1" and rows["Rerolls"][0].startswith("from the whole bank, any type: ") and rows["Rerolls"][1] == "b"
+assert rows["Bank"][0] == lesson.TITLE and rows["Type"][0].startswith(g.item()["entry"] + "  ")
+assert rows["Width"] == (g.item()["width"] + " (the type's)", "W") and rows["Answer"][1] == "A"
+assert "unused left" in rows["Rerolls"][0] and rows["Versions"][0] == "one"
+drawn = box(g); assert "Problem 1" in drawn and "from the whole bank" in drawn and "Esc" in drawn, drawn
+small = box(g, 12, 44); assert "…" in small and "Problem 1" in small, "a small screen: cut short"
+gk("b"); assert g.mode == "info" and not sh.from_bank(g.item()) and info(g)[1]["Rerolls"][0].startswith("from its type only")
+gk("b"); assert sh.from_bank(g.item())
+w0 = g.item()["width"]
+gk("W"); assert g.mode == "info" and g.item()["width"] != w0 and "by hand" in info(g)[1]["Width"][0]
+gk("u"); assert g.item()["width"] == w0 and g.mode == "info", "undo, with the box open"
+before = g.item()["problem"]
+gk("r"); assert g.mode == "info" and g.item()["problem"] != before
+gk("A"); assert g.mode == "insert"
+gk("\x1b"); assert g.mode == "info", "an edit begun in the box comes back to it"
+gk("x"); assert g.mode == "info" and g.err and E.count_from_bank(g.sheet, L4) == 15, "keys it doesn't list do nothing"
+gk("j"); assert g.mode == "info" and info(g)[0] == "Problem 2", "the box follows the cursor"
+gk("k[["); assert g.cur == (0, -1) and info(g)[0] == "Section 1"
+rows = info(g)[1]
+assert rows["Title"] == (lesson.TITLE, "cS") and "the bank's own" in rows["Kind"][0]
+assert rows["Problems"][0].startswith(f"15  ({lesson.TITLE}: ") and rows["Rerolls"][0] == "all from their whole bank"
+gk("\x1b"); assert g.mode == "normal"
+gk("]]I"); assert "its type's own" in info(g)[1]["Kind"][0] and info(g)[1]["Rerolls"][0] == "all from their own type"
+gk("b"); assert info(g)[1]["Rerolls"][0] == "all from their whole bank", "b on a section: all of it"
+gk("b"); assert info(g)[1]["Rerolls"][0] == "all from their own type"
+gk("q"); assert g.mode == "normal"
+gk("gg"); assert g.cur[0] < 0
+gk("I"); assert info(g)[0] == "The sheet" and "17" in info(g)[1]["Problems"][0]; gk("I"); assert g.mode == "normal"
+gk("]]jvjI"); assert info(g)[0] == "2 selected", info(g)[0]; gk("\x1b\x1b")
+gk("\t"); gk("I"); assert g.mode == "normal" and g.err, "the banks pane has no box (yet)"
+gk("\t")
+gk("gg]]]]"); assert g.cur[0] == 1
+gk(":scope bank\n"); assert all(sh.from_bank(it) for it in g.sheet["sections"][1]["items"]), "a section's header: all of it"
+gk("j\t"); g.row = g.rows().index(("bank", L4)); gk("3L")
+assert len(g.sheet["sections"][1]["items"]) == 5 and all(sh.from_bank(it) for it in g.sheet["sections"][1]["items"]), \
+    "L: where the sheet cursor is"
+gk("zM"); assert lesson.TITLE in text(g); gk("zR")
+gk("x"); assert not any(it["bank"] == L4 for it in sh.items(g.sheet)) and g.sheet["sections"] == []
+g.row = g.rows().index(("bank", "inequalities")); gk("6l")
+assert titles(g) == [banks.get("inequalities").TITLE] and len({it["entry"] for it in sh.items(g.sheet)}) > 1
+gk(f":out {OUT}\n:name whole\n:w\n"); assert not g.err, g.msg
+library.rescan()
+
 print("all key tests passed")

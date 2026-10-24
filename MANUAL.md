@@ -55,7 +55,7 @@ python3 make_practice.py [options]
 
 | Option | Meaning | Default |
 |---|---|---|
-| `--mix ENTRY:COUNT ...` | How many problems of each entry. `1`–`11`, `A`, `B` are made-up equations of that type; `1f`, `3f`, `Bf`, ... are real formulas of that type. `all` means every made-up entry and `allf` every formulas entry. Repeated entries add up: `all:1 3:2` gives three of Type 3 and one of everything else. | `all:2` |
+| `--mix ENTRY:COUNT ...` | How many problems of each entry. `1`–`11`, `A`, `B` are made-up equations of that type; `1f`, `3f`, `Bf`, ... are real formulas of that type. `all` means every made-up entry and `allf` every formulas entry. Repeated entries add up: `all:1 3:2` gives three of Type 3 and one of everything else. Another bank's entries take its name: `systems/4:3`, `systems/all:1`. `BANK/any:N` draws N from all of a bank's types at once (see below). | `all:2` |
 | `--versions N` | Number of parallel versions: each problem is redrawn in its own slot, so version 2's problem 5 is the same type as version 1's | 1 |
 | `--seed S` | Same seed → same sheet | random (printed) |
 | `--shuffle` | One section with every problem shuffled, no headings | grouped |
@@ -80,7 +80,17 @@ python3 make_practice.py --mix all:1 --shuffle
 
 # Warm-up from real formulas
 python3 make_practice.py --mix 1f:4 3f:4 Bf:2
+
+# Twenty from anywhere in Lesson 1-4, in one section with the bank's title
+python3 make_practice.py --mix lesson_1-4/any:20
 ```
+
+`BANK/any:N` (also spelled `'BANK/*:N'`, in quotes so the shell leaves the
+`*` alone) is `20l` on a bank's row, from the command line: one section with
+the bank's title, after any type sections, whose problems come from all of
+the bank's types (every unused problem of a fixed bank equally likely) and
+reroll from the whole bank in the app. `--groups` leaves that section as it
+is. `:mix` in the app takes the same entries.
 
 ### Ordering and combining groups
 
@@ -198,17 +208,30 @@ what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
 | `j` `k` `gg` `G` `7G` | Move. `/text`, `n`, `N` search the course's banks (type names, and the text of fixed problems), opening what they find, and the settings. |
 | `h` `l` on COURSE | The previous / next course, then *All banks*. `i` types one (`Tab` completes). |
 | `o` | Open or close a bank; on a fixed bank's type, list its problems. `O` closes every bank if any is open, or else opens them all; `zM` `zR` close or open every bank. |
-| `l` `+` `→` `Ctrl-A` | On a type: add one problem to the type's own section (made, in sequence order, if needed); `3l` adds three. From a fixed bank, it is an unused problem picked at random. On a problem: add that problem. On *versions*: add a version. |
-| `L` | Add one (or that problem) where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
-| `h` `-` `←` `Ctrl-X` | Remove the last problem of that type, or that problem. A type's own section disappears when it's empty. |
+| `l` `+` `→` `Ctrl-A` | On a type: add one problem to the type's own section (made, in sequence order, if needed); `3l` adds three. From a fixed bank, it is an unused problem picked at random. On a bank: add one from any of its types to the bank's own section, titled with the bank's title (`20l`: twenty; see *Drawing from a whole bank*). On a problem: add that problem. On *versions*: add a version. |
+| `L` | Add one (or that problem, or one from any of the bank's types) where the sheet cursor is: after the problem under it, or at the end of its section (`3L`) |
+| `h` `-` `←` `Ctrl-X` | Remove the last problem of that type, or that problem; on a bank, the last one drawn from the whole bank. A type's or a bank's own section disappears when it's empty. |
 | `x` `dd` | Remove every problem of that type (or bank) (on *versions*, back to 1) |
-| `i` `a` `Enter`, `cc` `s` | Type a count or a setting (starting from the current value, or blank) |
+| `i` `a` `Enter`, `cc` `s` | Type a count or a setting (starting from the current value, or blank). On a bank, the count of problems drawn from the whole bank. |
 | `r` | Reroll every problem of that type (or bank) |
 | `D` | Clear the whole sheet |
 
 A bank's types share sections with its family: Type 3 problems from the
 lesson bank and from the generator go into the same *Type 3* section, and
 the sheet never holds the same problem twice.
+
+**Drawing from a whole bank.** `20l` on a bank's own row (*Lesson 1-4: Literal
+Equations and Formulas*, say) makes one section with the bank's title and
+draws twenty problems from all of its types the course shows. In a fixed
+bank every unused problem is equally likely, so a type with more problems
+turns up more often; in a generator bank every entry is. Each problem takes
+its own type's width and work space. Such a problem remembers that it came
+from the whole bank (`I` on it says so, and `b` in that box switches it): rerolling it draws from anywhere in the bank, so it may come back as another
+type (with that type's width and work space, unless you changed them). A
+problem added from a type rerolls within its type. `:scope bank` or
+`:scope type` on the sheet changes which. The counts on a bank's types
+include its whole-bank problems, so they show how the draw spread out.
+Versions keep each problem's type, so every version has the same layout.
 
 ### Sequences
 
@@ -344,6 +367,7 @@ bank, or point `:library` at the right folder, and they're ordinary again.
 | `+` `-` | Work space up or down a quarter inch (`3+`). `:space 2in` sets it (cm, mm, pt work too). |
 | `i` `a` `Enter` | Edit the problem: `equation ; unknown`, in Typst math as stored. The answer is solved again. |
 | `A` | Edit the answer (`m = ...`, or just the right side). It is checked at once. |
+| `I` | What the cursor is on, in a box: see *The info box* below |
 | `dd` `x` | Cut the problem (`3dd`: three), or the whole section on its title |
 | `yy` | Copy the problem or section |
 | `p` `P` | Paste below / above. A cut pastes exactly what was cut; a copy (or pasting a second time) draws **new** problems of the same entries, width, and space, so nothing repeats. |
@@ -352,8 +376,28 @@ bank, or point `:library` at the right folder, and they're ordinary again.
 | `cS` `cI` | Edit the section's title / instructions. On the header: the sheet's title / instructions. |
 | `zM` `zR` | Fold to just the section titles (with counts) / unfold |
 
-On a section title, `W`, `+`, `-`, `:space`, and `:width` change every problem
-in the section; on the header, every problem on the sheet.
+On a section title, `W`, `+`, `-`, `:space`, `:width`, and `:scope` change every problem
+in the section; on the header, every problem on the sheet. `:scope bank|type`
+sets where a problem's rerolls draw from: anywhere in its bank, or its own
+type.
+
+**The info box.** `I` opens a box about what the cursor is on. On a problem:
+its bank (title and id, and which of the bank's written problems it is), its
+type, where a reroll draws from (its type only, or the whole bank) and how
+many unused problems are left there, its width and work space (and whether
+they're the type's or set by hand), its answer and whether it checks, and
+what versions do with it. On a section title: its title and instructions,
+what kind of section it is (a type's own, a bank's own, or one you made),
+its problems by bank and type, and how they reroll, their widths, work space,
+and checks. On the sheet header, the same for the whole sheet; with a
+selection, for the selection.
+
+Each line shows, at the right, the keys that change it, and those keys work
+with the box open, which updates as you go: `W`, `+` `-`, `r` `R`, `i` `A`
+(the box comes back when you finish typing), `cS` `cI`, `gs`, `u` `Ctrl-R`,
+and `b`, which switches between rerolling from the whole bank and from the
+type (on a section or selection, all of them at once). `j` `k` `]]` `[[`
+move the cursor and the box follows it. `Esc`, `q`, or `I` closes it.
 
 **Selecting.** `v` starts a selection at the cursor; move with any of the
 keys above and every problem between the start and the cursor is
@@ -365,13 +409,14 @@ selected. Then:
 |---|---|
 | `+` `-` (`3+`), `:space 1.5in` | Work space up or down, or set |
 | `W`, `:width full` | Half / full width: all of them the same way (the first one's toggled) |
+| `:scope bank`, `:scope type` | Their rerolls draw from their whole bank / their own type |
 | `r` | Reroll them |
 | `gs`, `:shuffle` | Shuffle them: the same problems in the same places, in a new order. Without a selection, `gs` shuffles the cursor's section (every section, each in itself, on the sheet header). |
 | `d` `x` / `y` | Cut / copy them all; `p` pastes them as one block, so this moves them |
 | `:group TITLE` | Move them into a new section, just after the section of the first one. Sections this empties go; with no title, the section prints no header. |
 | `Esc` or `v` | End the selection. `gv` brings the last one back. |
 
-`+`, `-`, `W`, `r`, `gs`, `:space`, and `:width` keep the selection, so you can press
+`+`, `-`, `W`, `r`, `gs`, `:space`, `:width`, and `:scope` keep the selection, so you can press
 `+` again or reroll or shuffle until you like what you get; `d`, `y`, and `:group` end it,
 as does anything that moves problems around (`J`, `p`, undo). One `u` undoes
 a whole change to a selection. Without a selection, `:group` works on what
@@ -431,6 +476,7 @@ through earlier commands.
 | `:shuffle` | Every problem in one shuffled section with no title (with a selection: shuffle just those, in place, like `gs`) |
 | `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |
 | `:space 1.5in`, `:width full` | Set work space or width (the selection, or problem, section, or sheet, by where the cursor is) |
+| `:scope bank`, `:scope type` | Rerolls draw from the whole bank or the type only (the selection, or problem, section, or sheet, by where the cursor is) |
 | `:join` | Merge the section below into the cursor's section |
 | `:course NAME`, `:course all` | Show a course's banks, or every bank (`Tab` completes); `:course` says which |
 | `:rescan` | Read the library again (after you add or change a bank or `courses.json`) |

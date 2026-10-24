@@ -14,6 +14,7 @@ Examples (run from this folder):
     python3 make_practice.py --mix 3:6 8:4 A:2 --versions 3 --seed 12
     python3 make_practice.py --mix all:2 --shuffle
     python3 make_practice.py --mix 1f:6 3f:4         # real formulas
+    python3 make_practice.py --mix lesson_1-4/any:20  # twenty from every type of a bank
     python3 make_practice.py --draft by_move 5-6 review 1-4   # a sheet from a sequence's steps
     python3 make_practice.py --sheet practice/literal_practice.sheet.json   # print a saved sheet again
     python3 make_practice.py --selftest 200        # stress-test every type
@@ -22,7 +23,10 @@ Examples (run from this folder):
 --mix ENTRY:COUNT ... entries are 1-11, A, B (made-up equations), 1f-11f, Af, Bf
                       (real formulas), all (every made-up entry), allf (every
                       formulas entry). Default all:2. Another bank's entries
-                      take its name: systems/4:3, systems/all:1.
+                      take its name: systems/4:3, systems/all:1. BANK/any:N
+                      (or 'BANK/*:N', quoted for the shell) draws N from all
+                      of a bank's types, in one section with the bank's title;
+                      their rerolls draw from the whole bank too.
 --versions N          N parallel versions: every drawn problem is redrawn in its slot
 --seed S              same seed -> same sheet (default: random, printed)
 --shuffle             one section with every problem shuffled, no headings
@@ -39,7 +43,7 @@ Examples (run from this folder):
 """
 import argparse, json, random, re, shlex, shutil, subprocess, sys
 from pathlib import Path
-from sheets import sheet as sh, writer, banks, library
+from sheets import sheet as sh, edit as E, writer, banks, library
 from sheets.typst import esc
 from sheets.banks import literal as L
 from sheets.banks.literal import TYPE, label, selftest
@@ -54,9 +58,15 @@ def has_types(mix):
     return {L.type_of(k) for k, n in mix.items() if n and "/" not in k}
 
 def split_key(k):
-    """A mix key -> (bank, entry): "3f" is the literal bank's; "systems/4" names its bank."""
+    """A mix key -> (bank, entry): "3f" is the literal bank's; "systems/4" names its
+    bank; "lesson_1-4/*" is any of its types (entry "*")."""
     bank, _, entry = k.rpartition("/")
     return bank or BANK, entry
+
+def mix_item(k, seed, seen):
+    """A new item for a mix key: of its entry, or, for BANK/*, from the whole bank."""
+    bank, entry = split_key(k)
+    return sh.new_item(bank, None, seed, seen, "bank") if entry == "*" else sh.new_item(bank, entry, seed, seen)
 
 # ------------------------------------------------------------------
 # Groups: the headed sections of a worksheet, in the order they print.
@@ -116,7 +126,8 @@ DEFAULTS = dict(versions=1, shuffle=False, title="Untitled Worksheet",     # pla
 
 def parse_mix(tokens):
     """["3:6", "3f:2", "all:1", "systems/4:2"] -> {"3": 7, "3f": 2, ..., "systems/4": 2};
-    raises ValueError. BANK/ENTRY names another bank's entry; BANK/all is all of them."""
+    raises ValueError. BANK/ENTRY names another bank's entry; BANK/all is all of them;
+    BANK/* (or BANK/any) draws from all of its types at once, as one key."""
     mix = {}
     for tok in tokens:
         k, _, c = tok.partition(":")
@@ -124,11 +135,12 @@ def parse_mix(tokens):
             bank, _, e = k.partition("/")
             if not banks.has(bank):
                 raise ValueError(f"bad mix entry {tok!r}: no bank {bank!r} (banks: {', '.join(banks.names())})")
-            b = banks.get(bank)
-            es = [x["key"] for x in b.ENTRIES] if e.lower() == "all" else [b.entry_key(e)] if b.entry_key(e) else None
+            bank, b = banks.canonical(bank), banks.get(bank)
+            es = [x["key"] for x in b.ENTRIES] if e.lower() == "all" else ["*"] if e.lower() in ("*", "any") \
+                else [b.entry_key(e)] if b.entry_key(e) else None
             if not c.isdigit() or not es:
                 raise ValueError(f"bad mix entry {tok!r}: use {bank}/ENTRY:COUNT with ENTRY in "
-                                 f"{', '.join(x['key'] for x in b.ENTRIES)}, or all")
+                                 f"{', '.join(x['key'] for x in b.ENTRIES)}, all, or any (every type at once)")
             for e in es:
                 mix[f"{bank}/{e}"] = mix.get(f"{bank}/{e}", 0) + int(c)
             continue
@@ -160,7 +172,7 @@ def command_for(mix, versions, seed, shuffle=False, title=DEFAULTS["title"], out
                 name=DEFAULTS["name"], class_name=DEFAULTS["class_name"], groups=None):
     """The make_practice.py command line that drafts and writes a sheet exactly."""
     mix = ordered(mix)
-    c = ["python3 make_practice.py", "--mix", *[f"{k}:{n}" for k, n in mix.items()],
+    c = ["python3 make_practice.py", "--mix", *[shlex.quote(f"{k}:{n}") for k, n in mix.items()],
          "--versions", str(versions), "--seed", str(seed)]
     if shuffle:
         c.append("--shuffle")
@@ -190,7 +202,7 @@ def draft(mix, versions=1, seed=0, shuffle=False, groups=None, title=DEFAULTS["t
     mix = ordered(mix)
     rng = random.Random(seed)
     seen = {}                                  # (the literal bank never draws the lesson's own 50)
-    drawn = [sh.new_item(*split_key(k), rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
+    drawn = [mix_item(k, rng.randrange(2**31), seen) for k, n in mix.items() for _ in range(n)]
     fams = {banks.get(it["bank"]).FAMILY for it in drawn}
     first = banks.get(next(iter(fams))) if len(fams) == 1 else L  # one family: its instructions for the sheet
     if title == DEFAULTS["title"] and len(fams) == 1:             # and its title
@@ -327,8 +339,12 @@ def draft_sequence(plan, versions=1, seed=0, title=DEFAULTS["title"], class_name
 def regroup(sheet, groups, rng):
     """Put every problem on the sheet into sections by type, following
     layout(groups, ...): a type's own section, or a mixed one (shuffled).
-    Problems keep their order within a type. Nothing is redrawn."""
+    Problems keep their order within a type. Problems drawn from a whole bank
+    go, in their order, into that bank's own section, after the rest. Nothing
+    is redrawn."""
     its = sh.items(sheet)
+    whole = [it for it in its if sh.from_bank(it)]
+    its = [it for it in its if not sh.from_bank(it)]
     typ = lambda it: banks.get(it["bank"]).type_of(it["entry"])
     mine = [it for it in its if banks.get(it["bank"]).FAMILY == BANK and typ(it) in TYPE_KEYS]
     mix = {}
@@ -360,6 +376,8 @@ def regroup(sheet, groups, rng):
             secs.append(sec)
         sec["items"].append(it)
     sheet["sections"] = secs
+    for it in whole:
+        sheet["sections"][E.bank_section(sheet, it["bank"])]["items"].append(it)
 
 def shuffle_all(sheet, rng):
     """One untitled section with every problem, shuffled."""
