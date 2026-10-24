@@ -1423,10 +1423,10 @@ class App:
         elif c == "?":
             self.mode = "help"
         elif c == "I":
-            if sheet or self.act()[0] in ("bank", "count", "problem"):
+            if sheet or self.act()[0] in ("bank", "count", "problem", "seq"):
                 self.mode = "info"
             else:
-                self.say("I shows a bank, a type, or a problem: move to one", True)
+                self.say("I shows a bank, a sequence, a type, or a problem: move to one", True)
         elif c == "\t":
             self.set_focus(self.other_focus())
         elif c == "\x03":
@@ -1527,6 +1527,8 @@ class App:
         its = sh.items(self.sheet)
         if kind == "bank":
             return self.info_bank(key, its)
+        if kind == "seq":
+            return self.info_seq(key, its)
         if kind == "count":
             title, rows, foot = self.info_type(*key, its)
             if self.rid()[0] == "step":
@@ -1536,7 +1538,7 @@ class App:
             return title, rows, foot
         if kind == "problem":
             return self.info_problem(*key)
-        return "Banks", [("", "I shows a bank, a type, or a problem: move to one", "")], "Esc"
+        return "Banks", [("", "I shows a bank, a sequence, a type, or a problem: move to one", "")], "Esc"
 
     def info_bank(self, name, its):
         b, lib = banks.get(name), library.current()
@@ -1563,6 +1565,27 @@ class App:
                  ("Instr.", b.INSTRUCTIONS or "(none)", "")]
         return (f"Bank: {b.TITLE}", rows,
                 "l 20l any type · h remove · i count · r reroll · x remove all · Esc")
+
+    def info_seq(self, name, its):
+        q = library.current().sequence(name)
+        usable, pinned = q.usable(), sum(len(self.examples(st)) for st in q.steps)
+        rows = [("Title", q.TITLE, ""),
+                ("Id", f"{name}  (:draft {name} … uses it)", ""),
+                ("File", q.SOURCE if q.SOURCE.startswith("banks/") else
+                 f"{q.SOURCE} in your library ({dir_label(library.current().folder)})", ""),
+                ("Courses", tags_text(library.bank_tags(q)), ""),
+                ("Steps", f"{len(q.steps)}" + (f", {len(q.steps) - len(usable)} of them can't draw (shown in red)"
+                                               if len(usable) < len(q.steps) else "")
+                 + (f"; {pinned} pinned examples" if pinned else ""), "o"),
+                ("On sheet", str(sum(map(self.seq_items(name), its))), "x"),
+                ("Draft", f":draft {name} STEPS [xN] [review STEPS|none] [pinned]", "")]
+        for st in q.steps:
+            n = sum(map(self.step_items(st), its))
+            k = len(self.examples(st))
+            rows.append((f"  {st['n']}", st["title"] + (f"  ({st['spec']})" if st["title"] != st["spec"] else "")
+                         + (f"  MISSING: {st['missing']}" if st["missing"] else "")
+                         + "".join(f" · {x}" for x in (f"{k} pinned" if k else "", f"{n} on sheet" if n else "") if x), ""))
+        return f"Sequence: {q.TITLE}", rows, "o steps · r reroll · x remove all · Esc"
 
     def info_type(self, name, entry, its):
         b = banks.get(name)

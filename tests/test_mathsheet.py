@@ -828,8 +828,21 @@ gk("u"); assert E.count(g.sheet, L4, "1") == n1
 gk("o"); gk("j"); assert g.rid()[0] == "problem" and info(g)[0] == f"Problem lesson_1-4#{g.rid()[1][1]}"
 assert info(g)[1]["Answer"][0].endswith("(checked)")
 gk("\x1b"); assert g.mode == "normal"
-g.row = g.rows().index(("seq", "literal_by_type")); gk("I"); assert g.mode == "normal" and g.err, "nothing to show on a sequence's own row"
-gk("oj"); gk("I"); assert info(g)[1]["Step"][0].startswith("1 of literal_by_type: One Step") and info(g)[0] == "Type 1: One Step"
+g.row = g.rows().index(("seq", "literal_by_type")); gk("I"); assert g.mode == "info"
+title, rows = info(g)
+assert title == "Sequence: Literal Equations by Type" and rows["File"][0] == "banks/literal_by_type.json"
+assert rows["Steps"][0] == "13; 50 pinned examples" and rows["Courses"][0] == "Algebra 1 › Additional Practice"
+assert rows["  1"][0].startswith("One Step  (literal/1) · 8 pinned"), rows["  1"]
+assert rows["Draft"][0].startswith(":draft literal_by_type STEPS")
+assert box(g, 40, 80).count(" pinned") == 14, "every step shows (and the Steps row)"
+had = int(rows["On sheet"][0])
+gk("oj3lk"); assert g.rid() == ("seq", "literal_by_type") and g.mode == "info", "keys work with the box open"
+assert info(g)[1]["On sheet"][0] == str(had + 3) and info(g)[1]["  1"][0].endswith(" on sheet")
+gk("x"); assert info(g)[1]["On sheet"][0] == "0" and g.mode == "info", "x removes all the sequence's problems"
+gk("u"); assert info(g)[1]["On sheet"][0] == str(had + 3)
+gk("u"); assert info(g)[1]["On sheet"][0] == str(had), "and the sheet as it was"
+gk("\x1b")
+gk("j"); gk("I"); assert info(g)[1]["Step"][0].startswith("1 of literal_by_type: One Step") and info(g)[0] == "Type 1: One Step"
 gk("q"); g.row = 0; gk("I"); assert g.mode == "normal" and g.err, "nor on COURSE"
 gk("\t")
 gk("gg]]]]"); assert g.cur[0] == 1
