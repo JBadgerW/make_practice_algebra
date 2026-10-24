@@ -57,7 +57,7 @@ KEYS = [t["key"] for t in TYPES]
 
 NAMES = ["Enrique", "Maya", "Darnell", "Priya", "Tomás", "Grace", "Kenji", "Amara", "Luis", "Hannah",
          "Mateo", "Aaliyah", "Owen", "Sofia", "Isaiah", "Mei", "Caleb", "Fatima", "Noah", "Lucia"]
-SPORTS = ["soccer", "volleyball", "basketball", "swim", "wrestling", "tennis", "lacrosse", "track"]
+SPORTS = ["soccer", "volleyball", "basketball", "swim", "wrestling", "tennis", "lacrosse", "track", "debate"]
 FUELS = ["regular", "plus", "premium"]
 
 # ------------------------------------------------------------------
