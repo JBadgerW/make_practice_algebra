@@ -1230,7 +1230,7 @@ class App:
         if kind == "count":
             b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
             hint = b.hint(b.type_of(key[1])) if hasattr(b, "hint") else None
-            return f"{key[1]} {e['title']} {hint[0] if hint else ''}"
+            return f"{banks.label(b, key[1])} {e['title']} {hint[0] if hint else ''}"
         if kind == "problem":
             b = banks.get(key[0])
             return f"{key[1]} {b.text(b.problem(key[1]))}"
@@ -1796,11 +1796,11 @@ class Screen:
                 b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
                 if getattr(b, "FIXED", False):
                     arrow = "▾" if key in app.open_types else "▸"
-                    text = f"  {arrow}{key[1]:>3}  {e['title']} ({e['count']})"
+                    text = f"  {arrow}{banks.label(b, key[1]):>3}  {e['title']} ({e['count']})"
                 elif e.get("kind") == "formulas":
-                    text = f"   {key[1]:>3}    real formulas"
+                    text = f"   {banks.label(b, key[1]):>3}    real formulas"
                 else:
-                    text = f"   {key[1]:>3}  {e['title']}"
+                    text = f"   {banks.label(b, key[1]):>3}  {e['title']}"
                 n = app.value(i)
                 val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
                 attr_t = st["special"] if b.special(b.type_of(key[1])) else 0

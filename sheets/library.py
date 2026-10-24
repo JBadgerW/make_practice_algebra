@@ -12,7 +12,9 @@ Banks come from three places, all read when the app starts and again on
                         ~/Documents/mathsheet-library by default.
 
 A library bank or sequence with the same name as a built-in one replaces it.
-Banks and sequences share one set of names.
+Banks and sequences share one set of names. A bank's name is its permanent
+id (its title can change freely); one that had another name lists it under
+"formerly" (FORMERLY in a generator), and the old name still finds it.
 
 courses.json lists the courses in order, each with its units in order:
 
@@ -164,11 +166,13 @@ class Library:
         self.folder = Path(folder).expanduser() if folder else library_dir()
         self.warnings = []
         self.generators, self.fixed, self.sequences, self.courses, self.missing = {}, {}, {}, [], {}
+        self.aliases = {}
         self._find_generators()
         self._read_courses(BUILTIN / COURSES_FILE, "banks/")
         if self._own_folder():
             self._read_courses(self.folder / COURSES_FILE, "")
         self._read_files()
+        self._read_aliases()
         for q in self.sequences.values():
             self.warnings += q.resolve(self)
         self._check_tags()
@@ -259,6 +263,21 @@ class Library:
             if is_builtin:
                 builtin.add(name)
             home[name] = x
+            for msg in getattr(x, "WARNINGS", []):
+                self.warn(f"{label}: {msg}")
+
+    def _read_aliases(self):
+        """The names banks used to have ("formerly"), each to the bank's name now."""
+        for name in self.names():
+            b = self.get(name)
+            where = getattr(b, "SOURCE", f"the {name} generator")
+            for old in getattr(b, "FORMERLY", None) or []:
+                if self.has(old) or old in self.sequences:
+                    self.warn(f"{where}: formerly {old!r}, but a bank or sequence has that name now")
+                elif old in self.aliases:
+                    self.warn(f"{where}: formerly {old!r}, as was {self.aliases[old]!r}")
+                else:
+                    self.aliases[old] = name
 
     def _check_tags(self):
         titles = [c["title"] for c in self.courses]
@@ -292,12 +311,18 @@ class Library:
         """Every bank: the generators, then the fixed banks by name."""
         return list(self.generators) + sorted(self.fixed)
 
+    def canonical(self, name):
+        """A bank's name now, from any name it has had."""
+        return name if name in self.generators or name in self.fixed else self.aliases.get(name, name)
+
     def has(self, name):
+        name = self.canonical(name)
         return name in self.generators or name in self.fixed
 
     def get(self, name):
-        """A bank by name; for one the library doesn't have, a stand-in that
-        shows a sheet's problems from it (see missing_bank)."""
+        """A bank by name (or a former name); for one the library doesn't have, a
+        stand-in that shows a sheet's problems from it (see missing_bank)."""
+        name = self.canonical(name)
         b = self.generators.get(name) or self.fixed.get(name)
         if b is None:
             b = self.missing.get(name) or self.missing.setdefault(name, missing_bank(name, self.generators))

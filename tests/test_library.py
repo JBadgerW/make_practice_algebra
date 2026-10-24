@@ -166,4 +166,41 @@ try:
     Sequence({"format": 1, "steps": [{"entry": "literal/1"}]}, "x.json"); raise AssertionError("kind is required")
 except ValueError:
     pass
+# ---- permanent ids: a bank's name and former names, a type's id apart from its label
+ids = Path(tempfile.mkdtemp(prefix="ids_"))
+(ids / "renamed.json").write_text(json.dumps(dict(format=1, name="quiz", title="Quiz: Now With a Longer Title",
+    formerly=["old_quiz", "lesson_1-4"],
+    types=[dict(key="4", id="dist", title="Distribute First"),      # renumbered: was 3, now shown as 4
+           dict(key="3", title="Clear One Denominator")],           # no id: the key is its id
+    problems=[dict(id="1", type="dist", prompt="$2(x + 1) = 4$", answer="$1$"),
+              dict(id="2", type="3", prompt="$x/2 = 3$", answer="$6$")])))
+(ids / "nameless.json").write_text(json.dumps(dict(format=1, title="No Name", types=[dict(key="1", title="One")],
+    problems=[dict(type="1", prompt="$x$", answer="$1$")])))
+(ids / "twice.json").write_text(json.dumps(dict(format=1, name="twice", types=[dict(key="1", title="A"), dict(key="2", id="1", title="B")])))
+(ids / "labels.json").write_text(json.dumps(dict(format=1, name="labels", types=[dict(key="1", title="A"), dict(key="1", id="x", title="B")])))
+seq_steps = [{"entry": "old_quiz/dist", "examples": ["old_quiz#1"]}, {"entry": "quiz/4"}]
+(ids / "q.json").write_text(json.dumps(dict(format=1, kind="sequence", steps=seq_steps)))
+lib = L.Library(ids)
+w = "\n".join(lib.warnings)
+quiz = lib.get("old_quiz")
+assert quiz is lib.get("quiz") and lib.has("old_quiz") and lib.canonical("old_quiz") == "quiz", "a former name finds the bank"
+assert lib.canonical("lesson_1-4") == "lesson_1-4" and lib.get("lesson_1-4").TITLE.startswith("Lesson 1-4"), \
+    "a former name that a real bank has now goes to that bank"
+assert "renamed.json: formerly 'lesson_1-4', but a bank or sequence has that name now" in w, w
+assert [e["key"] for e in quiz.ENTRIES] == ["dist", "3"] and [banks.label(quiz, e["key"]) for e in quiz.ENTRIES] == ["4", "3"]
+assert quiz.entry_key("dist") == "dist" and quiz.entry_key("4") == "dist" and quiz.entry_key("3") == "3", "ids, then labels"
+assert quiz.PROBLEM["1"]["type"] == "dist" and quiz.heading("dist") == "Distribute First"
+assert lib.get("nameless").NAME == "nameless" and "nameless.json: no \"name\": its id is the file name" in w, w
+assert "twice.json: two types have the id '1'" in w and "twice" not in lib.names(), w
+assert "labels.json: two types are labeled '1'" in w and "labels" in lib.names(), w
+q = lib.sequence("q")
+assert [(st["bank"], st["entry"]) for st in q.steps] == [("quiz", "dist"), ("quiz", "dist")], "steps go by the ids now"
+assert q.steps[0]["examples"] == [("quiz", "1")] and "q.json" not in w, w
+from sheets import sheet as sh
+L.save_config(library=str(ids)); L.rescan()
+old = sh.new_sheet("Old")
+old["sections"] = [sh.new_section("S")]
+old["sections"][0]["items"] = [dict(sh.fixed_item("quiz", "1"), bank="old_quiz")]
+f = ids / "old.sheet.json"; sh.save(old, f)
+assert sh.items(sh.load(f))[0]["bank"] == "quiz", "a sheet saved under a former name opens under the bank's name"
 print("all library tests passed")

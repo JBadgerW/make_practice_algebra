@@ -7,7 +7,9 @@
      "family": "literal",                         (optional; see below)
      "courses": {"Algebra 1": "Equations"},        (optional; see sheets/library.py)
      "instructions": "Solve each equation for the indicated variable.",
+     "formerly": ["lesson_4"],                    (optional: names it used to have)
      "types": [{"key": "3", "title": "Clear One Denominator",
+                "id": "3",                         (optional, default the key; see below)
                 "width": "half", "space": "1in",   (defaults: half, 1in)
                 "look": "...", "move": "...", "special": false,
                 "courses": [...]}, ...],          (optional: replaces the bank's for this type)
@@ -21,6 +23,13 @@ these never repeat each other on a sheet, and a type of both shares one
 section. Without a family, a problem is Typst markup: prompt, answer, and
 optionally text and answer_text for the terminal. Those answers can't be
 checked by machine.
+
+The name is the bank's permanent id: sheets and sequences refer to the bank
+by it, so change the title freely but never the name (if you must, list the
+old one under "formerly"). Likewise a type's id is what sheets store, and its
+key is only the label shown, so a type can be renumbered by changing its key
+once it has an id. Problems name their type by id. With a family, a type
+whose id is one of the family's types is that type.
 
 Adding a type draws an unused problem of it at random; a reroll swaps in
 another. Fixed problems are the same in every version.
@@ -47,11 +56,22 @@ class FixedBank:
         self.COURSES = d.get("courses")
         self.FAMILY = self.fam.NAME if self.fam else self.NAME
         self.INSTRUCTIONS = d.get("instructions") or (self.fam.INSTRUCTIONS if self.fam else "")
+        self.FORMERLY = d.get("formerly", [])
+        if not isinstance(self.FORMERLY, list) or not all(isinstance(x, str) for x in self.FORMERLY):
+            raise ValueError('"formerly" must be a list of the names the bank used to have')
+        self.WARNINGS = [] if d.get("name") else \
+            [f'no "name": its id is the file name, so renaming the file breaks sheets that use it '
+             f'(add "name": "{self.NAME}")']
         self.types = {}
         for i, t in enumerate(d.get("types", []), 1):
             if "key" not in t or "title" not in t:
                 raise ValueError(f'type {i} needs a "key" and a "title"')
-            self.types[str(t["key"])] = dict(t, key=str(t["key"]))
+            tid = str(t.get("id", t["key"]))
+            if tid in self.types:
+                raise ValueError(f'two types have the id {tid!r}')
+            if any(x["key"] == str(t["key"]) for x in self.types.values()):
+                self.WARNINGS.append(f'two types are labeled {str(t["key"])!r}')
+            self.types[tid] = dict(t, id=tid, key=str(t["key"]))
         self.PROBLEMS = []
         need = ("prompt", "target", "answer") if self.fam else ("prompt", "answer")
         for i, p in enumerate(d.get("problems", []), 1):
@@ -60,18 +80,23 @@ class FixedBank:
                 raise ValueError(f"problem {p.get('id', i)} needs " + ", ".join(f'"{k}"' for k in missing))
             p = dict(p, id=str(p.get("id", i)), type=str(p["type"]))
             if p["type"] not in self.types:
-                self.types[p["type"]] = dict(key=p["type"], title=f"Type {p['type']}")
+                self.types[p["type"]] = dict(id=p["type"], key=p["type"], title=f"Type {p['type']}")
             self.PROBLEMS.append(p)
         self.PROBLEM = {p["id"]: p for p in self.PROBLEMS}
-        self.ENTRIES = [dict(key=k, type=k, kind="fixed", title=t["title"], width=t.get("width", "half"),
+        self.ENTRIES = [dict(key=k, type=k, label=t["key"], kind="fixed", title=t["title"], width=t.get("width", "half"),
                              space=t.get("space", "1in"),
                              count=sum(p["type"] == k for p in self.PROBLEMS)) for k, t in self.types.items()]
         self.ENTRY = {e["key"]: e for e in self.ENTRIES}
 
     # -- types ---------------------------------------------------------
     def entry_key(self, text):
+        """A type's id, from its id or its label (either in any case)."""
         t = text.strip()
-        return t if t in self.ENTRY else next((k for k in self.ENTRY if k.lower() == t.lower()), None)
+        for same in (lambda a, b: a == b, lambda a, b: a.lower() == b.lower()):
+            for k, ty in self.types.items():
+                if same(k, t) or same(ty["key"], t):
+                    return k
+        return None
 
     def type_of(self, entry):
         return entry
@@ -86,7 +111,7 @@ class FixedBank:
             return self.fam.hint(typ)
         t = self.types[typ]
         if t.get("look") or t.get("move"):
-            return (("Special Case " if t.get("special") else "Type ") + typ,
+            return (("Special Case " if t.get("special") else "Type ") + t["key"],
                     t["title"], t.get("look", ""), t.get("move", ""))
         return None
 

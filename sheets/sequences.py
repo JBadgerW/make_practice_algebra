@@ -15,7 +15,8 @@ step at a time, each step changing a single element.
       ...]
     }
 
-A step is a bank's entry, spelled BANK/ENTRY as in --mix. Its title is the
+A step is a bank's entry, spelled BANK/ENTRY as in --mix; name the entry by
+its id, which never changes, rather than by a label that may be renumbered. Its title is the
 entry's unless it gives its own; its note says what changes at this step.
 Its examples (optional) are problems of a fixed bank, BANK#ID, pinned in
 this order: a teaching sequence needs those exact problems, while practice
@@ -74,6 +75,7 @@ class Sequence:
                 near = suggest(st["bank"], lib.names())
                 st["missing"] = f"no bank {st['bank']!r}" + (f" (did you mean {near!r}?)" if near else "")
             else:
+                st["bank"] = lib.canonical(st["bank"])
                 b = lib.get(st["bank"])
                 key = b.entry_key(st["entry"])
                 if key is None:
@@ -85,6 +87,7 @@ class Sequence:
             if st["missing"]:
                 out.append(f"{where}: {st['missing']}")
                 continue
+            st["examples"] = [(lib.canonical(eb), pid) for eb, pid in st["examples"]]
             for eb, pid in st["examples"]:
                 x = lib.get(eb) if lib.has(eb) else None
                 if x is None or pid not in getattr(x, "PROBLEM", {}):

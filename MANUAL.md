@@ -509,6 +509,19 @@ its type.
 }
 ```
 
+- `name` is the bank's permanent id: sheets, sequences, and `--mix` refer to
+  the bank by it. Change `title` (what you see) as often as you like, but
+  leave `name` alone, even when it no longer quite fits; it's only a label
+  for the files. Always write one: without it the id is the file name, and
+  renaming the file breaks every sheet that uses the bank (`:warnings`
+  says so). If you must change a name, list the old one under
+  `"formerly": ["old_name"]`, and old sheets and sequences still find it.
+- Likewise a type's `key` is what you see (`4`), and its `id` is what sheets
+  store; without an `id` the key is the id. To renumber a type, first give
+  it an `id` equal to its present key, then change the key:
+  `{"key": "5", "id": "4", "title": "Distribute First"}`. Problems name
+  their type by id (`"type": "4"`). Never give a new type an old type's id.
+  With a family, the id is what ties a type to the family's type.
 - `family` (optional) names a generator bank. With `literal`, problems give
   `prompt` and `target` in Typst math and an `answer` like `b = ...`. Each
   answer is checked, an edited problem is solved again, types `1`-`11`, `A`,
@@ -657,3 +670,4 @@ To confirm a refactor changed nothing, write a set with a fixed seed and
 | `:open` does nothing | It uses `xdg-open`; open the PDF from the output folder instead |
 | A bank you added doesn't show | `:rescan`; check `:warnings`; check it's tagged with the course you're in (or `:course all`); check `:library` names the folder it's in |
 | Problems marked `!` | Their bank isn't in the library any more; see *When a bank goes missing* |
+| `no "name": its id is the file name` | Add `"name"` to the bank file, set to what the warning suggests |

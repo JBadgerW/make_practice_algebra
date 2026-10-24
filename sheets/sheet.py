@@ -116,4 +116,6 @@ def load(path):
     d = json.loads(Path(path).read_text())
     if not isinstance(d, dict) or d.get("format") != FORMAT or "sections" not in d:
         raise ValueError(f"{path} is not a sheet file")
+    for it in items(d):                     # a bank renamed since ("formerly") goes by its name now
+        it["bank"] = banks.canonical(it["bank"])
     return d

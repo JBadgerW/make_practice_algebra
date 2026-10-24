@@ -308,6 +308,16 @@ bank file), which replaces the bank's for that type only.
 - Generators stay in `sheets/banks/`; the library folder holds only JSON.
   A shared folder must never be able to run code.
 
+## 8b. Permanent ids
+
+A bank's `NAME` (`"name"` in a bank file) and its entries' keys are
+permanent ids: saved sheets and sequences store them. `TITLE` and a type's
+title are display only and may change. Never rename a `NAME`; if you must,
+add the old one to `FORMERLY = ["old"]` (`"formerly"` in a file). To
+renumber a type, keep its entry key and give the entry a `label` (what the
+banks pane shows); a bank file does this with a type `"id"` apart from its
+`"key"` (see `sheets/banks/fixed.py`).
+
 ## 9. Lessons learned in this project
 
 - **Typst and sympy read fractions differently.** In Typst, `a/b c` means

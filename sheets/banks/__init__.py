@@ -4,7 +4,9 @@
     FAMILY                        whose problems these are: a sheet never repeats a problem
                                   within a family, and a type's section is shared by the family
     FIXED                         True for written problems (the same in every version)
-    ENTRIES, ENTRY                what can be added: dict(key, type, title, width, space, kind, ...)
+    ENTRIES, ENTRY                what can be added: dict(key, type, title, width, space, kind, ...);
+                                  key is the entry's permanent id, which sheets store; an
+                                  optional label is shown instead (so a type can be renumbered)
     entry_key(text)               the user's spelling of an entry -> its key, or None
     type_of(entry)                the type an entry belongs to
     heading(type), hint(type), special(type)
@@ -23,6 +25,7 @@
 
     COURSES                       optional: the courses it belongs to (see sheets/library.py);
                                   a type may carry its own "courses"
+    FORMERLY                      optional: names the bank used to have (NAME is permanent)
 
 Generator banks are modules in this package, found automatically. Fixed
 banks are JSON files: the built-in ones in the project's banks/ folder, and
@@ -41,6 +44,14 @@ def names():
 def has(name):
     """Is there a bank by this name?"""
     return library.current().has(name)
+
+def canonical(name):
+    """A bank's name now, from any name it has had ("formerly")."""
+    return library.current().canonical(name)
+
+def label(b, entry):
+    """What the banks pane shows for an entry: its label, else its key (its id)."""
+    return b.ENTRY[entry].get("label") or entry
 
 def get(name):
     """A bank by name (a stand-in, marked MISSING, for one that's gone)."""
