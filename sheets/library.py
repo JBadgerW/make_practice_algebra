@@ -4,12 +4,15 @@ Banks come from three places, all read when the app starts and again on
 :rescan (it takes milliseconds):
 
     sheets/banks/*      generator banks (Python modules), found automatically
-    banks/              the built-in fixed banks and sequences, and the
+    library/            the built-in library: fixed banks, sequences, and the
                         starter courses.json
-    the library folder  your own fixed banks and sequences (any *.json, in any
+    your library folder your own fixed banks and sequences (any *.json, in any
                         subfolder; see sequences.py) and your courses.json. It is set in
                         ~/.config/mathsheet/config.json ("library"), and is
                         ~/Documents/mathsheet-library by default.
+
+Both libraries hold only JSON: code (a generator) lives in sheets/banks/, so
+a shared folder can never run code.
 
 A library bank or sequence with the same name as a built-in one replaces it.
 Banks and sequences share one set of names. A bank's name is its permanent
@@ -39,7 +42,7 @@ from pathlib import Path
 from . import ROOT
 
 FORMAT = 1
-BUILTIN = ROOT / "banks"
+BUILTIN = ROOT / "library"
 COURSES_FILE = "courses.json"
 DEFAULT_LIBRARY = "~/Documents/mathsheet-library"
 
@@ -168,7 +171,7 @@ class Library:
         self.generators, self.fixed, self.sequences, self.courses, self.missing = {}, {}, {}, [], {}
         self.aliases = {}
         self._find_generators()
-        self._read_courses(BUILTIN / COURSES_FILE, "banks/")
+        self._read_courses(BUILTIN / COURSES_FILE, "library/")
         if self._own_folder():
             self._read_courses(self.folder / COURSES_FILE, "")
         self._read_files()
@@ -223,7 +226,7 @@ class Library:
 
     def _bank_files(self):
         """(path, label, built-in?) for every bank file, the built-in ones first."""
-        out = [(f, f"banks/{f.name}", True) for f in sorted(BUILTIN.glob("*.json")) if f.name != COURSES_FILE]
+        out = [(f, f"library/{f.name}", True) for f in sorted(BUILTIN.glob("*.json")) if f.name != COURSES_FILE]
         if self._own_folder():
             for f in sorted(self.folder.rglob("*.json")):
                 rel = f.relative_to(self.folder)

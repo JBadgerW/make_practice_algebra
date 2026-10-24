@@ -30,7 +30,7 @@ assert L.library_dir() == Path("~/Documents/mathsheet-library").expanduser(), "t
 from sheets.banks.literal import TYPES, lesson_sequence
 q = lib.sequence("literal_by_type")
 assert json.loads((L.BUILTIN / "literal_by_type.json").read_text()) == lesson_sequence(), \
-    "banks/literal_by_type.json is what gen_sequence.py writes from TYPES"
+    "library/literal_by_type.json is what gen_sequence.py writes from TYPES"
 assert [st["entry"] for st in q.steps] == [t["key"] for t in TYPES] and all(st["bank"] == "literal" for st in q.steps)
 assert [st["title"] for st in q.steps] == [t["title"] for t in TYPES]
 pinned = [pid for st in q.steps for _, pid in st["examples"]]
@@ -71,7 +71,7 @@ w = "\n".join(lib.warnings)
 assert "no course 'Algebra I'" in w and "did you mean 'Algebra 1'" in w, w
 assert "has no unit 'Equatoins'" in w and "did you mean 'Equations'" in w, w
 assert "fam.json" in w and "no generator bank 'nope'" in w, w
-assert "banks/literal_by_type.json: 50 pinned examples are in no fixed bank: lesson_1-4#1, lesson_1-4#2, lesson_1-4#3, …" in w, \
+assert "library/literal_by_type.json: 50 pinned examples are in no fixed bank: lesson_1-4#1, lesson_1-4#2, lesson_1-4#3, …" in w, \
     "the built-in sequence's examples, gone with the built-in Lesson 1-4: one warning"
 assert "other.json" in w and "sheet.json" not in w and len(lib.warnings) == 5, lib.warnings
 assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Factoring", ["factoring"]), ("Lessons", ["inequalities", "modeling", "absolute"]),

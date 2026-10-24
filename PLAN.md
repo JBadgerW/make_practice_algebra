@@ -111,7 +111,7 @@ depend on them, and a sheet may mix courses.
 
 - **Where:** generators in `sheets/banks/` (found automatically, never from
   the library: a shared folder mustn't run code); the built-in fixed banks
-  and starter `courses.json` in `banks/`; the teacher's own banks (any
+  and starter `courses.json` in `library/` (named `banks/` until 2026-10-24); the teacher's own banks (any
   `*.json`, any subfolder) and `courses.json` in a library folder set in
   `~/.config/mathsheet/config.json` (default `~/Documents/mathsheet-library`).
   A library bank replaces a built-in one of the same name.
@@ -145,7 +145,7 @@ drafting: a sheet never depends on one.
   changes, an optional `title`, and optional pinned `examples` (fixed-bank
   problems, `lesson_1-4#13`, in order). Steps finer than a bank's types
   become new entries in the bank.
-- **Files:** JSON with `"kind": "sequence"`, in `banks/` or the library,
+- **Files:** JSON with `"kind": "sequence"`, in `library/` or the teacher's library,
   tagged with `courses` like a bank. Unknown banks, entries, and examples
   are warnings; the step stays (marked) so step numbers never shift.
 - **Structure:** Course › Unit › Sequence › Step; a lesson is a range of

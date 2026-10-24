@@ -810,7 +810,7 @@ gk("o"); assert ("count", (L4, "1")) not in g.rows(), "closed, so oj below opens
 gk("I"); assert g.mode == "info"
 title, rows = info(g)
 assert title == f"Bank: {lesson.TITLE}" and rows["Id"][0].startswith("lesson_1-4  (permanent")
-assert rows["Kind"][0] == "50 written problems, checked as Literal Equations" and rows["File"][0] == "banks/lesson_1-4.json"
+assert rows["Kind"][0] == "50 written problems, checked as Literal Equations" and rows["File"][0] == "library/lesson_1-4.json"
 assert rows["Courses"][0] == "Algebra 1 › Lessons" and rows["Types"][0] == "13"
 on = E.count_from_bank(g.sheet, L4) + sum(1 for it in sh.items(g.sheet) if it["bank"] == L4 and not sh.from_bank(it))
 assert rows["On sheet"][0].startswith(f"{on}") and rows["Unused"][0] == f"{50 - on} of the 50 that l here can draw", rows
@@ -830,7 +830,7 @@ assert info(g)[1]["Answer"][0].endswith("(checked)")
 gk("\x1b"); assert g.mode == "normal"
 g.row = g.rows().index(("seq", "literal_by_type")); gk("I"); assert g.mode == "info"
 title, rows = info(g)
-assert title == "Sequence: Literal Equations by Type" and rows["File"][0] == "banks/literal_by_type.json"
+assert title == "Sequence: Literal Equations by Type" and rows["File"][0] == "library/literal_by_type.json"
 assert rows["Steps"][0] == "13; 50 pinned examples" and rows["Courses"][0] == "Algebra 1 › Additional Practice"
 assert rows["  1"][0].startswith("One Step  (literal/1) · 8 pinned"), rows["  1"]
 assert rows["Draft"][0].startswith(":draft literal_by_type STEPS")

@@ -1,4 +1,5 @@
-"""Fixed banks: written problems, read from a JSON file in banks/.
+"""Fixed banks: written problems, read from JSON files: the built-in ones in
+library/, and your own in your library folder (see sheets/library.py).
 
     {
      "format": 1,

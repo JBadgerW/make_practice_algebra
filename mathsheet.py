@@ -7,7 +7,7 @@
 
 The left pane is a tree of problem banks: the literal-equation generator
 (each type's made-up equations and its real formulas: 3 and 3f) and the
-fixed banks in banks/ (written problems, such as the lesson's fifty), then
+fixed banks in library/ (written problems, such as the lesson's fifty), then
 the settings. l adds a problem; o opens a bank or a type. The right pane is the
 sheet itself, laid out like the page: Tab into it to move through the
 problems, reroll them, change their width and work space, edit them, and
@@ -1571,7 +1571,7 @@ class App:
         usable, pinned = q.usable(), sum(len(self.examples(st)) for st in q.steps)
         rows = [("Title", q.TITLE, ""),
                 ("Id", f"{name}  (:draft {name} … uses it)", ""),
-                ("File", q.SOURCE if q.SOURCE.startswith("banks/") else
+                ("File", q.SOURCE if q.SOURCE.startswith("library/") else
                  f"{q.SOURCE} in your library ({dir_label(library.current().folder)})", ""),
                 ("Courses", tags_text(library.bank_tags(q)), ""),
                 ("Steps", f"{len(q.steps)}" + (f", {len(q.steps) - len(usable)} of them can't draw (shown in red)"
@@ -1630,7 +1630,7 @@ class App:
             return "none: it's missing from the library"
         src = getattr(b, "SOURCE", None)
         if src:
-            return src if src.startswith("banks/") else f"{src} in your library ({dir_label(library.current().folder)})"
+            return src if src.startswith("library/") else f"{src} in your library ({dir_label(library.current().folder)})"
         return os.path.relpath(b.__file__, Path(__file__).resolve().parent) + " (a generator)"
 
     def info_items(self, its):

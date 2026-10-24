@@ -295,7 +295,7 @@ carries its own `courses` (in `TYPES` for a generator, in `"types"` for a
 bank file), which replaces the bank's for that type only.
 
 - Course titles and unit names must match `courses.json` exactly (the
-  built-in one is `banks/courses.json`; the teacher's library may have its
+  built-in one is `library/courses.json`; the teacher's library may have its
   own). Don't invent a course or unit: ask the teacher, and add it to
   `courses.json` if they agree.
 - Every built-in course has two units: `Lessons`, for a lesson's own

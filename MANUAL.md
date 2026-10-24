@@ -34,8 +34,8 @@ numbers. Without `--groups`, the output is the same as before.
 | `lesson_1-4_literal_seq_guide` | For each type: Look for, The move, and a worked example; the special cases are worked in full, with a "Watch out" note |
 | `lesson_1-4_literal_seq_all_solutions` | The textbook equations and the 50 lesson equations, each solved for every variable |
 | `lesson_1-4_literal_seq_bank.json` | Everything above as data |
-| `../banks/lesson_1-4.json` | The fifty as a fixed bank for the terminal app (section 5) |
-| `../banks/literal_by_type.json` | The lesson's order as a sequence for the terminal app: a step per type, the fifty pinned as its examples (section 3, *Sequences*) |
+| `../library/lesson_1-4.json` | The fifty as a fixed bank for the terminal app (section 5) |
+| `../library/literal_by_type.json` | The lesson's order as a sequence for the terminal app: a step per type, the fifty pinned as its examples (section 3, *Sequences*) |
 
 The script stops with an error if an answer or a worked step fails its
 numeric check. It also stops if the types don't cover problems 1–50 exactly
@@ -313,7 +313,7 @@ you're teaching, with cumulative review of the steps before them:
 ### Courses and the library
 
 The **library** is every bank the app knows: the generators, the built-in
-banks in the app's `banks/` folder, and **your own banks**, in a library
+banks in the app's `library/` folder (the built-in library), and **your own banks**, in a library
 folder outside the app (`~/Documents/mathsheet-library` unless you choose
 another with `:library DIR`). Keep your banks there: they survive updates to
 the app, and the folder can be synced or shared with colleagues. Inside it,
@@ -589,7 +589,7 @@ its type.
   doesn't have, is reported when the app starts (and by `:rescan`).
 
 **A course, or a unit.** The courses and their units live in
-`courses.json`. The app comes with one in `banks/` (Prealgebra, Algebra 1,
+`courses.json`. The app comes with one in `library/` (Prealgebra, Algebra 1,
 Geometry, Algebra 2, Advanced Math, Calculus), each with two units: *Lessons*,
 for the problems that go with a lesson, and *Additional Practice*, for banks
 not keyed to one. A `courses.json` in your library
@@ -638,11 +638,11 @@ bank, tagged with `courses` the same way:
 - A step finer than a bank's types (Type 3 with a number denominator, then
   with a letter) needs its own entry in the bank first.
 - Banks and sequences share names: a sequence can't have a bank's name.
-- To change a built-in sequence (its notes, say), copy it from `banks/` into
+- To change a built-in sequence (its notes, say), copy it from `library/` into
   your library and edit the copy: yours replaces the built-in one, and
   `gen_sequence.py` never touches it.
 
-`gen_sequence.py` writes the lesson's fifty as `banks/lesson_1-4.json`.
+`gen_sequence.py` writes the lesson's fifty as `library/lesson_1-4.json`.
 
 **A real formula.** Add a line to `FORMULAS` in `sheets/banks/literal/formulas.py`:
 

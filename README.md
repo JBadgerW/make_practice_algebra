@@ -137,10 +137,16 @@ is half width.
 
 ## Files
 
+**Where problems live.** Written problems, sequences, and courses are JSON
+in a *library*: the built-in one, `library/`, and your own,
+`~/Documents/mathsheet-library` (see `library/README.md`). Generators, which
+draw new problems, are Python code in `sheets/banks/`, so no library folder
+ever runs code.
+
 | File | What it is |
 |---|---|
-| `sheets/` | The shared package: `sheet.py` (the worksheet document), `edit.py` (changes to a sheet), `writer.py` (worksheet, key, and slide Typst), `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles), `banks/` (the bank interface, the literal-equation generator, and fixed banks) |
-| `sheets/library.py` | The library: finds every bank (generators, `banks/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
+| `sheets/` | The shared package: `sheet.py` (the worksheet document), `edit.py` (changes to a sheet), `writer.py` (worksheet, key, and slide Typst), `check.py` (Typst-to-sympy parsing and numeric checks), `typst.py` (the Typst preambles), `banks/` (the bank interface, the loader for JSON banks, and the generators) |
+| `sheets/library.py` | The library: finds every bank (generators, `library/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
@@ -150,7 +156,7 @@ is half width.
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
 | `tests/` | `test_mathsheet.py` and `test_library.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
-| `banks/` | The built-in fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`), the built-in sequence `literal_by_type.json` (the lesson's order, also written by `gen_sequence.py`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
+| `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`), the built-in sequence `literal_by_type.json` (the lesson's order, also written by `gen_sequence.py`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |

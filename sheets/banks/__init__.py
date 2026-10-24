@@ -28,7 +28,7 @@
     FORMERLY                      optional: names the bank used to have (NAME is permanent)
 
 Generator banks are modules in this package, found automatically. Fixed
-banks are JSON files: the built-in ones in the project's banks/ folder, and
+banks are JSON files: the built-in ones in the project's library/ folder, and
 your own in the library folder (see fixed.py and sheets/library.py).
 """
 from .. import library
