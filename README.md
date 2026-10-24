@@ -38,6 +38,9 @@ python3 make_practice.py --mix modeling/all:1 --versions 2 --title "Lesson 1-6: 
 # Lesson 1-7: Absolute Value Equations and Inequalities: two of each type
 python3 make_practice.py --mix absolute/all:2 --title "Lesson 1-7: Absolute Value Equations and Inequalities"
 
+# Lesson 1-7: Word Problems: every story at every type
+python3 make_practice.py --mix absolute_words/all:1 --title "Lesson 1-7: Word Problems"
+
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 mathsheet.py
@@ -135,6 +138,32 @@ solution*. A problem never divides twice (no fraction inside a fraction).
 In type 8, `b − a|u|` turns the sign around when you undo it. Each problem
 is half width.
 
+### Lesson 1-7: Word Problems
+
+The `absolute_words` bank: an amount that must stay within a tolerance of a
+target, `|amount − target| ≤ tolerance`. Type 1 is the phrases alone; types
+2-4 are stories, and each type asks for more of the same story.
+
+| Key | Type | Example key |
+|---|---|---|
+| 1 | Phrases for a Tolerance | *x is 125, give or take 20*: `\|x − 125\| ≤ 20` |
+| 2 | Modeling the Amount | the boat's distance: `\|d − 80\| ≤ 10` |
+| 3 | Writing the Amount as an Expression | distance = rate · time: `\|25t − 80\| ≤ 10` |
+| 4 | Modeling and Solving | `\|25t − 80\| ≤ 10`, `2.8 ≤ t ≤ 3.6`, *2.8 to 3.6 hours* |
+
+Type 1 uses ten phrases (*give or take*, *plus or minus*, *with a tolerance
+of*, *within*, *no more than ... off from*, ...), a different one for each
+problem on a sheet until all ten are used. *Less than* is the one phrase
+keyed with `<`; the rest are `≤`. An entry of types 2-4 is a type plus a
+story: `a` boat trip, `b` team hotel (which hotels), `c` road trip on cruise
+control, `d` rectangle perimeter (drawn below the prompt, length x along the bottom and the width up the side; `2x + 2(w)`), `e`
+phone cases (which cases are removed), `f` party budget (how many guests),
+`g` gas purchase (gallons), `h` running. Story `e` has nothing to substitute,
+so it has no Type 3 (`3e` doesn't exist). So `absolute_words/4b:2` is two
+hotel problems to solve, and `absolute_words/all:1` is one of each. Every
+solved bound is a decimal with at most two places (three for gallons, as on a
+pump). Type 1 is half width; the stories are full width.
+
 ## Files
 
 **Where problems live.** Written problems, sequences, and courses are JSON
@@ -151,6 +180,7 @@ ever runs code.
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
+| `sheets/banks/absolute_words.py` | The Lesson 1-7: Word Problems bank: the ten phrases, the eight stories, the four types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |

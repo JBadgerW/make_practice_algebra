@@ -502,10 +502,10 @@ def main():
     a = parser().parse_args()
     seed = a.seed if a.seed is not None else random.randrange(10**6)
     if a.selftest:
-        from sheets.banks import systems, inequalities, modeling, absolute
+        from sheets.banks import systems, inequalities, modeling, absolute, absolute_words
         sys.exit(0 if selftest(a.selftest, seed) and systems.selftest(a.selftest, seed)
                  and inequalities.selftest(a.selftest, seed) and modeling.selftest(a.selftest, seed)
-                 and absolute.selftest(a.selftest, seed) else 1)
+                 and absolute.selftest(a.selftest, seed) and absolute_words.selftest(a.selftest, seed) else 1)
     try:
         if a.sheet:
             sheet = read_sheet(a.sheet)

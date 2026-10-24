@@ -208,7 +208,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "absolute"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "absolute"), ("bank", "absolute_words"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -328,6 +328,25 @@ assert T.App().s["out"] == T.home_path(OUT) == _lib.config()["out"], "the next s
 assert T.App(out="elsewhere").s["out"] == "elsewhere", "--out overrides it"
 assert "$510 <= 480 + 15t <= 540$ \\ $2 <= t <= 5$ \\ 2 to 4 treats" in key and "$1 1/2$ servings" in key, "the teacher's answer as written; the count from the prompt"
 
+# ---- Lesson 1-7 word problems: phrases, then stories that ask for more of the same model
+a = T.App(seed=5); ak = driver(a)
+ak(":mix absolute_words/1:4 absolute_words/4B:1\n:versions 2\n")
+assert titles(a) == ["Type 1: Phrases for a Tolerance", "Type 4: Modeling and Solving"], titles(a)
+assert all(it["status"] == "checked" for it in sh.items(a.sheet))
+from sheets.banks import absolute_words as AW
+assert len({AW.read_phrase(it["problem"]["prompt"])[0] for it in sh.items(a.sheet)[:4]}) == 4, "a new phrase each time"
+it = sh.items(a.sheet)[4]
+assert it["problem"]["story"] == it["alts"][0]["story"] == "b", "versions keep the story"
+ak("\t:5\n"); ak("cc")
+ak("\x15Members of the soccer team are traveling to a tournament, where they will stay in a hotel for 3 nights. "
+   "The total cost for each member must be within $15 of $180. The hotels' rates are the following: A. $55/night; "
+   "B. $60/night; C. $70/night. Let r be a hotel's rate, in dollars per night. Which hotels can the team stay in?\n")
+assert a.item()["problem"]["answer"] == "abs(3r - 180) <= 15; 55 <= r <= 65; Hotels A and B" and a.item()["status"] == "checked"
+ak("A\x15|3r - 180| <= 15; 55 <= r <= 65; Hotels A, B, and C\n"); assert a.item()["status"] == "failed"
+ak("A\x15abs(3r - 180) <= 15; 55 <= r <= 65; Hotels A and B\n"); assert a.item()["status"] == "checked"
+assert AW.check(dict(type="3", story="a", answer="abs(d - 80) <= 10", prompt=AW.fill(AW.template("3", AW.STORY["a"]),
+    who="Ana", r="25", e="10", T="80"))) == "unchecked", "Type 3 is in terms of the unknown, not the amount"
+
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
 vk(":mix 1:3 3:2 9:1\n\t"); assert v.cur == (0, 0)
@@ -417,7 +436,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert "7 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert "8 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
@@ -425,7 +444,7 @@ ck("o"); assert c.rid() == ("course", None)
 c.open.add("ints"); assert [r for r in c.rows() if r[0] == "count"] == [("count", ("ints", "add")), ("count", ("ints", "mul"))]
 ck("l"); assert c.course == "Algebra 1" and c.sheet["class_name"] == "Algebra 1"
 assert [r for r in c.rows() if r[0] == "count" and r[1][0] == "ints"] == [("count", ("ints", "add"))], "mul is Prealgebra only"
-assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Lessons", ["lesson_1-4", "inequalities", "modeling", "absolute"]),
+assert library.current().view("Algebra 1") == [("Foundations", ["ints"]), ("Lessons", ["lesson_1-4", "inequalities", "modeling", "absolute", "absolute_words"]),
                                                 ("Additional Practice", ["literal"])]
 assert library.config()["course"] == "Algebra 1", "remembered for the next sheet"
 ck("h"); assert c.course == "Prealgebra"
@@ -455,7 +474,7 @@ assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
 dk("\tG"); assert "ints (missing)" not in d.msg
 dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
 dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
-dk(f":library {lib}\n"); assert not d.missing() and not d.err and "7 banks" in d.msg, d.msg
+dk(f":library {lib}\n"); assert not d.missing() and not d.err and "8 banks" in d.msg, d.msg
 assert library.config()["library"] == str(lib)
 dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]
 dk(":warnings\n"); assert d.msg == "no warnings"

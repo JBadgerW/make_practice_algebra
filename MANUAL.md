@@ -166,6 +166,21 @@ the terminal app, `i` edits the prompt, written with bars or `abs()`, like
 `2|x - 1| + 3 >= 11`; the key is recomputed. `A` takes `x = -2 or x = 6`,
 `-2 < x < 6`, `x <= -2 or x >= 6`, or `no solution`.
 
+### Lesson 1-7: Word Problems
+
+`--mix absolute_words/3c:2` draws from the `absolute_words` bank: entry `3c`
+is Type 3 (the amount as an expression) in story `c` (road trip). Entries are
+`1` (the phrases) and `2a`–`4h`, without `3e`; `absolute_words/all:1` is one
+of each. The check reads the numbers back out of the prompt's words, solves
+the key's inequalities, and compares them with the set the prompt describes;
+Type 4's answer (which hotels, which cases, how many guests) is found again
+by trying each one. A Type 3 or 4 key must use the problem's letter for the
+unknown, not the amount's. In the terminal app, `i` edits the prompt: keep
+the phrase's or story's wording and change only names and numbers; the key is
+recomputed. `A` takes `|x - 125| <= 20` (or `abs(...)`); Type 4 takes
+`model; solved; answer`, like `|25t - 80| <= 10; 2.8 <= t <= 3.6; 2.8 to 3.6 hours`,
+and its answer must match the key's words exactly.
+
 ## 3. mathsheet, the terminal app
 
 ```sh
