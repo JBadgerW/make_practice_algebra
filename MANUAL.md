@@ -491,6 +491,7 @@ through earlier commands.
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
 | `:open [sheet\|key\|slides] [N]` | Open version N's PDF (default: worksheet, version 1) |
+| `:pre [sheet\|key\|slides] [N]` | Print preview: compile version N (default: the one showing) as it stands to a temporary PDF and open it. Writes nothing to the out folder and doesn't count as saving. Run it again after a change and an open viewer reloads. |
 | `:N` | On the sheet: problem N. On the types pane: row N. |
 | `:help` or `?` | Show the keys |
 
@@ -716,6 +717,7 @@ To confirm a refactor changed nothing, write a set with a fixed seed and
 | `FileNotFoundError: ... mixed_review` | The style preambles are missing; see Requirements in the README |
 | The TUI shows `typst not found: .typ only` | Install Typst, or compile the `.typ` files somewhere else |
 | `:open` does nothing | It uses `xdg-open`; open the PDF from the output folder instead |
+| `:pre` says `typst not found` | Preview needs Typst on your PATH; it opens the PDF with `xdg-open` |
 | A bank you added doesn't show | `:rescan`; check `:warnings`; check it's tagged with the course you're in (or `:course all`); check `:library` names the folder it's in |
 | Problems marked `!` | Their bank isn't in the library any more; see *When a bank goes missing* |
 | `no "name": its id is the file name` | Add `"name"` to the bank file, set to what the warning suggests |

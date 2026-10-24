@@ -41,7 +41,7 @@ Examples (run from this folder):
 --out DIR, --name N   output folder (default ./practice) and file prefix
 --no-compile          write .typ files only
 """
-import argparse, json, random, re, shlex, shutil, subprocess, sys
+import argparse, json, random, re, shlex, shutil, subprocess, sys, tempfile
 from pathlib import Path
 from sheets import sheet as sh, edit as E, writer, banks, library
 from sheets.typst import esc
@@ -453,6 +453,26 @@ def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
                     raise RuntimeError(f"typst failed on {fname}:\n{r.stderr}")
             written.append(fname)
     return dict(out=outp, files=written, compiled=bool(typst), sheet=sheet)
+
+def preview(sheet, v=0, what="sheet", folder=None):
+    """Compile one document of version v (0-based), the worksheet, key, or
+    slides, into folder (a new temp folder by default), always under the same
+    name so an open viewer reloads it. Returns the PDF's path; raises RuntimeError."""
+    if not sh.items(sheet):
+        raise RuntimeError("no problems: the sheet is empty")
+    typst = shutil.which("typst")
+    if not typst:
+        raise RuntimeError("typst not found: can't preview")
+    text = {"sheet": lambda: writer.worksheet(sheet, v),
+            "key": lambda: writer.worksheet(sheet, v, key=True),
+            "slides": lambda: writer.slides(sheet, v)}[what]()
+    outp = Path(folder or tempfile.mkdtemp(prefix="mathsheet-"))
+    fname = "preview" + {"sheet": "", "key": "_key", "slides": "_slides"}[what] + ".typ"
+    (outp / fname).write_text(text)
+    r = subprocess.run([typst, "compile", fname], cwd=outp, capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError(f"typst failed on {fname}:\n{r.stderr}")
+    return outp / fname.replace(".typ", ".pdf")
 
 # ------------------------------------------------------------------
 # Command line

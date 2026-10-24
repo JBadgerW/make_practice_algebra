@@ -1,6 +1,6 @@
 """Drive mathsheet.App with scripted keys (no terminal needed).
 Run from the project folder:  python3 tests/test_mathsheet.py"""
-import os, re, shlex, sys, tempfile
+import os, re, shlex, shutil, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never the teacher's own config
@@ -856,5 +856,19 @@ g.row = g.rows().index(("bank", "inequalities")); gk("6l")
 assert titles(g) == [banks.get("inequalities").TITLE] and len({it["entry"] for it in sh.items(g.sheet)}) > 1
 gk(f":out {OUT}\n:name whole\n:w\n"); assert not g.err, g.msg
 library.rescan()
+
+# ---- :pre compiles the sheet as it stands to a temp PDF, writing and saving nothing
+p = T.App(seed=7); pk = driver(p); opened = []
+p.open_path = lambda f: opened.append(f) or True
+pk(":pre\n"); assert p.err and not opened, "an empty sheet: nothing to preview"
+pk(f":out {OUT}/preview_out\n:mix 1:2 3:2\n:versions 2\n")
+if shutil.which("typst"):
+    pk("gt:pre\n"); assert not p.err, p.msg
+    assert opened[-1].name == "preview.pdf" and opened[-1].exists() and "version 2 worksheet" in p.msg, "the version showing"
+    pk(":pre key 1\n"); assert opened[-1].name == "preview_key.pdf" and "version 1 key" in p.msg
+    pk(":pre slides\n"); assert opened[-1].name == "preview_slides.pdf" and opened[-1].parent == p.preview_dir
+    assert p.dirty() and p.last_build is None and not (Path(OUT) / "preview_out").exists(), "nothing written or saved"
+pk(":pre 3\n"); assert p.err and "2 versions" in p.msg
+pk(":pre bogus\n"); assert p.err and "usage" in p.msg
 
 print("all key tests passed")

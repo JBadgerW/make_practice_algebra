@@ -65,6 +65,7 @@ I        what's here, in a box      + - W r     change all selected
                                     :scope bank|type  reroll from bank / type
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|key|slides] [N]
+:pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
@@ -112,6 +113,7 @@ class App:
         self.written = None             # the state at the last :w (or when a file was opened)
         self.reg = None                 # dict(kind="items"|"section", what=..., cut=bool)
         self.last_build = None
+        self.preview_dir = None         # the temp folder :pre compiles into, made on the first :pre
         self.quit = False
         self.row = next((i for i, r in enumerate(self.rows()) if r[0] in ("seq", "bank")), 0)   # the first to open
         self.clamp()
@@ -1065,12 +1067,43 @@ class App:
             return self.say(f"E: there are {b['sheet']['versions']} versions", True)
         suffix = {"sheet": "", "key": "_key", "slides": "_slides"}[what]
         f = b["out"] / f"{self.s['name']}_v{v}{suffix}.{'pdf' if b['compiled'] else 'typ'}"
+        if self.open_path(f):
+            self.say(f"opening {f.name}")
+
+    def open_path(self, f):
+        """Open f in the desktop's viewer; False (and an error shown) if that can't start."""
         try:
             subprocess.Popen(["xdg-open", str(f)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                              start_new_session=True)
-            self.say(f"opening {f.name}")
+            return True
         except OSError as e:
             self.say(f"E: {e}", True)
+            return False
+
+    def preview(self, args):
+        """:pre [sheet|key|slides] [N]: compile the sheet as it stands (version N,
+        else the one showing) to a temporary PDF and open it. Nothing is written
+        to the out folder and the sheet isn't marked saved."""
+        what, v = "sheet", self.version + 1
+        for a in args:
+            if a.isdigit():
+                v = int(a)
+            elif a in ("sheet", "key", "slides"):
+                what = a
+            else:
+                return self.say("usage: :pre [sheet|key|slides] [version]", True)
+        if not 1 <= v <= self.sheet["versions"]:
+            return self.say(f"E: there are {self.sheet['versions']} versions", True)
+        try:
+            pdf = mp.preview(self.sheet, v - 1, what, self.preview_dir)
+        except (RuntimeError, OSError) as e:
+            return self.say(f"E: {e}".splitlines()[0], True)
+        self.preview_dir = pdf.parent           # the same file every time, so an open viewer reloads it
+        if self.open_path(pdf):
+            un, bad = self.statuses()
+            self.say(f"preview: version {v} {'worksheet' if what == 'sheet' else what} (not saved)"
+                     + (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "")
+                     + (f"  ·  {un} unchecked" if un else ""), bool(bad))
 
     def load(self, path):
         """Open a .sheet.json (or convert an older practice .json) to edit."""
@@ -1182,6 +1215,8 @@ class App:
             self.load(rest) if rest else self.say("usage: :e FILE.sheet.json", True)
         elif cmd == "open":
             self.open_file(rest.split())
+        elif cmd in ("pre", "preview"):
+            self.preview(rest.split())
         elif cmd in ("h", "help"):
             self.mode = "help"
         else:
