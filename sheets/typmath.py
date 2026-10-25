@@ -18,7 +18,7 @@ tests/test_typmath.py checks that for each shape the banks use.
 import re
 import sympy as sp
 
-ATOM = re.compile(r"-?(\w+(\^\w+)?|sqrt\(\w+\))")        # 3, x, x^2: needs no parentheses in a fraction
+ATOM = re.compile(r"-?(\w+(\^\w+)?|sqrt\([^()]*\))")        # 3, x, x^2: needs no parentheses in a fraction
 
 def paren(t):
     return t if ATOM.fullmatch(t) else f"({t})"
