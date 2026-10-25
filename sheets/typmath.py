@@ -5,9 +5,10 @@
                    a sum's terms go by descending degree, letters in `order`
                    first (then alphabetical); a product reads
                    coefficient, radicals, pi, letters, i: 3 sqrt(2) x y^2.
-    single(e, order)  e as one fraction over a common denominator, numerator multiplied out
+    single(e, order)  e as one fraction over a common denominator, multiplied out, minus in front
     fr(n, d)       a fraction from two Typst strings, parenthesized as needed
-    display(t)     $display(t)$, so every fraction is full size
+    display(t)     $display(t)$, so the outermost fraction is full size
+    dfrac(t)       every fraction full size, nested ones too, but not in exponents
     text(t)        Typst math for the terminal
 
 Typst reads xy as one name, so letters are always separated by spaces, and
@@ -144,14 +145,88 @@ def tx(e, order=()):
     return Printer(order).expr(e)
 
 def single(e, order=()):
-    """e as one fraction over a common denominator, its numerator multiplied
-    out: (3 + 2 sqrt(2))/7, (x^3 + x y^4)/y^3."""
+    """e as one fraction over a common denominator, its numerator and
+    denominator multiplied out, and any minus sign in front:
+    (3 + 2 sqrt(2))/7, (x^3 + x y^4)/y^3, -(x + 1)/(2 x - 3)."""
     n, d = sp.fraction(sp.together(e))
-    n = sp.expand(n)
+    n, d = sp.expand(n), sp.expand(d)
     p = Printer(order)
     if d == 1:
         return p.expr(n)
-    lead = p.terms(n)[0] if n.is_Add else n
-    neg = lead.could_extract_minus_sign()             # -(x + 1)/(2 x), not (-x - 1)/(2 x)
+    def leads_negative(x):
+        return (p.terms(x)[0] if x.is_Add else x).could_extract_minus_sign()
+    if leads_negative(d):                             # the denominator leads with a plus
+        n, d = -n, -d
+    neg = leads_negative(n)                           # -(x + 1)/(2 x), not (-x - 1)/(2 x)
     n = -n if neg else n
     return ("-" if neg else "") + fr(p.expr(n), p.expr(d))
+
+# ------------------------------------------------------------------
+# Display style for every fraction, not only the outermost one
+# ------------------------------------------------------------------
+TOKEN = re.compile(r"\s+|\d+(?:\.\d+)?|[A-Za-z]\w*|.")
+
+def _group(toks, i):
+    """The tokens of a parenthesized group starting at toks[i] == "(" -> (inner tokens, index after ")")."""
+    depth, j = 0, i
+    while True:
+        depth += {"(": 1, ")": -1}.get(toks[j], 0)
+        if depth == 0:
+            return toks[i + 1:j], j + 1
+        j += 1
+
+def _items(toks):
+    """Typst math tokens -> items: (kind, text), kind "atom" (with any ^ or _ attached), "space", or "op"."""
+    out, i = [], 0
+    while i < len(toks):
+        t = toks[i]
+        if t.isspace():
+            out.append(("space", t)); i += 1; continue
+        if t == "(":
+            inner, i = _group(toks, i)
+            text = "(" + _dfrac(inner) + ")"
+        elif re.match(r"[A-Za-z]", t) and i + 1 < len(toks) and toks[i + 1] == "(":
+            inner, i = _group(toks, i + 1)                          # sqrt(...), abs(...): a function's argument
+            text = t + "(" + _dfrac(inner) + ")"
+        elif re.match(r"\w", t):
+            text, i = t, i + 1
+        else:
+            out.append(("op", t)); i += 1; continue
+        while i < len(toks) and toks[i] in "^_":               # an exponent stays as written: no display there
+            mark = toks[i]
+            if i + 1 < len(toks) and toks[i + 1] == "(":
+                inner, i = _group(toks, i + 1)
+                text += mark + "(" + "".join(inner) + ")"
+            else:
+                text += mark + toks[i + 1]; i += 2
+        out.append(("atom", text))
+    return out
+
+def _dfrac(toks):
+    items = _items(toks)
+    out = []                                   # items with fractions joined into display(a/b)
+    i = 0
+    while i < len(items):
+        kind, text = items[i]
+        if kind == "op" and text == "/" and out:
+            j = len(out) - 1
+            while j >= 0 and out[j][0] == "space":
+                j -= 1
+            k = i + 1
+            while k < len(items) and items[k][0] == "space":
+                k += 1
+            if j >= 0 and out[j][0] == "atom" and k < len(items) and items[k][0] == "atom":
+                left = out[j][1]
+                del out[j:]
+                out.append(("atom", f"display({left}/{items[k][1]})"))
+                i = k + 1
+                continue
+        out.append((kind, text))
+        i += 1
+    return "".join(t for _, t in out)
+
+def dfrac(t):
+    """Typst math with every fraction in display style (full size, as \\dfrac),
+    nested ones too, except in exponents: "(1/x + 2)/y" ->
+    "display((display(1/x) + 2)/y)"; "x^(1/2)" stays as it is."""
+    return _dfrac(TOKEN.findall(t))

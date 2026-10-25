@@ -1,5 +1,5 @@
 """Typst math -> sympy, and numeric checks shared by every bank."""
-import random, re
+import math, random, re
 import sympy as sp
 from sympy.parsing.sympy_parser import (parse_expr, standard_transformations,
                                         implicit_multiplication, convert_xor)
@@ -63,9 +63,36 @@ def denominators(text, imaginary=False):
     walk(to_sympy(text, imaginary, evaluate=False))
     return out
 
+def _evaluated(e):
+    """An unevaluated tree, evaluated."""
+    return e.func(*[_evaluated(a) for a in e.args]) if e.args else e
+
+def parts(text, imaginary=False):
+    """(numerator, denominator) of a Typst expression, as written: "-(3 x)/(4 y)" -> (-3 x, 4 y)."""
+    t = to_sympy(text, imaginary, evaluate=False)
+    args = list(t.args) if isinstance(t, sp.Mul) else [t]
+    over = [a for a in args if isinstance(a, sp.Pow) and a.exp == -1]
+    num = sp.Mul(*[_evaluated(a) for a in args if not any(a is o for o in over)])
+    return num, sp.Mul(*[_evaluated(o.base) for o in over])
+
+def lowest_terms(text, imaginary=False):
+    """The numerator and the denominator, as written, have no common factor:
+    not (6 - 2 i)/10, not (x^2 + x)/(x y)."""
+    n, d = parts(text, imaginary)
+    if d == 1:
+        return True
+    cn, cd = n.as_content_primitive()[0], d.as_content_primitive()[0]
+    if math.gcd(int(cn.p), int(cd.p)) != 1:
+        return False
+    try:
+        return sp.gcd(n, d).is_number
+    except (sp.PolynomialError, sp.GeneratorsNeeded, TypeError):
+        return True                          # letters in exponents: the numbers were checked
+
 def simplest_form(text, imaginary=False):
     """The answer follows the key's conventions, read from the text as written:
-    no negative exponents, no radical in a denominator, and (imaginary) no i in one."""
+    no negative exponents, no radical in a denominator, (imaginary) no i in one,
+    and the fraction in lowest terms."""
     if NEGATIVE_EXPONENT.search(text):
         return False
     for d in denominators(text, imaginary):
@@ -73,4 +100,4 @@ def simplest_form(text, imaginary=False):
             return False
         if imaginary and d.has(sp.I):
             return False
-    return True
+    return lowest_terms(text, imaginary)

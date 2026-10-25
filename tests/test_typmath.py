@@ -5,7 +5,7 @@ import random, shutil, subprocess, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import sympy as sp
-from sheets.typmath import tx, single, fr, text
+from sheets.typmath import tx, single, fr, text, dfrac
 from sheets.check import to_sympy, same_value, simplest_form, denominators
 
 x, y, z, m, n = sp.symbols("x y z m n")
@@ -55,10 +55,19 @@ assert single(-(x + 1) / (2 * x)) == "-(x + 1)/(2 x)"
 assert fr("x + 1", "2") == "(x + 1)/2" and fr("x^2", "y") == "x^2/y"
 assert text("-x - 1 <= 2") == "−x − 1 ≤ 2"
 
+# display style: every fraction, nested ones too, but not in exponents
+assert dfrac("(9/n + 3/p)/(1/n - 6/p)") == "display((display(9/n) + display(3/p))/(display(1/n) - display(6/p)))"
+assert dfrac("x^(1/2) + 3/4") == "x^(1/2) + display(3/4)" and dfrac("3 y^(2 n + 1) (1 + y)") == "3 y^(2 n + 1) (1 + y)"
+assert dfrac("((2 x^3 y)/(x^(-1) y^4))^3") == "(display((2 x^3 y)/(x^(-1) y^4)))^3"
+for t in ("p/(p/(p/k + z) + p)", "-(3 x)/(4 y)", "(c/(t^2 v) - 2 j/(t v^2))/(3/t^2 - 3/v^2)"):
+    assert dfrac(t).replace("display", "") .count("/") == t.count("/")
+    assert same(to_sympy(dfrac(t).replace("display", "")), to_sympy(t)), t     # wrapping only
+
 # form checks read the text as written
 assert not simplest_form("x^(-2) y") and not simplest_form("3/sqrt(2)")
 assert simplest_form("(3 sqrt(2))/2") and simplest_form("y/x^2")
-assert not simplest_form("2/(3 + i)", imaginary=True) and simplest_form("(6 - 2 i)/10", imaginary=True)
+assert not simplest_form("2/(3 + i)", imaginary=True) and simplest_form("(3 - i)/5", imaginary=True)
+assert not simplest_form("(6 - 2 i)/10", imaginary=True) and not simplest_form("(x^2 + x)/(x y)") and simplest_form("-(x + 1)/(2 x)")
 assert [str(d) for d in denominators("(x + 1)/(2 y)")] == ["2*y"]
 
 # same_value: equal where it should be, and not where it shouldn't
@@ -68,7 +77,7 @@ assert same_value("cos(60 degree)", "1/2") and same_value("m(x + 2)", "m x + 2 m
 
 # Typst reads every form: compile them all, if typst is installed
 if shutil.which("typst"):
-    lines = [f"$display({tx(e, 'xyz')})$ #h(1em) $display({single(e, 'xyz')})$ \\" for _ in range(5) for e in shapes()]
+    lines = [f"$display({dfrac(tx(e, 'xyz'))})$ #h(1em) $display({dfrac(single(e, 'xyz'))})$ \\" for _ in range(5) for e in shapes()]
     with tempfile.TemporaryDirectory() as d:
         src = Path(d) / "forms.typ"
         src.write_text("\n".join(lines) + "\n")

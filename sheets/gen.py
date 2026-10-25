@@ -9,6 +9,7 @@ these; new banks use this module.
     LETTERS, NAMES                letters for variables, first names for stories
     Types(TYPES, ...)             the type table and the bank functions built from it
     generator(...)                generate(entry, rng, seen): draw, check, no repeats
+    shown(), edits(...)           display, terminal text, and hand editing for Typst-math banks
 
 Every random choice takes the bank's rng (random.Random(seed)) first, so a
 draw is reproducible; checks use the global random, so checking never
@@ -172,3 +173,47 @@ def selftest(name, generate, keys, label, n, seed, reset=25):
             generate(k, rng, seen)
         print(f"{name} {label(k):8} {n} drawn, all verified")
     return True
+
+# ------------------------------------------------------------------
+# Showing and editing a problem whose prompt and answer are Typst math
+# ------------------------------------------------------------------
+def shown():
+    """typst, answer_typst, text, answer_text, height for a bank whose prompt
+    and answer are both Typst math, shown in display style: every fraction
+    full size, nested ones too (but not in exponents)."""
+    from .typmath import display, dfrac, text as plain
+    return (lambda p, gap="0.3em": display(dfrac(p["prompt"])),
+            lambda p: display(dfrac(p["answer"])),
+            lambda p: plain(p["prompt"]),
+            lambda p: plain(p["answer"]),
+            lambda p: 0.55 if "/" in p["prompt"] else 0.3)
+
+def edits(answer_of, check, example, example_answer, imaginary=False):
+    """edit_text, from_edit, answer_edit_text, with_answer for such a bank.
+    An edited prompt is solved again with answer_of(prompt) (a ValueError
+    there keeps the old answer, which check() then marks); an edited answer
+    is checked against the prompt."""
+    from .check import to_sympy
+    def clean(t):
+        return " ".join(t.replace("−", "-").split())
+    def from_edit(t, old):
+        t = clean(t)
+        try:
+            to_sympy(t, imaginary)
+        except Exception:
+            raise ValueError(f"write it in Typst math, like {example}") from None
+        try:
+            answer = answer_of(t)
+        except (ValueError, Redraw):
+            answer = old["answer"]
+        new = dict(old, prompt=t, answer=answer, source="edited")
+        return new, check(new)
+    def with_answer(p, t):
+        t = clean(t)
+        try:
+            to_sympy(t, imaginary)
+        except Exception:
+            raise ValueError(f"write the answer in Typst math, like {example_answer}") from None
+        new = dict(p, answer=t)
+        return new, check(new)
+    return (lambda p: p["prompt"]), from_edit, (lambda p: p["answer"]), with_answer

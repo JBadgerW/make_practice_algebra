@@ -22,7 +22,7 @@ import sympy as sp
 from .. import gen
 from ..gen import need, signed, signed_except
 from ..check import to_sympy, same_value, simplest_form
-from ..typmath import tx, single, fr, display, text as plain
+from ..typmath import tx, single, fr
 
 NAME = FAMILY = "adv_exponents"
 FIXED = False
@@ -200,43 +200,9 @@ def check(p):
 # ------------------------------------------------------------------
 # Showing and editing
 # ------------------------------------------------------------------
-def typst(p, gap="0.3em"):
-    return display(p["prompt"])
-
-def answer_typst(p):
-    return display(p["answer"])
-
-def text(p):
-    return plain(p["prompt"])
-
-def answer_text(p):
-    return plain(p["answer"])
-
-def height(p):
-    return 0.55 if "/" in p["prompt"] else 0.3
-
-def edit_text(p):
-    return p["prompt"]
-
-def from_edit(t, old):
-    t = " ".join(t.replace("−", "-").split())
-    try:
-        new = dict(old, prompt=t, answer=answer_of(t), source="edited")
-    except Exception:
-        raise ValueError("write an expression in Typst math, like (3 x^2 y^(-1))^(-2)") from None
-    return new, check(new)
-
-def answer_edit_text(p):
-    return p["answer"]
-
-def with_answer(p, t):
-    t = " ".join(t.replace("−", "-").split())
-    try:
-        to_sympy(t)
-    except Exception:
-        raise ValueError("write the answer in Typst math, like (8 x^8)/(9 y^7)") from None
-    new = dict(p, answer=t)
-    return new, check(new)
+typst, answer_typst, text, answer_text, height = gen.shown()
+edit_text, from_edit, answer_edit_text, with_answer = gen.edits(
+    answer_of, check, "(3 x^2 y^(-1))^(-2)", "(8 x^8)/(9 y^7)")
 
 def selftest(n, seed):
     return gen.selftest(NAME, generate, KEYS, lambda k: label(TYPE[k]), n, seed)
