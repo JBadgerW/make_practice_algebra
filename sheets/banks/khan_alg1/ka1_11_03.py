@@ -3,7 +3,7 @@ exponents), from the old app's Alg1_11_03 (twelve of Khan's, without
 answers; each "choose 2" has exactly two right, and the three mistakes are
 in step 3, nowhere, and step 2).
 
-Type 1: which two of four expressions equal 7 · 7 · 7 · 7 · 7 · 7, or
+Type 1: which of four expressions (one to three of them; Khan's had two) equal 7 · 7 · 7 · 7 · 7 · 7, or
 4^(-3)/4^(-1), or 4^(-2) · 7^(-2)? The right ones rewrite it by a rule
 (7^8/7^2, (7^2)^3, 1/28^2); the wrong ones break a rule the way students do
 (exponents added for a power of a power, multiplied for a product, the
@@ -35,7 +35,7 @@ INSTRUCTIONS = ""                       # each type has its own
 COURSES = courses(11)
 
 TYPES = [
-    dict(key="1", title="Equivalent Expressions", instructions="Which expressions are equivalent? Choose 2.",
+    dict(key="1", title="Equivalent Expressions", instructions="Which expressions are equivalent? Choose all that apply.",
          look="One expression, and four rewritings of it.",
          move="Write the expression as one power of one base. Do the same with each choice, using the rules: "
               "add exponents to multiply, subtract to divide, multiply for a power of a power."),
@@ -132,9 +132,11 @@ def t1(r, make):
         right, wrong = rights(r, b, n), wrongs(r, b, n)
     right = list(dict.fromkeys(c for c in right if c != prompt))
     wrong = list(dict.fromkeys(c for c in wrong if not equal(c, prompt)))
-    need(len(right) >= 2 and len(wrong) >= 2)
+    ks = [k for k in (1, 2, 3) if k <= len(right) and 4 - k <= len(wrong)]
+    need(ks)
+    k = r.choice(ks)                              # one to three right: choose all that apply
     r.shuffle(right), r.shuffle(wrong)
-    choices, letters = gen.lettered(r, right[:2], wrong[:2])
+    choices, letters = gen.lettered(r, right[:k], wrong[:4 - k])
     return dict(prompt=prompt, choices=choices, answer=letters)
 
 # ------------------------------------------------------------------

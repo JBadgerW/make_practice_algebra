@@ -156,10 +156,12 @@ Approved: the types as built; 2-8 keeps the Advanced Math answer form,
 y = -(u - 58)/(r + 17); 2-7a's key gives only the letters ("A, C").
 Changed: 2-10's stories draw their letter at random instead of Khan's.
 
-## 5b. Units 1 and 11 (built 2026-10-25; awaiting their checkpoint)
+## 5b. Units 1 and 11 (approved 2026-10-25)
 Unit 1: 0-1, 1-1. Unit 11: 11-1 to 11-9. New shared pieces: `sheets/radicals.py`
 (simplest-form square roots), `check.same_power` (exact comparison of powers,
 since 7^(-17) and 7^(-20) both look like 0 at random points).
+Approved: 11-1 keeps Khan's form (7^2); 11-3's equivalents have one to three
+right ("choose all that apply"); square roots to 400 and cube roots to 1728.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
