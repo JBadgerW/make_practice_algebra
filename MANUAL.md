@@ -141,6 +141,52 @@ recomputed. `A` takes `|x - 125| <= 20` (or `abs(...)`); Type 4 takes
 `model; solved; answer`, like `|25t - 80| <= 10; 2.8 <= t <= 3.6; 2.8 to 3.6 hours`,
 and its answer must match the key's words exactly.
 
+### Advanced Math
+
+`--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists
+all twelve and their types); `adv_trig/all:1` is one of each type. Add
+`--class "Advanced Math"` for the header. Each type has several templates,
+and a problem draws its own letters. Every problem is built backward from a
+nice answer, and its check doesn't use how it was built:
+
+- **Simplifying** (`adv_exponents`, `adv_rationalize`,
+  `adv_complex_fractions`, `adv_factoring` type 1): the answer must equal the
+  prompt at random values of its letters (letters in exponents too), and
+  its text must be in the key's form: positive exponents, nothing to
+  rationalize, lowest terms, no fraction inside it.
+- **Factoring** (`adv_factoring` types 2-4): the same, and finished: no factor
+  is still a difference of squares, no factor has a common number, and (with
+  number exponents) sympy can't split any factor further.
+- **Literal equations**: the answer, substituted into the equation, makes it
+  true at random values; the unknown must be gone from the right side.
+- **Division**: the answer equals dividend/divisor, and what's left over is a
+  number over the divisor.
+- **Functions**: each value is worked out again with sympy; a domain is
+  compared as a set of numbers; relations are read back as ordered pairs.
+- **Word problems** (`adv_variation`, `adv_mixtures`, `adv_word`,
+  `adv_spheres`): the numbers are read back out of the story's words and the
+  problem solved forward (digits, coins, and averages by trying every
+  possibility; exactly one may fit).
+- **Polar form**: the answer's numbers must match the exact conversion
+  within its rounding.
+
+In the terminal app, `i` edits a prompt and the key is recomputed; `A` edits
+the key and checks it. Prompts are Typst math:
+
+| Bank | `i` takes | `A` takes |
+|---|---|---|
+| simplifying banks | `(3 x^2 y^(-1))^(-2)`, `(4 + sqrt(3))/(2 - sqrt(3))` (i is the imaginary unit in `adv_rationalize`) | `(8 x^8)/(9 y^7)`, `11 + 6 sqrt(3)` |
+| `adv_factoring` | `3 y^(2 n + 1) + 12 y^(3 n + 2)` | `3 y^(2 n + 1) (1 + 4 y^(n + 1))` |
+| `adv_literal` | `y = v (a/x + b/(m c)) ; c` (the equation, then the letter) | `c = (b v x)/(m x y - a m v)` |
+| `adv_poly_division` | `x^3 - 5 x^2 + 9 ; x - 4` (dividend ; divisor) | `x^2 - x - 4 - 7/(x - 4)` |
+| `adv_functions` | `f(x) = x^2 + 3 x - 4; f(-4), f(3)`; `...; f(x + 2)`; `f(x) = 3 x^2; g(x) = -x + 5; (f circle.small g)(2)`; `f(x) = sqrt(x - 3)/(x^2 - 7 x + 10); domain`; relations `{(1, 2), (3, 4)}; {(1, 2), (1, 5)}` | `f(-4) = 0, f(3) = 14`; `x >= 3, x != 5`; `A, C` |
+| `adv_trig` | `2 sin(30 degree) + sqrt(2) cos(45 degree)`; `f(x) = 3 sin(x); f(135 degree)`; `3 hat(dotless.i) - 4 hat(dotless.j)`; `6 angle 200 degree` | `2`; `f(135 degree) = (3 sqrt(2))/2`; four forms, `5.0 angle 306.87 degree, ...`; `-5.64 hat(dotless.i) - 2.05 hat(dotless.j)` |
+| word-problem banks | the story, with only its numbers, names, and items changed | the key's words with your numbers: `48 apples`, `45 ounces of 20%, 60 ounces of 90%`, `$100 pi$ square feet` |
+
+When sympy can't solve an edited prompt (factoring with letters in the
+exponents), the old answer stays and is marked failed until you write the
+new one with `A`.
+
 ## 2. mathsheet, the terminal app
 
 ```sh
@@ -671,8 +717,10 @@ Rules that keep templates honest:
 ## 5. Checking your changes
 
 ```sh
-python3 make_practice.py --selftest 100     # every type of both families and every formula
+python3 make_practice.py --selftest 100     # every type of every bank and every formula
 python3 tests/test_mathsheet.py              # TUI key handling
+python3 tests/test_library.py                # the library: banks, courses, tags
+python3 tests/test_typmath.py                # sympy -> Typst, and the answer-form checks
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 ```
 

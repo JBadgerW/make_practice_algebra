@@ -213,6 +213,7 @@ sections per family, multiple choice.
 python3 make_practice.py --selftest 100     # every type of every family + formula pools
 python3 tests/test_mathsheet.py              # TUI state and keys, no terminal
 python3 tests/test_library.py                # the library: banks, courses.json, tags
+python3 tests/test_typmath.py                # sympy -> Typst: every form reads back, and the form checks
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
 ```
@@ -336,6 +337,36 @@ banks pane shows); a bank file does this with a type `"id"` apart from its
   `ESCDELAY` so Esc feels instant.
 - **Separate the state from the drawing** (`App` vs `Screen`) so the key
   handling can be tested without a terminal.
+
+- **Start a new bank from `sheets/gen.py` and `sheets/typmath.py`** (the
+  Advanced Math banks do; the older ones carry their own copies). `gen` has
+  the type table (`Types`), the draw-and-check loop (`generator`), display
+  and hand editing (`shown`, `edits`), and story templates for word problems
+  (`fill`, `read`). `typmath.tx`/`single` write sympy as the key does, and
+  `tests/test_typmath.py` proves every form reads back through `to_sympy`.
+  `check.same_value` compares values; `check.simplest_form` reads the form
+  (positive exponents, rationalized, lowest terms) from the text as written.
+- **Check the form, not only the value.** The right value with a negative
+  exponent, an unreduced fraction, or an unfinished factorization is a
+  wrong key. Read the form from the text (`to_sympy(..., evaluate=False)`),
+  never from how the answer was built.
+- **A check can catch the build.** `x^12 + 27 y^6` factors as a sum of
+  cubes, but the trinomial factor splits again; the completeness check
+  refused it. When a check fails a draw, reject the draw (`need`), don't
+  weaken the check.
+- **Word problems: check from the words.** Read the numbers back out of the
+  story with its own template and solve forward, or try every possibility
+  and require exactly one; that also catches stories with two answers.
+- **Bound brute-force searches** by what the story gives (the total value
+  bounds every coin count); an unbounded search made one check take minutes.
+- **Display style is a render step.** Prompts stay plain Typst, so checks
+  and editing read them; `typmath.dfrac` wraps every fraction (but not
+  exponents) when the page is written.
+- **Port the math, not the code.** The old app's generators were the spec
+  (problems, ranges, niceness rules); its LaTeX helpers and classes weren't
+  ported. Its bugs (a wrong substitution, a sign error in a domain, rounded
+  mixture amounts, `coinflip` without parentheses) turned up as soon as
+  each answer was checked.
 
 ## 10. Definition of done for a new family
 

@@ -35,6 +35,9 @@ python3 make_practice.py --mix absolute/all:2 --title "Lesson 1-7: Absolute Valu
 # Lesson 1-7: Word Problems: every story at every type
 python3 make_practice.py --mix absolute_words/all:1 --title "Lesson 1-7: Word Problems"
 
+# Advanced Math: two of each type of complex fractions and rationalizing
+python3 make_practice.py --mix adv_complex_fractions/all:2 adv_rationalize/all:2 --class "Advanced Math" --title "Review"
+
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 mathsheet.py
@@ -158,6 +161,47 @@ hotel problems to solve, and `absolute_words/all:1` is one of each. Every
 solved bound is a decimal with at most two places (three for gallons, as on a
 pump). Type 1 is half width; the stories are full width.
 
+### Advanced Math
+
+Twelve banks, tagged *Advanced Math → Additional Practice*, ported from the
+old worksheet app's `AdvMath_*` sets (the 2025-26 midterm, Tests 4 and 5,
+and the lesson sets). Every problem draws its own letters, as the old sets
+did, and every answer is checked by machine: its value against the prompt,
+and its form from its text.
+
+| Bank | Title | Types |
+|---|---|---|
+| `adv_exponents` | Simplifying with Exponents | 1 Powers of Products and Quotients · 2 A Sum over a Monomial · 3 A Sum over a Power of a Product · 4 Letters in the Exponents |
+| `adv_rationalize` | Rationalizing Denominators | 1 A Square Root in the Denominator · 2 i in the Denominator · 3 A Binomial with a Square Root · 4 A Complex Denominator |
+| `adv_complex_fractions` | Complex Fractions | 1 A Sum over a Sum · 2 Nested Fractions · 3 Fractions with Powers |
+| `adv_factoring` | Special Products with Letter Exponents | 1 Simplify by the Difference of Two Squares · 2 A Difference of Two Squares · 3 A Sum or Difference of Cubes · 4 A Greatest Common Factor with Letter Exponents |
+| `adv_literal` | Literal Equations with Fractions | 1 The Unknown in a Numerator · 2 The Unknown in a Denominator · 3 The Unknown in Two Places |
+| `adv_poly_division` | Polynomial Division | 1 Dividing by x + a, No Remainder · 2 Dividing by x + a, with a Remainder · 3 Dividing by a x + b |
+| `adv_functions` | Functions | 1 Evaluating a Function · 2 Substituting an Expression · 3 Combining Functions · 4 The Domain · 5 Which Relations Are Functions? |
+| `adv_variation` | Direct and Inverse Variation | 1 Directly as a Square, Inversely as Another · 2 Directly as a Cube, Inversely as Another · 3 Directly as One, Inversely as a Square |
+| `adv_mixtures` | Mixture Problems | 1 Both Amounts, Given the Total · 2 One Amount, Given the Total · 3 One Amount, Given the Other · 4 Water or a Pure Ingredient |
+| `adv_word` | Number, Coin, and Average Problems | 1 Digit Problems · 2 Coin Problems · 3 Averages |
+| `adv_trig` | Trig Values and Polar Form | 1 Exact Trig Values · 2 Angles Past 90° · 3 Rectangular to Polar · 4 Polar to Rectangular |
+| `adv_spheres` | Spheres | 1 Volume to Surface Area · 2 Surface Area to Volume |
+
+How the keys write answers:
+
+- **One fraction, multiplied out**, in lowest terms: `(x^3 + x y^4)/y^3`,
+  `(3 + 2√2)/7`, `(9 − 2i)/5`.
+- **Positive exponents only**; no radical and no `i` in a denominator.
+- **A minus sign** goes into a denominator that is a sum, `(csv)/(kvy − aks)`,
+  and otherwise in front, `−(x + 1)/(2x)`.
+- **Every fraction in display style**, nested ones too (but not in
+  exponents), so a complex fraction's parts are full size.
+- **Factoring is complete**: `x^(4n) − 16 = (x^(2n) + 4)(x^n + 2)(x^n − 2)`.
+- **Division**: quotient + remainder/divisor, `x² − x − 5 + 11/(x − 5)`.
+- **Functions** name what they find: `f(−10) = 171`, `(f ∘ g)(2) = 8`; a
+  domain is its conditions, `x ≥ −3, x ≠ 9`; relations, the letters of the
+  functions.
+- **Word problems** have whole-number (or exact) answers with their units,
+  and use names only, no pronouns.
+- **Polar form**: r to 0.1 and θ to 0.01°, four forms; rectangular to 0.01.
+
 ## Files
 
 **Where problems live.** Written problems, sequences, and courses are JSON
@@ -176,9 +220,12 @@ ever runs code.
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
 | `sheets/banks/absolute_words.py` | The Lesson 1-7: Word Problems bank: the ten phrases, the eight stories, the four types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
+| `sheets/typmath.py` | sympy → Typst math as the key writes it (one fraction, positive exponents, terms by degree), and display-style fractions (`dfrac`) |
+| `sheets/gen.py` | What the Advanced Math banks share: random helpers, letters and names, the type table, the draw-and-check loop, display and editing, and story templates for word problems |
+| `sheets/banks/adv_*.py` | The twelve Advanced Math banks (see *Advanced Math* above) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
-| `tests/` | `test_mathsheet.py` and `test_library.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
+| `tests/` | `test_mathsheet.py`, `test_library.py`, and `test_typmath.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
 | `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty), the built-in sequence `literal_by_type.json` (the lesson's order, built by `lesson_sequence()` in `sheets/banks/literal`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |
