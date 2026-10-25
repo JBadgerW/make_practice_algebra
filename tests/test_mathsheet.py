@@ -394,6 +394,18 @@ xk("cc"); xk("\x15How many ounces of water must be boiled off from 60 ounces of 
 assert x.item()["problem"]["answer"] == "20 ounces of water" and x.item()["status"] == "checked", x.item()   # the answer follows the numbers
 xk("A\x1525 ounces of water\n"); assert x.item()["status"] == "failed"
 xk(f":{where.index(('adv_word', '1')) + 1}\n"); xk("A\x1599, 99\n"); assert x.item()["status"] == "failed"
+x = T.App(seed=7); xk = driver(x)
+xk(":mix adv_trig/all:1 adv_spheres/all:1\n")
+assert len(sh.items(x.sheet)) == 6 and all(it["status"] == "checked" for it in sh.items(x.sheet))
+where = [(it["bank"], it["entry"]) for it in sh.items(x.sheet)]
+xk(f"\t:{where.index(('adv_trig', '4')) + 1}\n"); xk("cc"); xk("\x156 angle 200 degree\n")
+assert x.item()["problem"]["answer"] == "-5.64 hat(dotless.i) - 2.05 hat(dotless.j)" and x.item()["status"] == "checked"
+xk("A\x15-5.64 hat(dotless.i) + 2.05 hat(dotless.j)\n"); assert x.item()["status"] == "failed"
+xk(f":{where.index(('adv_trig', '1')) + 1}\n"); xk("cc"); xk("\x152 sin(30 degree) + sqrt(2) cos(45 degree)\n")
+assert x.item()["problem"]["answer"] == "2" and x.item()["status"] == "checked", x.item()
+xk(f":{where.index(('adv_spheres', '2')) + 1}\n"); right = x.item()["problem"]["answer"]
+xk("A\x15$5 pi$ cubic miles\n"); assert x.item()["status"] == "failed", "no radius 1 to 10 gives 5 pi"
+xk(f"A\x15{right}\n"); assert x.item()["status"] == "checked"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
