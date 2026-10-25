@@ -163,6 +163,12 @@ since 7^(-17) and 7^(-20) both look like 0 at random points).
 Approved: 11-1 keeps Khan's form (7^2); 11-3's equivalents have one to three
 right ("choose all that apply"); square roots to 400 and cube roots to 1728.
 
+## 5c. Unit 13 (built 2026-10-25; awaiting its checkpoint)
+All fifteen lessons. New shared pieces: `sheets/poly.py` (expanded and
+factored forms, read back from the text), `khan_alg1/figures.py` (area
+models and labeled rectangles in Typst), `khan_alg1/polybank.py`.
+13-1 also serves Khan Algebra 2's 1-1 (the same set).
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
@@ -175,6 +181,10 @@ name the thing counted.
 - Alg1 1-1 no. 12 (a - x/b): the answer was drawn at random, apart from the expression; its key was always wrong.
 - Alg1 11-1 no. 6: no exponent excluded, so b^m/b^m (b^0) could be drawn.
 - Alg1 11-7, 11-8: the "not perfect squares" list held 8 and 12, so keys like 3 sqrt(8) weren't simplified.
+- Alg1 13-8 (area-model templates): the stated GCF divided out only gcd(a, b, c), so 6 x^2 + 12 was said to have GCF 3, and the "GCF" could become 1.
+- Alg1 13-15: (d x + e)^2 with d and e not reduced, so (2 x + 4)^2 was keyed as factored completely (it's 4 (x + 2)^2).
+- Alg1 13-12 no. 8: asks for the width, labels the blank "Length =".
+- Alg1 13-2: allowed a negative height (-6) for a rectangle; heights are positive now.
 - Alg1 2-6: the one generated slot (no. 30) was always "infinitely many".
 - About 1,000 slots have no answer at all (`ANSWER TO nn GOES HERE`). The generators
   will supply checked answers for all of them.
