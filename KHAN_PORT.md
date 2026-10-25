@@ -180,6 +180,12 @@ exactly (`khan_alg1/rationality.py`); statements about letters (15-2 Type 2)
 are checked by trying sample rational and irrational values. Approved: a
 rational letter may be zero (a · b can be either), as a deliberate trap.
 
+## 5e. Unit 6 without graphs (built 2026-10-25; awaiting its checkpoint)
+Twelve lessons (6-1, 6-3, 6-5 to 6-10, 6-12 to 6-15); 6-2, 6-4, and 6-11 draw
+graphs and wait for Phase 5. New shared pieces: `khan_alg1/twovar.py`
+(two-letter systems), `khan_alg1/stories.py` (stories whose model is a
+system, checked from the words).
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
@@ -196,6 +202,9 @@ name the thing counted.
 - Alg1 13-15: (d x + e)^2 with d and e not reduced, so (2 x + 4)^2 was keyed as factored completely (it's 4 (x + 2)^2).
 - Alg1 13-12 no. 8: asks for the width, labels the blank "Length =".
 - Alg1 13-2: allowed a negative height (-6) for a rectangle; heights are positive now.
+- Alg1 6-7: templates 4, 8, and 12 could make a choice keyed wrong eliminate a variable too (d = -a; q = -p; e = b d or a e = -b), so "choose 2" had three right.
+- Alg1 6-10 no. 12: printed "(b) No" (right) but marked "Yes" as the correct choice.
+- Alg1 6-15 no. 6: marked two choices correct (many solutions, right, and no solution).
 - Alg1 2-6: the one generated slot (no. 30) was always "infinitely many".
 - About 1,000 slots have no answer at all (`ANSWER TO nn GOES HERE`). The generators
   will supply checked answers for all of them.
