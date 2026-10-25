@@ -372,6 +372,18 @@ xk(f":{where.index(('adv_factoring', '4')) + 1}\n"); xk("cc"); xk("\x153 y^(2 n 
 assert x.item()["status"] == "failed"
 xk("A\x153 y^(2 n + 1) (1 + 4 y^(n + 1))\n"); assert x.item()["status"] == "checked"
 xk("A\x153 (y^(2 n + 1) + 4 y^(3 n + 2))\n"); assert x.item()["status"] == "failed", "not finished: y^(2 n + 1) is common"
+x = T.App(seed=5); xk = driver(x)
+xk(":mix adv_literal/all:1 adv_poly_division/all:1 adv_functions/all:1\n")
+assert len(sh.items(x.sheet)) == 11 and all(it["status"] == "checked" for it in sh.items(x.sheet))
+where = [(it["bank"], it["entry"]) for it in sh.items(x.sheet)]
+xk(f"\t:{where.index(('adv_literal', '3')) + 1}\n"); xk("cc"); xk("\x15r = (d + 1)/(2 d - w) ; d\n")
+assert x.item()["problem"]["answer"] == "d = (r w + 1)/(2 r - 1)" and x.item()["status"] == "checked", x.item()
+xk(f":{where.index(('adv_poly_division', '2')) + 1}\n"); xk("cc"); xk("\x15x^3 - 5 x^2 + 9 ; x - 4\n")
+assert x.item()["problem"]["answer"] == "x^2 - x - 4 - 7/(x - 4)" and x.item()["status"] == "checked", x.item()
+xk(f":{where.index(('adv_functions', '4')) + 1}\n"); xk("cc"); xk("\x15f(x) = sqrt(x - 3)/(x^2 - 7 x + 10); domain\n")
+assert x.item()["problem"]["answer"] == "x >= 3, x != 5" and x.item()["status"] == "checked", x.item()
+xk("A\x15x >= 3, x != 2, x != 5\n"); assert x.item()["status"] == "checked", "2 is outside the domain anyway"
+xk("A\x15x >= -3, x != 5\n"); assert x.item()["status"] == "failed"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
