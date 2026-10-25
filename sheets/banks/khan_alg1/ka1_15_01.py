@@ -14,6 +14,7 @@ A problem: dict(type, prompt, choices, answer, source).
     answer   "A"
 check() computes the number exactly (rationality.value): rational if it's a fraction.
 """
+import math
 from ... import gen
 from ...gen import need, signed
 from ...typmath import display, text as plain
@@ -48,12 +49,19 @@ NONSQUARE = [n for n in range(2, 210) if int(n ** 0.5) ** 2 != n]
 def d(r, lo=1, hi=9):
     return r.randint(lo, hi)
 
+def mixed(r):
+    """A mixed number, its fraction proper and in lowest terms: 6 1/2."""
+    q = r.randint(2, 9)
+    n = r.randint(1, q - 1)
+    need(math.gcd(n, q) == 1)
+    return f"{d(r)} {n}/{q}"
+
 TEMPLATES = {"1": [
     lambda r: f"{d(r, 0)}.{r.randint(1, 999):03d}".rstrip("0"),                     # 0.692
     lambda r: f"{r.randint(1, 99)}.0",                                               # 9.0
     lambda r: f"{'-' if r.random() < 0.3 else ''}{d(r, 0)}.overline({r.randint(1, 99)})",   # 0.overline(151)
     lambda r: f"{'-' if r.random() < 0.5 else ''}{r.randint(1, 600)}/{r.randint(2, 600)}",  # -501/502
-    lambda r: f"{d(r)} {d(r, 1, 4)}/{d(r, 5, 9)}",                                  # 6 1/2
+    lambda r: mixed(r),                                                              # 6 1/2
     lambda r: f"({d(r, 0)}.{d(r)})/({d(r, 0)}.{d(r)})",                                              # 0.4/0.8
     lambda r: f"sqrt({r.randint(2, 14) ** 2})",                                     # sqrt(64)
     lambda r: f"sqrt({r.choice(NONSQUARE)})",                                        # sqrt(32)
