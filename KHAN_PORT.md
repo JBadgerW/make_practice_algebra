@@ -156,6 +156,11 @@ Approved: the types as built; 2-8 keeps the Advanced Math answer form,
 y = -(u - 58)/(r + 17); 2-7a's key gives only the letters ("A, C").
 Changed: 2-10's stories draw their letter at random instead of Khan's.
 
+## 5b. Units 1 and 11 (built 2026-10-25; awaiting their checkpoint)
+Unit 1: 0-1, 1-1. Unit 11: 11-1 to 11-9. New shared pieces: `sheets/radicals.py`
+(simplest-form square roots), `check.same_power` (exact comparison of powers,
+since 7^(-17) and 7^(-20) both look like 0 at random points).
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
@@ -165,6 +170,9 @@ name the thing counted.
 - Alg1 2-10 no. 9 (plumber): the key's part (a) was 65 + 28H >= 250; "no more than $250" is <=.
 - Alg1 2-10 no. 10 (Sergei's flour) and others: no answers; part (b) now computed and checked.
 - Alg1 2-2 no. 10: "15.3 + 1h = 1.3 - 1h" writes a coefficient of 1 (cosmetic).
+- Alg1 1-1 no. 12 (a - x/b): the answer was drawn at random, apart from the expression; its key was always wrong.
+- Alg1 11-1 no. 6: no exponent excluded, so b^m/b^m (b^0) could be drawn.
+- Alg1 11-7, 11-8: the "not perfect squares" list held 8 and 12, so keys like 3 sqrt(8) weren't simplified.
 - Alg1 2-6: the one generated slot (no. 30) was always "infinitely many".
 - About 1,000 slots have no answer at all (`ANSWER TO nn GOES HERE`). The generators
   will supply checked answers for all of them.
