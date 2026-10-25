@@ -134,7 +134,7 @@ graph.
 **Phase 6: Docs and tests.** README/MANUAL sections per course, `:warnings` empty,
 selftest over every Khan type, and byte-identical baselines for the existing banks.
 
-## 4. Pilot status (Phase 0 and 1 done; awaiting the checkpoint)
+## 4. Status
 - Phase 0: three courses in `library/courses.json`; the library finds banks one
   level into a package (`sheets/banks/khan_alg1/`); `gen.written` (terms as written);
   `gen.lettered`/`in_order`/`choices_typst`/`with_letters` (multiple choice);
@@ -143,10 +143,19 @@ selftest over every Khan type, and byte-identical baselines for the existing ban
 - Phase 1: `ka1_02_01` (2 types, 4 templates each) and `ka1_02_06` (2 types by form,
   each drawing none/one/infinitely many equally; MC in a fixed natural order).
   300 draws per type, all verified. The worksheet, key, and slides compiled and
-  were inspected.
+  were inspected. Approved 2026-10-25: the answers stay random (not
+  balanced), the work-space sizes stand, and choices are stacked with the
+  key reading "A. No solutions".
+- Khan Algebra 1, Unit 2: all eleven lessons (2-1 to 2-11, with 2-7a)
+  built and committed; awaiting the unit checkpoint. New shared pieces:
+  `sheets/ineq.py` (inequality and compound-inequality sets),
+  `khan_alg1/numbers.py` (short decimals, simple fractions).
 
 ## 5. Errors found in the old banks so far
 - Alg1 2-2 no. 18: `2 − ½n = 3n + 16` has key `n = 4`. The solution is `n = −4`.
+- Alg1 2-10 no. 9 (plumber): the key's part (a) was 65 + 28H >= 250; "no more than $250" is <=.
+- Alg1 2-10 no. 10 (Sergei's flour) and others: no answers; part (b) now computed and checked.
+- Alg1 2-2 no. 10: "15.3 + 1h = 1.3 - 1h" writes a coefficient of 1 (cosmetic).
 - Alg1 2-6: the one generated slot (no. 30) was always "infinitely many".
 - About 1,000 slots have no answer at all (`ANSWER TO nn GOES HERE`). The generators
   will supply checked answers for all of them.
