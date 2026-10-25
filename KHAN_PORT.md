@@ -180,11 +180,13 @@ exactly (`khan_alg1/rationality.py`); statements about letters (15-2 Type 2)
 are checked by trying sample rational and irrational values. Approved: a
 rational letter may be zero (a · b can be either), as a deliberate trap.
 
-## 5e. Unit 6 without graphs (built 2026-10-25; awaiting its checkpoint)
+## 5e. Unit 6 without graphs (approved 2026-10-25)
 Twelve lessons (6-1, 6-3, 6-5 to 6-10, 6-12 to 6-15); 6-2, 6-4, and 6-11 draw
 graphs and wait for Phase 5. New shared pieces: `khan_alg1/twovar.py`
 (two-letter systems), `khan_alg1/stories.py` (stories whose model is a
-system, checked from the words).
+system, checked from the words). Approved: answers "x = 2, y = -5" (the old
+key's form); word problems keyed with the sentence only. Changed: 6-3 shows
+a product unmultiplied, 0.5 s = 2 · 0.3 h, as the old key did.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)

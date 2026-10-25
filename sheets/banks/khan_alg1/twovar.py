@@ -53,7 +53,7 @@ def letters(prompt):
     return names
 
 def system_typst(prompt):
-    rows = [q.replace("=", "&=", 1) for q in equations(prompt)]
+    rows = [q.replace("=", "&=", 1).replace("*", "dot") for q in equations(prompt)]     # 2 * 0.3 h: shown 2 · 0.3 h
     return f"$display(cases({dfrac(rows[0])}, {dfrac(rows[1])}))$"
 
 def number(q):
@@ -106,4 +106,4 @@ def check(p):
         return "unchecked"
 
 def text(p):
-    return "   ".join("{ " + plain(q) for q in equations(p["prompt"]))
+    return "   ".join("{ " + plain(q.replace("*", "·")) for q in equations(p["prompt"]))

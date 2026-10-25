@@ -5,7 +5,9 @@ Which system of equations represents the situation? Khan's twelve stories:
 chocolate blends, yarn for hats and scarves, walks and rides at two speeds,
 and ages, each with its letters defined. The wrong systems are the old
 ones: the rates or the totals traded, the multiple on the wrong letter, a
-difference the wrong way round. Names only, no pronouns.
+difference the wrong way round. Names only, no pronouns. A product is
+stored with * and shown with a dot, unmultiplied, as the old key had it:
+0.5 s = 2 · 0.3 h.
 
 A problem: dict(type, story, prompt, choices, answer, source).
     choices  four systems, each "eq1 ; eq2" in the story's letters
@@ -199,8 +201,8 @@ STORIES = [
          text="{name} is knitting hats and scarves. Each hat uses {hw} kg of yarn and each scarf {sw} kg. {name} "
               "wants to use {k} as much yarn for scarves as for hats, and to make {items} items in all. Let h be the "
               "number of hats and s the number of scarves.",
-         right=lambda n: sys(eq(lin((n["sw"], "s")), lin((TIMES_OF[n["k"]] * n["hw"], "h"))), eq(lin((1, "h"), (1, "s")), n_(n, "items"))),
-         wrong=lambda n: [sys(eq(lin((n["hw"], "h")), lin((TIMES_OF[n["k"]] * n["sw"], "s"))), eq(lin((1, "h"), (1, "s")), n_(n, "items"))),
+         right=lambda n: sys(eq(lin((n["sw"], "s")), f"{TIMES_OF[n['k']]} * {lin((n['hw'], 'h'))}"), eq(lin((1, "h"), (1, "s")), n_(n, "items"))),
+         wrong=lambda n: [sys(eq(lin((n["hw"], "h")), f"{TIMES_OF[n['k']]} * {lin((n['sw'], 's'))}"), eq(lin((1, "h"), (1, "s")), n_(n, "items"))),
                           sys(eq(lin((n["sw"], "s"), (n["hw"], "h")), n_(n, "items")), eq("s", lin((TIMES_OF[n["k"]], "h")))),
                           sys(eq(lin((n["sw"], "s"), (n["hw"], "h")), n_(n, "items")), eq("h", lin((TIMES_OF[n["k"]], "s"))))]),
     dict(key="j", type="3", draw=d_ages_times,
