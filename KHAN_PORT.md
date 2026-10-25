@@ -174,10 +174,11 @@ lead with their numbers is keyed in ascending order, 25 - x^2 (13-6, 13-7;
 13-4 and 13-5 ask for standard form); no negative lengths: 13-2's widths
 are positive.
 
-## 5d. Unit 15 (built 2026-10-25; awaiting its checkpoint)
+## 5d. Unit 15 (approved 2026-10-25)
 15-1 and 15-2: rational or irrational, decided by computing the number
 exactly (`khan_alg1/rationality.py`); statements about letters (15-2 Type 2)
-are checked by trying sample rational and irrational values.
+are checked by trying sample rational and irrational values. Approved: a
+rational letter may be zero (a · b can be either), as a deliberate trap.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
