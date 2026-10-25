@@ -18,7 +18,7 @@ from .answers import solve, fmt, make
 @functools.lru_cache(maxsize=None)
 def _lesson_prompts():
     try:
-        bank = json.loads((ROOT / "library" / "lesson_1-4.json").read_text())   # written by gen_sequence.py
+        bank = json.loads((ROOT / "library" / "lesson_1-4.json").read_text())
         return frozenset((p["prompt"], p["target"]) for p in bank["problems"])
     except (OSError, ValueError, KeyError):
         return frozenset()
@@ -92,8 +92,8 @@ ENTRY = {e["key"]: e for e in ENTRIES}
 def lesson_sequence():
     """Lesson 1-4's order as a sequence (sheets/sequences.py): a step per type,
     drawing fresh problems of it, with the lesson's own problems of that type
-    pinned as its examples. gen_sequence.py writes it to banks/; TYPES is the
-    one source of its order. The notes start as each type's "look for"."""
+    pinned as its examples. library/literal_by_type.json is this, written out;
+    TYPES is the one source of its order. The notes start as each type's "look for"."""
     return {"format": 1, "kind": "sequence", "name": "literal_by_type",
             "title": "Literal Equations by Type", "courses": dict(COURSES),
             "steps": [{"entry": f"{NAME}/{t['key']}", "note": t["look"],

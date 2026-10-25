@@ -3,8 +3,6 @@ import re
 from . import ROOT
 
 MARK = "// ==================================================\n// DOCUMENT VARIABLES"
-head = (ROOT / "templates/mixed_review_v1.typ").read_text()
-head = head[:head.index(MARK)]
 slhead = (ROOT / "templates/mixed_review_slides.typ").read_text()
 slhead = slhead[:slhead.index(MARK)]
 # The worksheet preamble: the teacher's refined template, minus its own

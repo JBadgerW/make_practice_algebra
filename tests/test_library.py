@@ -30,7 +30,7 @@ assert L.library_dir() == Path("~/Documents/mathsheet-library").expanduser(), "t
 from sheets.banks.literal import TYPES, lesson_sequence
 q = lib.sequence("literal_by_type")
 assert json.loads((L.BUILTIN / "literal_by_type.json").read_text()) == lesson_sequence(), \
-    "library/literal_by_type.json is what gen_sequence.py writes from TYPES"
+    "library/literal_by_type.json is lesson_sequence() from TYPES"
 assert [st["entry"] for st in q.steps] == [t["key"] for t in TYPES] and all(st["bank"] == "literal" for st in q.steps)
 assert [st["title"] for st in q.steps] == [t["title"] for t in TYPES]
 pinned = [pid for st in q.steps for _, pid in st["examples"]]

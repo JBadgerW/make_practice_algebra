@@ -2,15 +2,12 @@
 
 Algebra 1 materials for solving literal equations (formulas) for a given
 variable. The equations are sorted into eleven **types** by the first move
-each one needs, plus two **special cases**. There are two parts:
+each one needs, plus two **special cases**.
 
-1. **The lesson set:** 50 equations in sequence, with a worksheet, an answer
-   key, a slide deck, a worked-examples guide, and a reference sheet that
-   solves every equation for every variable.
-2. **A practice generator:** new problems of whatever types you choose, as
-   many versions as you like. It writes a worksheet, an answer key, and a
-   slide deck for each version. You can run it from the command line or from
-   a terminal app with vim keys.
+The practice generator makes new problems of whatever types you choose, as
+many versions as you like. It writes a worksheet, an answer key, and a
+slide deck for each version. You can run it from the command line or from
+a terminal app with vim keys.
 
 The terminal app draws from a **library** of problem banks: generators, the
 lesson's fifty, and banks you write yourself, each tagged with the courses it
@@ -23,9 +20,6 @@ numerically with sympy before anything is written.
 ## Quick start
 
 ```sh
-# Rebuild the lesson set
-python3 gen_sequence.py [--class NAME] [--groups G ...] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
-
 # Practice sets from the command line (3f = real formulas of Type 3)
 python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 
@@ -182,12 +176,10 @@ ever runs code.
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
 | `sheets/banks/absolute_words.py` | The Lesson 1-7: Word Problems bank: the ten phrases, the eight stories, the four types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
-| `gen_sequence.py` | Builds the lesson set (`lesson_1-4_literal_seq_*`) |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
 | `tests/` | `test_mathsheet.py` and `test_library.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
-| `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty, written by `gen_sequence.py`), the built-in sequence `literal_by_type.json` (the lesson's order, also written by `gen_sequence.py`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
-| `lesson_1-4/` | Output of `gen_sequence.py`: the lesson set: worksheet, key, slides, guide, all-solutions reference, JSON bank |
+| `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty), the built-in sequence `literal_by_type.json` (the lesson's order, built by `lesson_sequence()` in `sheets/banks/literal`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |
 | `PLAN.md` | The agreed plan for turning this into a general worksheet editor |
@@ -198,8 +190,7 @@ ever runs code.
 - Python 3.10+ with **sympy** (tested with 1.13).
 - **Typst** 0.15 to compile PDFs. Without it, the `.typ` files are still written.
 - The styles live in `templates/` and are read at run time: practice
-  worksheets use `refined_template.typ`; slides use `mixed_review_slides.typ`;
-  the lesson set still uses `mixed_review_v1.typ`.
+  worksheets use `refined_template.typ`, and slides use `mixed_review_slides.typ`.
 - Optional: `pyte`, only for `tests/screen_test.py`.
 
 ## Reproducibility

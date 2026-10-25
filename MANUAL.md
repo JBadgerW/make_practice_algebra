@@ -1,53 +1,13 @@
 # Manual
 
-1. [The lesson set](#1-the-lesson-set)
-2. [Making practice sets from the command line](#2-making-practice-sets-from-the-command-line)
-3. [mathsheet, the terminal app](#3-mathsheet-the-terminal-app)
-4. [What gets written](#4-what-gets-written)
-5. [Adding problems](#5-adding-problems)
-6. [Checking your changes](#6-checking-your-changes)
-7. [Troubleshooting](#7-troubleshooting)
+1. [Making practice sets from the command line](#1-making-practice-sets-from-the-command-line)
+2. [mathsheet, the terminal app](#2-mathsheet-the-terminal-app)
+3. [What gets written](#3-what-gets-written)
+4. [Adding problems](#4-adding-problems)
+5. [Checking your changes](#5-checking-your-changes)
+6. [Troubleshooting](#6-troubleshooting)
 
-## 1. The lesson set
-
-`gen_sequence.py` holds the 50 lesson equations, the worked steps for the
-guide, and the rules about which problems get worked out. Run it, then
-compile:
-
-```sh
-python3 gen_sequence.py [--class NAME] [--groups G ...] && (cd lesson_1-4 && for f in *.typ; do typst compile "$f"; done)
-```
-
-`--groups` reorders, mixes, and renames the sections of the worksheet, key,
-and slides, with the same syntax as `make_practice.py` (see section 2):
-`python3 gen_sequence.py --groups 9 8 3+4="Warm-up" 1 2`. Problems are numbered
-in print order, so with a custom layout the numbers differ from the lesson
-numbers. A mixed group is shuffled; `--seed N` (default 0) picks the shuffle.
-The guide and all-solutions reference always stay in lesson order and lesson
-numbers. Without `--groups`, the output is the same as before.
-
-| Output | Contents |
-|---|---|
-| `lesson_1-4_literal_seq_worksheet` | Problems 1–50 under type headings, each with a one-line hint |
-| `lesson_1-4_literal_seq_key` | The same, with answers in red |
-| `lesson_1-4_literal_seq_slides` | A title slide per type, then a problem slide and an answer slide; the worked examples get step-by-step answer slides |
-| `lesson_1-4_literal_seq_guide` | For each type: Look for, The move, and a worked example; the special cases are worked in full, with a "Watch out" note |
-| `lesson_1-4_literal_seq_all_solutions` | The textbook equations and the 50 lesson equations, each solved for every variable |
-| `lesson_1-4_literal_seq_bank.json` | Everything above as data |
-| `../library/lesson_1-4.json` | The fifty as a fixed bank for the terminal app (section 5) |
-| `../library/literal_by_type.json` | The lesson's order as a sequence for the terminal app: a step per type, the fifty pinned as its examples (section 3, *Sequences*) |
-
-The script stops with an error if an answer or a worked step fails its
-numeric check. It also stops if the types don't cover problems 1–50 exactly
-once, in order.
-
-**Editing the lesson.** The type names, hints, problem ranges, and worksheet
-spacing are in `TYPES` in `sheets/banks/literal/types.py`. The equations are in `EQ`,
-and the worked steps are in `STEPS`, `ALT`, `NOTICE`, and `PITFALL`, all in
-`gen_sequence.py`. A worked step is `("equation", "note")`. The first
-equation must be the problem itself, and the last must be `target = answer`.
-
-## 2. Making practice sets from the command line
+## 1. Making practice sets from the command line
 
 ```sh
 python3 make_practice.py [options]
@@ -181,7 +141,7 @@ recomputed. `A` takes `|x - 125| <= 20` (or `abs(...)`); Type 4 takes
 `model; solved; answer`, like `|25t - 80| <= 10; 2.8 <= t <= 3.6; 2.8 to 3.6 hours`,
 and its answer must match the key's words exactly.
 
-## 3. mathsheet, the terminal app
+## 2. mathsheet, the terminal app
 
 ```sh
 python3 mathsheet.py                                      # start empty
@@ -263,7 +223,7 @@ problems from the generator, with the lesson's own problems of that type
 pinned as its examples (problems 13–18 under step 3, and so on). Its notes
 start as each type's *Look for* text, which describes the type rather than
 what changed from the step before; rewrite them in your own copy (see
-below). `gen_sequence.py` writes it from the same `TYPES` table as the
+below). It is built from the same `TYPES` table as the
 lesson, so the two never disagree.
 
 In the banks pane, a course's sequences come first under their unit, marked
@@ -514,7 +474,7 @@ through earlier commands.
 terminal of at least 72×14. It works without color; italics show where the
 terminal supports them.
 
-## 4. What gets written
+## 3. What gets written
 
 In the output folder:
 
@@ -552,7 +512,7 @@ print it again with `python3 make_practice.py --sheet FILE`.
 Prompts and answers are stored as Typst math. Paste one into a Typst file
 as `$display(...)$`.
 
-## 5. Adding problems
+## 4. Adding problems
 
 **A fixed bank.** Put a JSON file in your library folder (any subfolder
 will do), then `:rescan` or restart; the terminal app lists it under its
@@ -655,10 +615,7 @@ bank, tagged with `courses` the same way:
   with a letter) needs its own entry in the bank first.
 - Banks and sequences share names: a sequence can't have a bank's name.
 - To change a built-in sequence (its notes, say), copy it from `library/` into
-  your library and edit the copy: yours replaces the built-in one, and
-  `gen_sequence.py` never touches it.
-
-`gen_sequence.py` writes the lesson's fifty as `library/lesson_1-4.json`.
+  your library and edit the copy: yours replaces the built-in one.
 
 **A real formula.** Add a line to `FORMULAS` in `sheets/banks/literal/formulas.py`:
 
@@ -711,19 +668,18 @@ Rules that keep templates honest:
   The self-test proves the answers are right; only reading proves the
   problems are the right type.
 
-## 6. Checking your changes
+## 5. Checking your changes
 
 ```sh
 python3 make_practice.py --selftest 100     # every type of both families and every formula
 python3 tests/test_mathsheet.py              # TUI key handling
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
-python3 gen_sequence.py                     # lesson set: answers and worked steps
 ```
 
 To confirm a refactor changed nothing, write a set with a fixed seed and
 `--no-compile`, before and after, and compare the folders with `diff -r`.
 
-## 7. Troubleshooting
+## 6. Troubleshooting
 
 | Symptom | Fix |
 |---|---|

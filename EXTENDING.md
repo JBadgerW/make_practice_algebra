@@ -45,9 +45,7 @@ their classroom. Ease of building comes second.
    - `worksheet`, `slides`: Typst output.
 5. `mathsheet.py`: `App` holds all the state and key handling, and has no
    curses in it. `Screen` draws. `run` is the loop.
-6. `gen_sequence.py`: the fixed lesson set, with hand-written worked steps
-   that are checked step by step.
-7. `tests/`: `test_mathsheet.py` and `screen_test.py`.
+6. `tests/`: `test_mathsheet.py` and `screen_test.py`.
 
 Then run everything in section 7 to record a baseline before you change
 anything.
@@ -78,7 +76,7 @@ anything.
    output file records the command that recreates it.
 6. **No repeats** within a run or across versions, and no reuse of the
    lesson's own problems (`seen` / `original_prompts()`).
-7. **Don't break what exists.** The lesson set and the literal-equation
+7. **Don't break what exists.** The literal-equation
    practice sets must come out byte-identical after any refactor (section 7).
 8. **The TUI preview shows exactly what `:w` writes.** Same function, same
    arguments.
@@ -96,7 +94,7 @@ anything.
 | `make` → `answer=f"{target} = {ans}"`; the `target` field | Every problem has an unknown | Family-defined fields; core uses only `prompt`, `answer`, `type`, and a dedupe key |
 | `worksheet()`: "Solve each equation for the indicated variable."; `problem_tx` appends `; target` | Instructions and prompt layout | `family.instructions`, `family.prompt_typst(p)`, `family.answer_typst(p)` |
 | `TYPE[...]["space"]` | Work space per type | Keep; every type gives a work-space height |
-| `original_prompts()` reads `lesson_1-4_literal_seq_bank.json` | One lesson's bank | Per-family exclusion list (optional) |
+| `original_prompts()` reads `library/lesson_1-4.json` | One lesson's bank | Per-family exclusion list (optional) |
 | `FORMULAS`, `--style mixed/letters/formulas` | A pool of real-world formulas | Optional per-family pools; the family declares its styles |
 | `mathsheet.pretty()`, `"for {target}"`, title bar, help text "Types 1-11…" | Literal-equation display | `family.prompt_text(p)`, `answer_text(p)`; help built from the family list |
 | `mathsheet` hints: "Look for / The move" | Per-type teaching text | Keep as optional type fields |
@@ -166,7 +164,6 @@ Stop for the teacher's approval at every **checkpoint**.
 a scratch folder (not in the project):
 
 ```sh
-python3 gen_sequence.py                                  # then copy *.typ and *.json
 python3 make_practice.py --mix all:2 --versions 2 --seed 12 --no-compile --out /tmp/base_a
 python3 make_practice.py --mix all:1 --shuffle --style formulas --seed 7 --no-compile --out /tmp/base_b
 ```
@@ -218,7 +215,6 @@ python3 tests/test_mathsheet.py              # TUI state and keys, no terminal
 python3 tests/test_library.py                # the library: banks, courses.json, tags
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
-python3 gen_sequence.py                     # lesson set: answers and worked steps
 ```
 
 Also compile one set and look at the rendered pages. Don't test `:open`; it

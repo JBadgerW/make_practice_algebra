@@ -6,8 +6,8 @@ This folder is the library that ships with the app. It holds only JSON:
 - **Sequences**, ordered steps through banks' types (`literal_by_type.json`)
 - **`courses.json`**, the courses and their units
 
-`lesson_1-4.json` and `literal_by_type.json` are written by `gen_sequence.py`,
-so change them there, not here.
+`literal_by_type.json` must match `lesson_sequence()` in `sheets/banks/literal`
+(a test checks), so change the types there and rewrite the file from it.
 
 ## Where else problems live
 
