@@ -55,8 +55,12 @@ keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
 keys("G"); assert a.row == len(a.rows()) - 1
 keys("/square\n"); assert a.rid() == ("step", ("literal_by_type", 13)), "the sequence's step, by its note"
 assert "literal_by_type" in a.open, "/ opens what it finds"
-keys("n"); assert a.rid() == ("count", ("literal", "B")), a.rid()
-keys("n"); assert a.rid() == ("count", ("literal", "Bf")), a.rid()
+def next_match():                     # the Advanced Math banks have squares too: pass over them
+    keys("n")
+    while str(a.rid()[1][0]).startswith("adv_"):
+        keys("n")
+next_match(); assert a.rid() == ("count", ("literal", "B")), a.rid()
+next_match(); assert a.rid() == ("count", ("literal", "Bf")), a.rid()
 keys("i2\n"); assert counts(a)["Bf"] == 2, "typed count"
 before = prompts(a)
 keys("r"); assert prompts(a) != before and counts(a)["Bf"] == 2, "r rerolls the entry"
@@ -358,6 +362,16 @@ assert x.item()["problem"]["answer"] == "(8 x^8)/(9 y^7)" and x.item()["status"]
 xk("A\x15(8 x^8 y^(-7))/9\n"); assert x.item()["status"] == "failed", "the right value, but a negative exponent"
 xk("A\x15(8 x^8)/(9 y^6)\n"); assert x.item()["status"] == "failed"
 xk("A\x15(8 x^8)/(9 y^7)\n"); assert x.item()["status"] == "checked"
+x = T.App(seed=4); xk = driver(x)
+xk(":mix adv_rationalize/all:1 adv_complex_fractions/all:1 adv_factoring/all:1\n")
+assert len(sh.items(x.sheet)) == 11 and all(it["status"] == "checked" for it in sh.items(x.sheet))
+where = [(it["bank"], it["entry"]) for it in sh.items(x.sheet)]
+xk(f"\t:{where.index(('adv_rationalize', '3')) + 1}\n"); xk("cc"); xk("\x15(4 + sqrt(3))/(2 - sqrt(3))\n")
+assert x.item()["problem"]["answer"] == "11 + 6 sqrt(3)" and x.item()["status"] == "checked", x.item()
+xk(f":{where.index(('adv_factoring', '4')) + 1}\n"); xk("cc"); xk("\x153 y^(2 n + 1) + 12 y^(3 n + 2)\n")       # letter exponents: the old answer stays, and fails
+assert x.item()["status"] == "failed"
+xk("A\x153 y^(2 n + 1) (1 + 4 y^(n + 1))\n"); assert x.item()["status"] == "checked"
+xk("A\x153 (y^(2 n + 1) + 4 y^(3 n + 2))\n"); assert x.item()["status"] == "failed", "not finished: y^(2 n + 1) is common"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
