@@ -10,6 +10,7 @@ EMPTY_LIB = tempfile.mkdtemp(prefix="emptylib_")
     '{"library": "%s"}' % EMPTY_LIB)                                        # nor their library
 import mathsheet as T, make_practice as mp
 from sheets import sheet as sh, edit as E
+NADV = len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob("adv_*.py")))    # Advanced Math banks
 OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
 
 def driver(app):
@@ -208,7 +209,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank"] == [("bank", "absolute"), ("bank", "absolute_words"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank" and not r[1].startswith("adv_")] == [("bank", "absolute"), ("bank", "absolute_words"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -347,6 +348,17 @@ ak("A\x15abs(3r - 180) <= 15; 55 <= r <= 65; Hotels A and B\n"); assert a.item()
 assert AW.check(dict(type="3", story="a", answer="abs(d - 80) <= 10", prompt=AW.fill(AW.template("3", AW.STORY["a"]),
     who="Ana", r="25", e="10", T="80"))) == "unchecked", "Type 3 is in terms of the unknown, not the amount"
 
+# ---- an Advanced Math bank: simplifying with exponents
+x = T.App(seed=3); xk = driver(x)
+xk(":mix adv_exponents/1:2 adv_exponents/4:1\n:versions 2\n")
+assert titles(x) == ["Type 1: Powers of Products and Quotients", "Type 4: Letters in the Exponents"], titles(x)
+assert all(it["status"] == "checked" for it in sh.items(x.sheet))
+xk("\t:1\n"); xk("cc"); xk("\x15(3 x^2 y^(-1))^(-2) ((2 x^3 y)/(x^(-1) y^4))^3\n")
+assert x.item()["problem"]["answer"] == "(8 x^8)/(9 y^7)" and x.item()["status"] == "checked", x.item()
+xk("A\x15(8 x^8 y^(-7))/9\n"); assert x.item()["status"] == "failed", "the right value, but a negative exponent"
+xk("A\x15(8 x^8)/(9 y^6)\n"); assert x.item()["status"] == "failed"
+xk("A\x15(8 x^8)/(9 y^7)\n"); assert x.item()["status"] == "checked"
+
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
 vk(":mix 1:3 3:2 9:1\n\t"); assert v.cur == (0, 0)
@@ -436,7 +448,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert "8 banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert f"{8 + NADV} banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]
@@ -474,7 +486,7 @@ assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
 dk("\tG"); assert "ints (missing)" not in d.msg
 dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
 dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
-dk(f":library {lib}\n"); assert not d.missing() and not d.err and "8 banks" in d.msg, d.msg
+dk(f":library {lib}\n"); assert not d.missing() and not d.err and f"{8 + NADV} banks" in d.msg, d.msg
 assert library.config()["library"] == str(lib)
 dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]
 dk(":warnings\n"); assert d.msg == "no warnings"
@@ -498,7 +510,7 @@ qk("o")
 assert q.rows()[:6] == [("course", None), ("seq", "by_move"), ("step", ("by_move", 1)), ("step", ("by_move", 2)),
                         ("step", ("by_move", 3)), ("step", ("by_move", 4))], q.rows()[:6]
 assert ("seq", "other") not in q.rows() and ("bank", "literal") in q.rows(), "a sequence shows in its own course"
-qk(":course all\n"); tops = [r for r in q.rows() if r[0] in ("seq", "bank")]
+qk(":course all\n"); tops = [r for r in q.rows() if r[0] in ("seq", "bank") and not r[1].startswith("adv_")]
 assert tops[:4] == [("seq", "by_move"), ("seq", "literal_by_type"), ("seq", "other"), ("bank", "absolute")], \
     "sequences first"
 qk(":course Algebra 1\n")

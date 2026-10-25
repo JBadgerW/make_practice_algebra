@@ -6,6 +6,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")
 from sheets import library as L, banks
 
+NADV = len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob("adv_*.py")))    # Advanced Math banks
+
+def old(v):
+    """A list of names, or a view, without the Advanced Math banks (adv_*): those are checked on their own."""
+    if v and isinstance(v[0], tuple):
+        return [(u, old(ns)) for u, ns in v if old(ns)]
+    return [n for n in v if not n.startswith("adv_")]
+
 def bank(path, name, courses=None, types=(("1", None),), **extra):
     path.parent.mkdir(parents=True, exist_ok=True)
     d = dict(format=1, name=name, title=name.title(),
@@ -17,11 +25,14 @@ def bank(path, name, courses=None, types=(("1", None),), **extra):
 
 # ---- no config, no library folder: the built-in banks and courses
 lib = L.Library(Path(tempfile.mkdtemp()) / "missing")
-assert lib.names() == ["absolute", "absolute_words", "inequalities", "literal", "modeling", "systems", "lesson_1-4"] and lib.warnings == [], lib.warnings
+assert old(lib.names()) == ["absolute", "absolute_words", "inequalities", "literal", "modeling", "systems", "lesson_1-4"] and lib.warnings == [], lib.warnings
+ADV = [n for n in lib.names() if n.startswith("adv_")]
+assert ADV and all(lib.get(n).COURSES == {"Advanced Math": "Additional Practice"} for n in ADV), "every Advanced Math bank is tagged"
+assert set(ADV) <= set(dict(lib.view("Advanced Math"))["Additional Practice"])
 assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus"]
 assert lib.view("Algebra 1") == [("Lessons", ["lesson_1-4", "inequalities", "modeling", "absolute", "absolute_words"]), ("Additional Practice", ["literal"])], \
     "in a unit, by title: Lesson 1-4, 1-5, 1-6, 1-7"
-assert lib.view("algebra 2") == [("Additional Practice", ["systems"])] and lib.view("Advanced Math") == [("Additional Practice", ["systems"])]
+assert lib.view("algebra 2") == [("Additional Practice", ["systems"])] and old(lib.view("Advanced Math")) == [("Additional Practice", ["systems"])]
 assert lib.view("Geometry") == [] and lib.view() == [(None, lib.names())]
 assert lib.types_in("literal", "Algebra 1") == L.types(lib.get("literal")) and lib.types_in("literal", "Calculus") == []
 assert L.library_dir() == Path("~/Documents/mathsheet-library").expanduser(), "the default library"
@@ -63,7 +74,7 @@ bank(root / ".hidden" / "x.json", "hidden", ["Algebra 1"])
 (root / "mysheet.sheet.json").write_text("{}")                                 # sheets saved here are skipped
 (root / "other.json").write_text("[1, 2]")
 lib = L.Library(root)
-assert lib.names() == ["absolute", "absolute_words", "inequalities", "literal", "modeling", "systems", "factoring", "found", "lesson_1-4", "stats", "typos", "warmups"], lib.names()
+assert old(lib.names()) == ["absolute", "absolute_words", "inequalities", "literal", "modeling", "systems", "factoring", "found", "lesson_1-4", "stats", "typos", "warmups"], lib.names()
 assert lib.get("lesson_1-4").SOURCE == "lesson.json" and "hidden" not in lib.names()
 assert [c["title"] for c in lib.courses][-1] == "Statistics", "a new course goes at the end"
 assert lib.course("algebra 1")["units"] == ["Foundations", "Equations", "Factoring", "Lessons", "Additional Practice"], "the library's units replace the built-in"
@@ -78,9 +89,9 @@ assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Factoring", ["fac
                                  ("Additional Practice", ["literal"]), (None, ["typos", "warmups"])], \
     "a unit courses.json lacks files the bank under Other"
 assert lib.types_in("factoring", "Algebra 1") == ["1", "2"], "type 9 has its own courses"
-assert lib.types_in("factoring", "Advanced Math") == ["9"] and lib.view("Advanced Math") == [("Additional Practice", ["systems"]), (None, ["factoring"])]
+assert lib.types_in("factoring", "Advanced Math") == ["9"] and old(lib.view("Advanced Math")) == [("Additional Practice", ["systems"]), (None, ["factoring"])]
 assert lib.view("Algebra 2") == [("Additional Practice", ["systems"]), (None, ["factoring", "lesson_1-4"])]
-assert lib.summary() == "12 banks, 1 sequence, 7 courses, 5 warnings", lib.summary()
+assert lib.summary() == f"{12 + NADV} banks, 1 sequence, 7 courses, 5 warnings", lib.summary()
 
 # ---- a bank that names a generator, or a name used twice
 bank(root / "more" / "found.json", "found")
@@ -157,7 +168,7 @@ assert lib.view("Algebra 1", sequences=True) == [("Foundations", ["found"]), ("E
                                                  ("Additional Practice", ["literal_by_type", "literal"]),
                                                  (None, ["typo", "warmup"])], lib.view("Algebra 1", sequences=True)
 assert lib.view(None, sequences=True)[0][1][:5] == ["by_move", "literal_by_type", "typo", "untagged", "warmup"]
-assert lib.summary().startswith("8 banks, 5 sequences, ") and "warnings" in lib.summary(), lib.summary()
+assert lib.summary().startswith(f"{8 + NADV} banks, 5 sequences, ") and "warnings" in lib.summary(), lib.summary()
 try:
     lib.sequence("found"); raise AssertionError("a bank isn't a sequence")
 except KeyError:

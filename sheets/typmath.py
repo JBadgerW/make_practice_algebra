@@ -5,7 +5,7 @@
                    a sum's terms go by descending degree, letters in `order`
                    first (then alphabetical); a product reads
                    coefficient, radicals, pi, letters, i: 3 sqrt(2) x y^2.
-    single(e, order)  e as one fraction over a common denominator
+    single(e, order)  e as one fraction over a common denominator, numerator multiplied out
     fr(n, d)       a fraction from two Typst strings, parenthesized as needed
     display(t)     $display(t)$, so every fraction is full size
     text(t)        Typst math for the terminal
@@ -116,7 +116,7 @@ class Printer:
         if not (b.is_Symbol or (b.is_Integer and b > 0)):
             base = f"({base})"
         ex = self.expr(x)
-        return f"{base}^{ex}" if x.is_Integer else f"{base}^({ex})"
+        return f"{base}^{ex}" if x.is_Integer or x.is_Symbol else f"{base}^({ex})"
 
     def expr(self, e):
         e = sp.sympify(e)
@@ -144,12 +144,14 @@ def tx(e, order=()):
     return Printer(order).expr(e)
 
 def single(e, order=()):
-    """e as one fraction over a common denominator: (3 + 2 sqrt(2))/7."""
+    """e as one fraction over a common denominator, its numerator multiplied
+    out: (3 + 2 sqrt(2))/7, (x^3 + x y^4)/y^3."""
     n, d = sp.fraction(sp.together(e))
+    n = sp.expand(n)
     p = Printer(order)
     if d == 1:
         return p.expr(n)
     lead = p.terms(n)[0] if n.is_Add else n
     neg = lead.could_extract_minus_sign()             # -(x + 1)/(2 x), not (-x - 1)/(2 x)
-    n = sp.expand(-n) if neg else n
+    n = -n if neg else n
     return ("-" if neg else "") + fr(p.expr(n), p.expr(d))
