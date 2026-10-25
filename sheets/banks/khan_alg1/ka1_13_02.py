@@ -4,7 +4,8 @@ area model, from the old app's Alg1_13_02 (twelve generated slots).
 A rectangle's height is a monomial (a number, or a number times x) and its
 width a polynomial with up to three terms (x^2 + b x + c, a x^2 + b x,
 b x + c); the area model shows a box per term. The area is the product,
-expanded. Coefficients -6 to 6, not 0.
+expanded. The width's coefficients are -6 to 6, not 0; the height is
+positive (the old template allowed -6, a side no rectangle has).
 
 A problem: dict(type, height, width, prompt, answer, source), in Typst math.
     height  "3"          width  "x^2 - 2 x + 5"
@@ -55,7 +56,7 @@ WIDTHS = [lambda r: written((r.choice((1, 1, c(r))), "x^2"), (c(r), "x"), (c(r),
 
 def draw(entry, r, tpl):
     width = WIDTHS[tpl](r)
-    height = str(signed(r, 2, 6)) if entry == "1" else written((signed(r, 1, 3), "x"))
+    height = str(r.randint(2, 6)) if entry == "1" else written((r.randint(1, 3), "x"))   # a length: positive
     prompt = f"{height} ({width})"
     return dict(height=height, width=width, prompt=prompt, answer=expand_answer_of(prompt))
 

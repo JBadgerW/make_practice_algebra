@@ -5,6 +5,7 @@
     area_model(top, left)        the area model of a product: a column per term on
                                  top, a row per term on the left, each box as wide (or
                                  tall) as its term's coefficient, labels outside
+    gcf_model(factor, terms)     factoring out a common factor: a box per term
     labeled_box(top, left, center)  a rectangle with its area inside and its sides labeled
 """
 PREAMBLE = r"""// Area models (Khan Algebra 1, Unit 13): boxes sized by their terms, labeled outside.
@@ -20,6 +21,18 @@ PREAMBLE = r"""// Area models (Khan Algebra 1, Unit 13): boxes sized by their te
     }
   }
   grid(columns: (auto,) + widths, align: center + horizon, ..cells)
+}
+
+// The area model of factoring out a common factor: the factor at the left, a box per
+// term with the term inside, and "Width" over them all.
+#let gcfmodel(factor, terms) = {
+  let shades = (luma(205), luma(175), luma(150))
+  let w = 6.2cm / terms.len()
+  grid(columns: (auto,) + (w,) * terms.len(), align: center + horizon, row-gutter: 3pt,
+    [], grid.cell(colspan: terms.len())[Width],
+    pad(right: 4pt, factor),
+    ..terms.enumerate().map(((i, t)) => rect(width: w, height: 1.5cm, stroke: 0.6pt + white,
+      fill: shades.at(calc.rem(i, 3)), align(center + horizon, t))))
 }
 
 // A rectangle with its area inside and its sides labeled: top over it, left beside it.
@@ -42,6 +55,10 @@ def area_model(top, left):
     w = ", ".join(sizes([c for _, c in top], 6.0))
     h = ", ".join(sizes([c for _, c in left], 3.2, 0.8))
     return f"#areamodel(({cols},), ({rows},), ({w},), ({h},))"
+
+def gcf_model(factor, terms):
+    """The factor (Typst math) and the terms (Typst math) inside the boxes."""
+    return f"#gcfmodel([${factor}$], ({', '.join(f'[${t}$]' for t in terms)},))"
 
 def labeled_box(top, left, center):
     return f"#labeledbox([{top}], [{left}], [{center}])"
