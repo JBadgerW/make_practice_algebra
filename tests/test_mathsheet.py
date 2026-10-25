@@ -10,7 +10,8 @@ EMPTY_LIB = tempfile.mkdtemp(prefix="emptylib_")
     '{"library": "%s"}' % EMPTY_LIB)                                        # nor their library
 import mathsheet as T, make_practice as mp
 from sheets import sheet as sh, edit as E
-NADV = len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob("adv_*.py")))    # Advanced Math banks
+PORTED = ("adv_", "ka1_", "ka2_", "kpa_")                  # the Advanced Math and Khan banks
+NADV = sum(len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob(f"**/{p}*.py"))) for p in PORTED)
 OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
 
 KEY_BREAK = "\n#pagebreak()\n#qnum.update(0)\n"
@@ -62,9 +63,9 @@ keys("\x01\x01"); assert counts(a)["1"] == 3, "ctrl-a"
 keys("G"); assert a.row == len(a.rows()) - 1
 keys("/square\n"); assert a.rid() == ("step", ("literal_by_type", 13)), "the sequence's step, by its note"
 assert "literal_by_type" in a.open, "/ opens what it finds"
-def next_match():                     # the Advanced Math banks have squares too: pass over them
+def next_match():                     # the ported banks have squares too: pass over them
     keys("n")
-    while str(a.rid()[1][0]).startswith("adv_"):
+    while str(a.rid()[1][0]).startswith(PORTED):
         keys("n")
 next_match(); assert a.rid() == ("count", ("literal", "B")), a.rid()
 next_match(); assert a.rid() == ("count", ("literal", "Bf")), a.rid()
@@ -220,7 +221,7 @@ f.write_text(json.dumps({"format": 1, "name": "words", "title": "Word Problems",
                   "answer": "$12$ miles"}]}))
 library.rescan(LIB)
 w = T.App(seed=3); wk = driver(w)
-assert [r for r in w.rows() if r[0] == "bank" and not r[1].startswith("adv_")] == [("bank", "absolute"), ("bank", "absolute_words"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
+assert [r for r in w.rows() if r[0] == "bank" and not r[1].startswith(PORTED)] == [("bank", "absolute"), ("bank", "absolute_words"), ("bank", "inequalities"), ("bank", "literal"), ("bank", "modeling"), ("bank", "systems"), ("bank", "lesson_1-4"), ("bank", "words")]
 lesson = w.rows().index(("bank", "lesson_1-4"))
 wk(f":{lesson + 1}\n"); assert w.rid() == ("bank", "lesson_1-4")
 wk("o"); assert ("count", ("lesson_1-4", "3")) in w.rows()
@@ -505,7 +506,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
 library.save_config(library=str(lib))
 c = T.App(seed=6); ck = driver(c)
 assert c.course is None and c.rows()[0] == ("course", None) and c.value(0) == "All banks"
-ck(":rescan\n"); assert f"{8 + NADV} banks, 1 sequence, 6 courses" in c.msg and not c.err, c.msg
+ck(":rescan\n"); assert f"{8 + NADV} banks, 1 sequence, 9 courses" in c.msg and not c.err, c.msg
 ck("gg"); assert c.rid() == ("course", None)
 ck("l"); assert c.course == "Prealgebra" and c.sheet["class_name"] == "Prealgebra", "the class follows"
 assert [r for r in c.rows() if r[0] == "bank"] == [("bank", "ints")]

@@ -6,6 +6,9 @@
   {"title": "Geometry", "units": ["Lessons", "Additional Practice"]},
   {"title": "Algebra 2", "units": ["Lessons", "Additional Practice"]},
   {"title": "Advanced Math", "units": ["Lessons", "Additional Practice"]},
-  {"title": "Calculus", "units": ["Lessons", "Additional Practice"]}
+  {"title": "Calculus", "units": ["Lessons", "Additional Practice"]},
+  {"title": "Khan Prealgebra", "units": ["Unit 1: Factors and multiples", "Unit 3: Ratios and rates", "Unit 6: Variables & expressions", "Unit 8: Percent & rational number word problems"]},
+  {"title": "Khan Algebra 1", "units": ["Unit 1: Algebra foundations", "Unit 2: Solving equations & inequalities", "Unit 6: Systems of equations", "Unit 8: Functions", "Unit 11: Exponents & radicals", "Unit 13: Quadratics: Multiplying & factoring", "Unit 15: Irrational numbers"]},
+  {"title": "Khan Algebra 2", "units": ["Unit 1: Polynomial arithmetic", "Unit 2: Complex numbers", "Unit 3: Polynomial factorization"]}
  ]
 }

@@ -10,6 +10,8 @@ these; new banks use this module.
     Types(TYPES, ...)             the type table and the bank functions built from it
     generator(...)                generate(entry, rng, seen): draw, check, no repeats
     shown(), edits(...)           display, terminal text, and hand editing for Typst-math banks
+    coef, written(...)            terms as the prompt writes them, uncombined: "-7 + 4 m + 10"
+    lettered, choices_typst, ...  multiple choice: choices A, B, C, ... and the key's letters
 
 Every random choice takes the bank's rng (random.Random(seed)) first, so a
 draw is reproducible; checks use the global random, so checking never
@@ -258,3 +260,72 @@ def text_shown(lines=90):
             lambda p: p["prompt"],
             lambda p: p["answer"],
             lambda p: 0.2 * (1 + len(p["prompt"]) // lines))
+
+# ------------------------------------------------------------------
+# Terms as the prompt writes them: in the order given, nothing combined
+# ------------------------------------------------------------------
+def coef(c):
+    """A number as written: 3, 2.5 (a Decimal stays a decimal), 2/3 (a Fraction)."""
+    if isinstance(c, F) and c.denominator != 1:
+        return f"{c.numerator}/{c.denominator}"
+    return str(int(c)) if c == int(c) else format(c, "f").rstrip("0")
+
+def written(*terms):
+    """Terms (coefficient, letters) in the order given: written((-7, ""), (4, "m"), (10, ""))
+    is "-7 + 4 m + 10"; a coefficient of ±1 is left off a letter; zero terms are dropped.
+    Letters may be a factor in parentheses: written((3, "(x + 5)")) is "3 (x + 5)"."""
+    out = ""
+    for c, v in terms:
+        if c == 0:
+            continue
+        body = (coef(abs(c)) if abs(c) != 1 or not v else "") + (" " if abs(c) != 1 and v else "") + v
+        out += ("-" if c < 0 else "") + body if not out else (" - " if c < 0 else " + ") + body
+    return out or "0"
+
+# ------------------------------------------------------------------
+# Multiple choice: a problem stores its choices (Typst markup) and its
+# answer as letters, "B" or, for choose-all, "A, C"
+# ------------------------------------------------------------------
+ABC = "ABCDEFGH"
+
+def lettered(r, right, wrong, shuffle=True):
+    """(choices, answer): the right choice (or a list of them) among the wrong ones,
+    shuffled with r unless shuffle is False (then right, wrong, in the order given:
+    for choices with a natural order, like no / one / infinitely many)."""
+    right = list(right) if isinstance(right, (list, tuple)) else [right]
+    allc = right + list(wrong)
+    need(len(set(allc)) == len(allc))              # no two choices alike
+    if shuffle:
+        r.shuffle(allc)
+    return allc, ", ".join(ABC[i] for i, c in enumerate(allc) if c in right)
+
+def in_order(choices, right):
+    """(choices, answer) for choices in a fixed order: right is the right one(s)."""
+    right = right if isinstance(right, (list, tuple)) else [right]
+    return list(choices), ", ".join(ABC[choices.index(c)] for c in right)
+
+def letters_of(answer):
+    """The answer's letters: "A, C" -> ["A", "C"]."""
+    return [a.strip() for a in answer.split(",") if a.strip()]
+
+def chosen(p):
+    """The choices the answer names."""
+    return [p["choices"][ABC.index(a)] for a in letters_of(p["answer"])]
+
+def choices_typst(choices, arrangement="vertical"):
+    return f'#choices(arrangement: "{arrangement}", ' + ", ".join(f"[{c}]" for c in choices) + ")"
+
+def choice_answer_typst(p):
+    """The key: each right letter with its choice, "B. $x = 4$"."""
+    return "; ".join(f"{a}. {c}" for a, c in zip(letters_of(p["answer"]), chosen(p)))
+
+def choices_text(choices, plain=lambda c: c):
+    return "   ".join(f"{ABC[i]}. {plain(c)}" for i, c in enumerate(choices))
+
+def with_letters(p, t, check):
+    """with_answer for a multiple-choice bank: the answer edited as letters."""
+    got = [a.upper() for a in letters_of(t.replace(" ", ",").replace(",,", ","))]
+    if not got or any(a not in ABC[:len(p["choices"])] for a in got):
+        raise ValueError(f"answer with letters, A to {ABC[len(p['choices']) - 1]}")
+    new = dict(p, answer=", ".join(sorted(set(got))))
+    return new, check(new)

@@ -3,7 +3,8 @@
 Banks come from three places, all read when the app starts and again on
 :rescan (it takes milliseconds):
 
-    sheets/banks/*      generator banks (Python modules), found automatically
+    sheets/banks/*      generator banks (Python modules), found automatically, and
+                        those in a package one level down (khan_alg1/*)
     library/            the built-in library: fixed banks, sequences, and the
                         starter courses.json
     your library folder your own fixed banks and sequences (any *.json, in any
@@ -188,17 +189,23 @@ class Library:
         self.warnings.append(msg)
 
     def _find_generators(self):
+        """Every module in sheets/banks/ that is a bank, and every bank module one
+        level into a package that isn't a bank itself (khan_alg1/: one per lesson)."""
         from . import banks as pkg
-        for m in pkgutil.iter_modules(pkg.__path__):
-            if m.name == "fixed":
-                continue
-            try:
-                mod = importlib.import_module(f"{pkg.__name__}.{m.name}")
-            except Exception as e:                      # a broken generator mustn't stop the app
-                self.warn(f"sheets/banks/{m.name}: {type(e).__name__}: {e}")
-                continue
-            if hasattr(mod, "NAME") and hasattr(mod, "generate"):
-                self.generators[mod.NAME] = mod
+        def find(path, prefix, where, deeper):
+            for m in pkgutil.iter_modules(path):
+                if m.name == "fixed":
+                    continue
+                try:
+                    mod = importlib.import_module(f"{prefix}.{m.name}")
+                except Exception as e:                  # a broken generator mustn't stop the app
+                    self.warn(f"{where}{m.name}: {type(e).__name__}: {e}")
+                    continue
+                if hasattr(mod, "NAME") and hasattr(mod, "generate"):
+                    self.generators[mod.NAME] = mod
+                elif deeper and m.ispkg:
+                    find(mod.__path__, mod.__name__, f"{where}{m.name}/", False)
+        find(pkg.__path__, pkg.__name__, "sheets/banks/", True)
 
     def _read_courses(self, path, where):
         if not path.is_file():

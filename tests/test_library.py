@@ -6,13 +6,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")
 from sheets import library as L, banks
 
-NADV = len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob("adv_*.py")))    # Advanced Math banks
+PORTED = ("adv_", "ka1_", "ka2_", "kpa_")                  # the Advanced Math and Khan banks
+NADV = sum(len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob(f"**/{p}*.py"))) for p in PORTED)
 
 def old(v):
-    """A list of names, or a view, without the Advanced Math banks (adv_*): those are checked on their own."""
+    """A list of names, or a view, without the ported banks (adv_*, ka1_*, ...): those are checked on their own."""
     if v and isinstance(v[0], tuple):
         return [(u, old(ns)) for u, ns in v if old(ns)]
-    return [n for n in v if not n.startswith("adv_")]
+    return [n for n in v if not n.startswith(PORTED)]
 
 def bank(path, name, courses=None, types=(("1", None),), **extra):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -29,7 +30,8 @@ assert old(lib.names()) == ["absolute", "absolute_words", "inequalities", "liter
 ADV = [n for n in lib.names() if n.startswith("adv_")]
 assert ADV and all(lib.get(n).COURSES == {"Advanced Math": "Additional Practice"} for n in ADV), "every Advanced Math bank is tagged"
 assert set(ADV) <= set(dict(lib.view("Advanced Math"))["Additional Practice"])
-assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus"]
+assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus",
+                                                 "Khan Prealgebra", "Khan Algebra 1", "Khan Algebra 2"]
 assert lib.view("Algebra 1") == [("Lessons", ["lesson_1-4", "inequalities", "modeling", "absolute", "absolute_words"]), ("Additional Practice", ["literal"])], \
     "in a unit, by title: Lesson 1-4, 1-5, 1-6, 1-7"
 assert lib.view("algebra 2") == [("Additional Practice", ["systems"])] and old(lib.view("Advanced Math")) == [("Additional Practice", ["systems"])]
@@ -91,7 +93,7 @@ assert lib.view("Algebra 1") == [("Foundations", ["found"]), ("Factoring", ["fac
 assert lib.types_in("factoring", "Algebra 1") == ["1", "2"], "type 9 has its own courses"
 assert lib.types_in("factoring", "Advanced Math") == ["9"] and old(lib.view("Advanced Math")) == [("Additional Practice", ["systems"]), (None, ["factoring"])]
 assert lib.view("Algebra 2") == [("Additional Practice", ["systems"]), (None, ["factoring", "lesson_1-4"])]
-assert lib.summary() == f"{12 + NADV} banks, 1 sequence, 7 courses, 5 warnings", lib.summary()
+assert lib.summary() == f"{12 + NADV} banks, 1 sequence, 10 courses, 5 warnings", lib.summary()
 
 # ---- a bank that names a generator, or a name used twice
 bank(root / "more" / "found.json", "found")
