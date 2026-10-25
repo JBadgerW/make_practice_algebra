@@ -217,3 +217,44 @@ def edits(answer_of, check, example, example_answer, imaginary=False):
         new = dict(p, answer=t)
         return new, check(new)
     return (lambda p: p["prompt"]), from_edit, (lambda p: p["answer"]), with_answer
+
+# ------------------------------------------------------------------
+# Word problems: a story is text with {placeholders}; a problem fills
+# them, and a check reads them back out of the words
+# ------------------------------------------------------------------
+def fill(template, **v):
+    """The story with its numbers and words: fill("{n} {item}", n=3, item="apples")."""
+    return template.format(**{k: (decimal(x) if isinstance(x, F) else x) for k, x in v.items()})
+
+def pattern(template):
+    """A regex for the story's text, with a named group per placeholder (a repeat must match the same)."""
+    import re
+    out, seen, i = "", set(), 0
+    for m in re.finditer(r"\{(\w+)\}", template):
+        out += re.escape(template[i:m.start()])
+        name = m.group(1)
+        out += f"(?P={name})" if name in seen else f"(?P<{name}>.+?)"
+        seen.add(name)
+        i = m.end()
+    return "^" + out + re.escape(template[i:]) + "$"
+
+def read(template, text):
+    """The placeholders' values, as strings, read out of text written from the template; ValueError if it doesn't fit."""
+    import re
+    m = re.match(pattern(template), " ".join(text.split()))
+    if not m:
+        raise ValueError("keep the story's words; change only its numbers and names")
+    return m.groupdict()
+
+def number(s):
+    """A number read out of words, as a Fraction: "12", "37.5", "$3.45", "1,200"."""
+    return F(s.replace("$", "").replace(",", "").strip())
+
+def text_shown(lines=90):
+    """typst, answer_typst, text, answer_text, height for a bank whose prompt and answer are words."""
+    from .typst import esc
+    return (lambda p, gap="0.3em": esc(p["prompt"]),
+            lambda p: esc(p["answer"]),
+            lambda p: p["prompt"],
+            lambda p: p["answer"],
+            lambda p: 0.2 * (1 + len(p["prompt"]) // lines))
