@@ -59,9 +59,14 @@ class Printer:
         args = list(sp.Add.make_args(e))
         return sorted(args, key=lambda t: (tuple(-self.degree(t, s) for s in syms), t.has(sp.I)))
 
-    def add(self, e):
+    def add(self, e, positive_first=False):
+        """A sum; positive_first moves the first positive term to the front: k v y - a k s."""
+        ts = self.terms(e)
+        pos = [i for i, t in enumerate(ts) if not t.could_extract_minus_sign()]
+        if positive_first and pos:
+            ts.insert(0, ts.pop(pos[0]))
         out = ""
-        for i, t in enumerate(self.terms(e)):
+        for i, t in enumerate(ts):
             neg = t.could_extract_minus_sign()
             body = self.expr(-t if neg else t)
             out += ("-" + body if neg else body) if i == 0 else (" - " if neg else " + ") + body
@@ -146,8 +151,9 @@ def tx(e, order=()):
 
 def single(e, order=()):
     """e as one fraction over a common denominator, its numerator and
-    denominator multiplied out, and any minus sign in front:
-    (3 + 2 sqrt(2))/7, (x^3 + x y^4)/y^3, -(x + 1)/(2 x - 3)."""
+    denominator multiplied out: (3 + 2 sqrt(2))/7, (x^3 + x y^4)/y^3.
+    A minus sign goes into a denominator that is a sum, (c s v)/(k v y - a k s),
+    and otherwise in front, -(x + 1)/(2 x)."""
     n, d = sp.fraction(sp.together(e))
     n, d = sp.expand(n), sp.expand(d)
     p = Printer(order)
@@ -159,6 +165,9 @@ def single(e, order=()):
         n, d = -n, -d
     neg = leads_negative(n)                           # -(x + 1)/(2 x), not (-x - 1)/(2 x)
     n = -n if neg else n
+    if neg and d.is_Add and any(t.could_extract_minus_sign() for t in sp.Add.make_args(d)):
+        # into the denominator instead, written plus first (only if it keeps a plus term)
+        return fr(p.expr(n), p.add(-d, positive_first=True))
     return ("-" if neg else "") + fr(p.expr(n), p.expr(d))
 
 # ------------------------------------------------------------------

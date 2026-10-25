@@ -52,6 +52,8 @@ assert tx(4 * sp.pi * x ** 2) == "4 pi x^2" and tx(x ** m) == "x^m"
 assert tx(y * x, "yx") == "y x" and tx(x - 1) == "x - 1"
 assert single((3 + 2 * sp.sqrt(2)) / 7) == "(3 + 2 sqrt(2))/7"
 assert single(-(x + 1) / (2 * x)) == "-(x + 1)/(2 x)"
+assert single(-(x + 1) / (2 * x + 3 * y)) == "-(x + 1)/(2 x + 3 y)", "no plus term to lead the denominator"
+assert single(x / (y - 2 * x)) == "x/(y - 2 x)" and single(-(x + 1) / (2 * x - y)) == "(x + 1)/(y - 2 x)"
 assert fr("x + 1", "2") == "(x + 1)/2" and fr("x^2", "y") == "x^2/y"
 assert text("-x - 1 <= 2") == "−x − 1 ≤ 2"
 
