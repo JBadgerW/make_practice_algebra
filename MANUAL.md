@@ -489,7 +489,7 @@ through earlier commands.
 
 | Command | Action |
 |---|---|
-| `:w` | Write the sheet and every version's worksheet, key, and slides |
+| `:w` | Write the sheet and every version's worksheet (key appended) and slides |
 | `:wq` `:x` `ZZ` | Write, then quit |
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |
 | `:q!` `ZQ` | Quit and discard |
@@ -511,7 +511,7 @@ through earlier commands.
 | `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
-| `:open [sheet\|key\|slides] [N]` | Open version N's PDF (default: worksheet, version 1) |
+| `:open [sheet\|slides] [N]` | Open version N's PDF (default: worksheet, version 1; its key is at the end) |
 | `:pre [sheet\|key\|slides] [N]` | Print preview: compile version N (default: the one showing) as it stands to a temporary PDF and open it. Writes nothing to the out folder and doesn't count as saving. Run it again after a change and an open viewer reloads. |
 | `:N` | On the sheet: problem N. On the types pane: row N. |
 | `:help` or `?` | Show the keys |
@@ -527,8 +527,7 @@ In the output folder:
 | File | Contents |
 |---|---|
 | `NAME.sheet.json` | The sheet: every section and problem of every version (see below) |
-| `NAME_vN.typ` / `.pdf` | Version N's worksheet, in the style of `templates/refined_template.typ` |
-| `NAME_vN_key.typ` / `.pdf` | The same, with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does. |
+| `NAME_vN.typ` / `.pdf` | Version N's worksheet, in the style of `templates/refined_template.typ`, then its answer key: starting on a new page, the same sheet with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does, and its problems are numbered from 1 again. |
 | `NAME_vN_slides.typ` / `.pdf` | Title slide, a title slide per section (grouped only), then a problem slide and an answer slide for each problem |
 
 **The worksheet.** The header, the instructions block, then each section:

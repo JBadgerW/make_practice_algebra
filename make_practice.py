@@ -430,8 +430,8 @@ def read_sheet(path):
 # Writing
 # ------------------------------------------------------------------
 def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
-    """Write NAME.sheet.json and, for every version, the worksheet, key, and
-    slides (compiled when typst is found).
+    """Write NAME.sheet.json and, for every version, the worksheet (its key
+    appended) and slides (compiled when typst is found).
     Returns dict(out, files, compiled, sheet); raises RuntimeError."""
     if not sh.items(sheet):
         raise RuntimeError("no problems: the sheet is empty")
@@ -442,8 +442,7 @@ def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
     written = [f"{name}.sheet.json"]
     for v in range(sheet["versions"]):
         base = f"{name}_v{v + 1}"
-        files = {f"{base}.typ": writer.worksheet(sheet, v),
-                 f"{base}_key.typ": writer.worksheet(sheet, v, key=True),
+        files = {f"{base}.typ": writer.worksheet(sheet, v, with_key=True),
                  f"{base}_slides.typ": writer.slides(sheet, v)}
         for fname, text in files.items():
             (outp / fname).write_text(text)

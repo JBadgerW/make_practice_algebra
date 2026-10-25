@@ -13,6 +13,13 @@ from sheets import sheet as sh, edit as E
 NADV = len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob("adv_*.py")))    # Advanced Math banks
 OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
 
+KEY_BREAK = "\n#pagebreak()\n#qnum.update(0)\n"
+
+def parts(name):
+    """A written NAME_v1.typ split into its worksheet and the key appended to it."""
+    ws, key = (Path(OUT) / f"{name}_v1.typ").read_text().split(KEY_BREAK)
+    return ws, key
+
 def driver(app):
     def keys(s):
         for c in s:
@@ -242,7 +249,7 @@ wk("p"); assert w.err and "no unused" in w.msg, "and then there are none left"
 wk("u"); wk("G"); assert w.item()["problem"]["id"] == "w1"
 wk("A\x15$13$ miles\n"); assert w.item()["problem"]["answer"] == "$13$ miles" and w.item()["status"] == "unchecked"
 wk(f":out {OUT}\n:name words\n:w\n"); assert not w.err and "1 unchecked" in w.msg, w.msg
-key = (Path(OUT) / "words_v1_key.typ").read_text()
+key = parts("words")[1]
 assert "A train goes $60$ miles" in key and "$13$ miles" in key and "#section-head[Rate Problems]" in key
 library.rescan()
 
@@ -266,7 +273,7 @@ yk(":4\n"); assert y.item()["problem"]["answer"] == "no solution"
 yk(":versions 2\n"); assert len(y.item()["alts"]) == 1 and y.item()["alts"][0]["answer"] == "no solution"
 yk(":3\n"); assert y.item()["alts"] == [], "an edited system is the same in every version"
 yk(f":out {OUT}\n:name systems\n:w\n"); assert not y.err, y.msg
-key = (Path(OUT) / "systems_v1_key.typ").read_text()
+key = parts("systems")[1]
 assert "mat(delim:" in key and "$(1, 3, 2)$" not in key and "infinitely many solutions" in key
 mixed = mp.draft(mp.parse_mix(["3:1", "systems/2:1"]), 1, 4)
 assert mixed["instructions"] == "" and [s["instructions"] for s in mixed["sections"]] == [
@@ -305,8 +312,10 @@ assert q.item()["problem"]["answer"] == "-2 < x <= 5" and q.item()["status"] == 
 assert q.item()["problem"]["prompt"] == '2x - 1 > -5 quad "and" quad x + 3 <= 8'
 qk("cc"); qk("2x <= 3 and x > -4\n"); assert q.err and "whole number" in q.msg
 qk(f":out {OUT}\n:name ineq\n:w\n"); assert not q.err, q.msg
-ws, key = (Path(OUT) / "ineq_v1.typ").read_text(), (Path(OUT) / "ineq_v1_key.typ").read_text()
-assert ws.count("#let numline") == 1 and key.count("#let numline") == 1
+ws, key = parts("ineq")
+assert ws.count("#let numline") == 1 and "#let numline" not in key, "the key shares the sheet's preamble"
+assert not list(Path(OUT).glob("*_key.*")), "no separate key file"
+assert "— Answer Key" in key and "— Answer Key" not in ws
 assert "ink: red" in key and "ink: red" not in ws, "the key draws the graphs in red"
 assert "$1 >= x$" in key, "the key prints the teacher's answer as written"
 assert "#let numline" not in (Path(OUT) / "systems_v1.typ").read_text(), "only sheets that need it"
@@ -327,7 +336,7 @@ assert m.item()["problem"]["answer"] == "510 <= 1.5(320) + 15t <= 540; 2 <= t <=
 mk("cc"); mk("\x15River eats a lot.\n"); assert m.err and "wording" in m.msg
 mk("A\x15510 <= 480 + 15t <= 540; 2 <= t <= 5\n"); assert m.item()["status"] == "failed"
 mk(f":out {OUT}\n:name model\n:w\n"); assert "1 failing answer" in m.msg, m.msg
-key = (Path(OUT) / "model_v1_key.typ").read_text()
+key = parts("model")[1]
 from sheets import library as _lib
 assert T.App().s["out"] == T.home_path(OUT) == _lib.config()["out"], "the next session starts in the folder written to last"
 assert T.App(out="elsewhere").s["out"] == "elsewhere", "--out overrides it"
