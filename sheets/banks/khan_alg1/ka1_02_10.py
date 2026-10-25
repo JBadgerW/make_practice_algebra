@@ -5,7 +5,8 @@ Every story is one model: a starting amount plus a rate times a count,
 kept at most (or under, or at least) a limit. (a) Which inequality
 describes it? (b) The largest or smallest whole count that works, or one
 more step from it: pancakes from stacks, the cost of the rolls. Khan's
-twelve stories are kept, retold with names and no pronouns. The wrong
+twelve stories are kept, retold with names and no pronouns, and the
+count's letter drawn at random (Khan's were S, F, C, ...). The wrong
 choices are Khan's: the right expression and one mistaken one (the rate
 left off, the numbers swapped, a price for a capacity, another number in
 the story for the limit), each with the sign both ways.
@@ -53,67 +54,68 @@ QUESTION_A = "Which inequality describes this scenario?"
 # numbers ("one": the rate left off; "swap": start and rate traded; or the
 # name of another number that takes the rate's or the limit's place).
 STORIES = [
-    dict(key="a", type="1", letter="S", op="<=", wrong="one", unit="box", units="boxes",
+    dict(key="a", type="1", op="<=", wrong="one", unit="box", units="boxes",
          text="{name} goes to the market with ${limit} to buy eggs and sugar. A package of 12 eggs costs ${start}. "
               "After getting the eggs, {name} wants to buy as much sugar as possible with the money left. The "
-              "sugar comes in boxes that cost ${rate} each. Let S be the number of boxes of sugar {name} buys.",
+              "sugar comes in boxes that cost ${rate} each. Let {L} be the number of boxes of sugar {name} buys.",
          ask="How many boxes of sugar can {name} afford?"),
-    dict(key="b", type="1", letter="F", op=">=", wrong="swap", unit="bag", units="bags",
+    dict(key="b", type="1", op=">=", wrong="swap", unit="bag", units="bags",
          text="{name} runs a bakery and needs at least {limit} kilograms of flour for holiday orders. The bakery "
               "has {start} kilograms of flour, and flour comes in bags of {rate} kilograms each. {name} wants to "
-              "buy as few bags as possible. Let F be the number of bags of flour {name} buys.",
+              "buy as few bags as possible. Let {L} be the number of bags of flour {name} buys.",
          ask="What is the smallest number of bags {name} can buy?"),
-    dict(key="c", type="1", letter="S", op="<=", wrong="limit:km", unit="stop", units="stops",
+    dict(key="c", type="1", op="<=", wrong="limit:km", unit="stop", units="stops",
          text="A train ticket costs ${start} plus ${rate} per stop. {name} has ${limit} and would like to travel "
-              "{km} kilometers. Let S be the number of stops on {name}'s ticket.",
+              "{km} kilometers. Let {L} be the number of stops on {name}'s ticket.",
          ask="What is the largest number of stops {name} can afford?"),
-    dict(key="d", type="1", letter="C", op=">=", wrong="one", unit="class", units="classes",
+    dict(key="d", type="1", op=">=", wrong="one", unit="class", units="classes",
          text="A yoga studio charges each customer a one-time fee of ${start} plus ${rate} per class. {name}, the "
-              "manager, wants each customer to spend at least ${limit} at the studio. Let C be the number of "
+              "manager, wants each customer to spend at least ${limit} at the studio. Let {L} be the number of "
               "classes a customer takes.",
          ask="What is the smallest number of classes a customer can take to meet {name}'s goal?"),
-    dict(key="e", type="1", letter="H", op="<=", wrong="swap", unit="hour", units="hours",
+    dict(key="e", type="1", op="<=", wrong="swap", unit="hour", units="hours",
          text="A plumber charges a fee of ${start} plus ${rate} per hour, and charges only for whole hours. "
-              "{name} wants to spend no more than ${limit}. Let H be the number of hours the plumber works.",
+              "{name} wants to spend no more than ${limit}. Let {L} be the number of hours the plumber works.",
          ask="What is the largest number of hours {name} can afford?"),
-    dict(key="f", type="1", letter="B", op=">=", wrong="limit:off", unit="paintball", units="paintballs",
+    dict(key="f", type="1", op=">=", wrong="limit:off", unit="paintball", units="paintballs",
          text="A paintball field charges an entrance fee of ${start} and ${rate} per paintball. Anyone who "
-              "spends ${limit} or more gets ${off} off. Let B be the number of paintballs {name} buys.",
+              "spends ${limit} or more gets ${off} off. Let {L} be the number of paintballs {name} buys.",
          ask="What is the smallest number of paintballs {name} can buy, with the entrance fee, to get the discount?"),
-    dict(key="g", type="1", letter="B", op=">=", wrong="one", unit="block", units="blocks",
+    dict(key="g", type="1", op=">=", wrong="one", unit="block", units="blocks",
          text="{name} is reserving hotel rooms for a company trip and needs at least {limit} rooms. {start} "
               "rooms are already reserved. The hotel reserves rooms in blocks of {rate} rooms, at ${price} a "
-              "block. Let B be the number of additional blocks {name} reserves.",
+              "block. Let {L} be the number of additional blocks {name} reserves.",
          ask="What is the smallest number of additional blocks {name} can reserve?"),
-    dict(key="h", type="2", letter="B", op="<=", wrong="rate:per", unit="avocado", units="avocados", times="per",
+    dict(key="h", type="2", op="<=", wrong="rate:per", unit="avocado", units="avocados", times="per",
          text="{name} brings ${limit} to the market and buys eggs that cost ${start}. The store sells avocados "
               "only in bags of {per} for ${rate}, and {name} wants as many avocados as the money left will buy. "
-              "Let B be the number of bags of avocados {name} buys.",
+              "Let {L} be the number of bags of avocados {name} buys.",
          ask="What is the largest number of avocados {name} can afford?"),
-    dict(key="i", type="2", letter="S", op="<=", wrong="one", unit="pancake", units="pancakes", times="per",
+    dict(key="i", type="2", op="<=", wrong="one", unit="pancake", units="pancakes", times="per",
          text="{name} orders chocolate milk that costs ${start}, then wants as many pancakes as possible with "
               "the bill at most ${limit} before tax. The restaurant sells pancakes only in stacks of {per} for "
-              "${rate}. Let S be the number of stacks of pancakes {name} buys.",
+              "${rate}. Let {L} be the number of stacks of pancakes {name} buys.",
          ask="What is the largest number of pancakes {name} can buy?"),
-    dict(key="j", type="2", letter="P", op="<", wrong="swap", unit="slice", units="slices", times="per",
+    dict(key="j", type="2", op="<", wrong="swap", unit="slice", units="slices", times="per",
          text="{name} is ordering pizzas for an office party. The restaurant charges a ${start} delivery fee and "
               "${rate} per pizza, and the total must stay under ${limit}. Each pizza is cut into {per} slices. "
-              "Let P be the number of pizzas {name} buys.",
+              "Let {L} be the number of pizzas {name} buys.",
          ask="What is the largest number of slices {name} can buy?"),
-    dict(key="k", type="2", letter="C", op=">=", wrong="rate:price", unit="dollar", units="dollars", times="price",
+    dict(key="k", type="2", op=">=", wrong="rate:price", unit="dollar", units="dollars", times="price",
          text="{name} needs at least {limit} gigabytes (GB) of storage for vacation photos. {name}'s phone has "
-              "{start} GB free, and memory cards hold {rate} GB each and cost ${price}. Let C be the number of "
+              "{start} GB free, and memory cards hold {rate} GB each and cost ${price}. Let {L} be the number of "
               "memory cards {name} buys.",
          ask="What is the least {name} can spend on memory cards?"),
-    dict(key="l", type="2", letter="R", op=">=", wrong="swap", unit="dollar", units="dollars", times="price",
+    dict(key="l", type="2", op=">=", wrong="swap", unit="dollar", units="dollars", times="price",
          text="{name} needs at least {limit} pieces of sushi for a meeting and has already ordered {start} "
-              "pieces. Sushi comes in rolls of {rate} pieces that cost ${price} each. Let R be the number of "
+              "pieces. Sushi comes in rolls of {rate} pieces that cost ${price} each. Let {L} be the number of "
               "additional rolls {name} orders.",
          ask="What is the least {name} can spend on the additional rolls?"),
 ]
 STORY = {s["key"]: s for s in STORIES}
 BY_TYPE = {k: [s for s in STORIES if s["type"] == k] for k in KEYS}
 FLIP = {"<=": ">=", ">=": "<=", "<": ">", ">": "<"}
+CAPITALS = tuple("ABCDEFGHJKLMNPQRSTUVWXYZ")      # the story's letter, drawn (no I or O); Khan's were S, F, C, ...
 
 def initial_seen():
     return set()
@@ -167,7 +169,7 @@ def shown(v):
 
 def expressions(st, w):
     """(right, wrong) expressions for part (a), from the story's numbers as written."""
-    L, s, rt = st["letter"], w["start"], w["rate"]
+    L, s, rt = w["L"], w["start"], w["rate"]
     right = f"{s} + {rt} {L}"
     kind, _, other = st["wrong"].partition(":")
     if kind == "one":
@@ -210,7 +212,7 @@ def part_b(st, n_of):
 
 def draw(entry, r, tpl):
     st = BY_TYPE[entry][tpl]
-    w = dict(shown(numbers(r, st)), name=r.choice(gen.NAMES))
+    w = dict(shown(numbers(r, st)), name=r.choice(gen.NAMES), L=r.choice(CAPITALS))
     good, choices = model(st, w)
     need(len(set(choices)) == 4)
     r.shuffle(choices)
@@ -239,9 +241,9 @@ def check(p):
 # ------------------------------------------------------------------
 def typst(p, gap="0.3em"):
     st = STORY[p["story"]]
-    name = gen.read(st["text"], p["prompt"])["name"]
-    ask = esc(gen.fill(st["ask"], name=name))
-    story = esc(p["prompt"]).replace(f"Let {st['letter']} be", f"Let ${st['letter']}$ be")
+    w = gen.read(st["text"], p["prompt"])
+    ask = esc(gen.fill(st["ask"], name=w["name"]))
+    story = esc(p["prompt"]).replace(f"Let {w['L']} be", f"Let ${w['L']}$ be")
     return (f"{story}\n    #parts([{QUESTION_A} #pad(left: 1em, top: 0.4em, "
             f"{gen.choices_typst([f'${c}$' for c in p['choices']], 'grid')[1:]})], [{ask}])")
 

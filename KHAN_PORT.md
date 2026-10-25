@@ -151,7 +151,16 @@ selftest over every Khan type, and byte-identical baselines for the existing ban
   `sheets/ineq.py` (inequality and compound-inequality sets),
   `khan_alg1/numbers.py` (short decimals, simple fractions).
 
-## 5. Errors found in the old banks so far
+## 5. Unit 2 checkpoint (2026-10-25)
+Approved: the types as built; 2-8 keeps the Advanced Math answer form,
+y = -(u - 58)/(r + 17); 2-7a's key gives only the letters ("A, C").
+Changed: 2-10's stories draw their letter at random instead of Khan's.
+
+**To revisit:** random letters in word problems (2-10). The teacher wants
+to look at this again later: Khan's letters (S for stops, F for flour)
+name the thing counted.
+
+## 6. Errors found in the old banks so far
 - Alg1 2-2 no. 18: `2 − ½n = 3n + 16` has key `n = 4`. The solution is `n = −4`.
 - Alg1 2-10 no. 9 (plumber): the key's part (a) was 65 + 28H >= 250; "no more than $250" is <=.
 - Alg1 2-10 no. 10 (Sergei's flour) and others: no answers; part (b) now computed and checked.
