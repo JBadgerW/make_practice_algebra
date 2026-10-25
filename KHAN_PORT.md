@@ -188,6 +188,14 @@ system, checked from the words). Approved: answers "x = 2, y = -5" (the old
 key's form); word problems keyed with the sentence only. Changed: 6-3 shows
 a product unmultiplied, 0.5 s = 2 · 0.3 h, as the old key did.
 
+## 5f. Unit 8 in progress (2026-10-25)
+Done: 8-1, 8-4, 8-6, 8-9, 8-10, 8-22 (8-6 and 8-22 key linear answers in
+slope-intercept form, 5/3 q - 10: to confirm with the teacher). Next:
+8-7 and 8-11 (interpretation stories: their answers can't be computed, so
+the check only confirms the key matches the story's template; tell the
+teacher), 8-13 (is the table a function?). Then the Unit 8 checkpoint,
+Khan Algebra 2, Khan Prealgebra, and the graphs phase.
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
@@ -207,6 +215,8 @@ name the thing counted.
 - Alg1 6-7: templates 4, 8, and 12 could make a choice keyed wrong eliminate a variable too (d = -a; q = -p; e = b d or a e = -b), so "choose 2" had three right.
 - Alg1 6-10 no. 12: printed "(b) No" (right) but marked "Yes" as the correct choice.
 - Alg1 6-15 no. 6: marked two choices correct (many solutions, right, and no solution).
+- Alg1 8-6 templates 1, 5, 9, 13, 17: the key began "f(x) =" even for g and h.
+- Alg1 8-7 no. 9: the height difference equals the month difference, muddling two choices.
 - Alg1 2-6: the one generated slot (no. 30) was always "infinitely many".
 - About 1,000 slots have no answer at all (`ANSWER TO nn GOES HERE`). The generators
   will supply checked answers for all of them.
