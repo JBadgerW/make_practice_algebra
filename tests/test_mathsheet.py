@@ -65,7 +65,7 @@ keys("/square\n"); assert a.rid() == ("step", ("literal_by_type", 13)), "the seq
 assert "literal_by_type" in a.open, "/ opens what it finds"
 def next_match():                     # the ported banks have squares too: pass over them
     keys("n")
-    while str(a.rid()[1][0]).startswith(PORTED):
+    while (lambda k: k if isinstance(k, str) else str(k[0]))(a.rid()[1]).startswith(PORTED):   # a bank row, or a type row
         keys("n")
 next_match(); assert a.rid() == ("count", ("literal", "B")), a.rid()
 next_match(); assert a.rid() == ("count", ("literal", "Bf")), a.rid()
