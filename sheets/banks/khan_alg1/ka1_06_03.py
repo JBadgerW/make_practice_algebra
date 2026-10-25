@@ -13,6 +13,7 @@ check() reads the numbers back out of the story, builds the right system,
 and finds the choices whose equations are each a multiple of one of its
 equations: exactly one, the answer's.
 """
+import re
 from decimal import Decimal as D
 from fractions import Fraction as F
 from ... import gen
@@ -288,8 +289,11 @@ def check(p):
 
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(BY_TYPE[e]))
 
+LET = re.compile(r"(Let |and )([a-z])( be | the )")
+
 def typst(p, gap="0.3em"):
-    return f"{esc(p['prompt'])} \\\n    {gen.choices_typst([twovar.system_typst(c) for c in p['choices']], 'grid')}"
+    story = LET.sub(r"\1$\2$\3", esc(p["prompt"]))            # Let $h$ be ... and $s$ the ...
+    return f"{story} \\\n    {gen.choices_typst([twovar.system_typst(c) for c in p['choices']], 'grid')}"
 
 def answer_typst(p):
     a = gen.letters_of(p["answer"])[0]

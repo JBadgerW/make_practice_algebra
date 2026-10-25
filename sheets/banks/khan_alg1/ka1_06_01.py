@@ -20,7 +20,7 @@ from .twovar import standard, coefficients, equations
 NAME = FAMILY = "ka1_06_01"
 FIXED = False
 TITLE = "Lesson 6-1: Solutions of systems of equations"
-INSTRUCTIONS = "Is the point a solution to both equations?"
+INSTRUCTIONS = ""                       # each problem asks its own question
 COURSES = courses(6)
 CHOICES = ["Yes", "No"]
 
