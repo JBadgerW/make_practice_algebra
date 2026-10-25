@@ -4,8 +4,8 @@ area model, from the old app's Alg1_13_02 (twelve generated slots).
 A rectangle's height is a monomial (a number, or a number times x) and its
 width a polynomial with up to three terms (x^2 + b x + c, a x^2 + b x,
 b x + c); the area model shows a box per term. The area is the product,
-expanded. The width's coefficients are -6 to 6, not 0; the height is
-positive (the old template allowed -6, a side no rectangle has).
+expanded. Every coefficient is positive, 1 to 6: each box is a length (the
+old template allowed -6, which no side can be).
 
 A problem: dict(type, height, width, prompt, answer, source), in Typst math.
     height  "3"          width  "x^2 - 2 x + 5"
@@ -15,7 +15,7 @@ check() expands the prompt and requires the answer to be the same
 polynomial in standard form.
 """
 from ... import gen
-from ...gen import need, signed, written
+from ...gen import written
 from ...typst import esc
 from ...typmath import text as plain
 from . import courses
@@ -47,7 +47,8 @@ def seen_key(p):
     return (NAME, p["prompt"])
 
 def c(r):
-    return signed(r, 1, 6)
+    """A width's coefficient: positive, since every box is a length (the old template drew -6 to 6)."""
+    return r.randint(1, 6)
 
 WIDTHS = [lambda r: written((r.choice((1, 1, c(r))), "x^2"), (c(r), "x"), (c(r), "")),   # x^2 - 2 x + 5
           lambda r: written((c(r), "x^2"), (c(r), "x")),                                  # 3 x^2 - 4 x

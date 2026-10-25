@@ -3,7 +3,8 @@ written, and the checks and edits for "expand" and "factor" problems.
 (Not a bank: the library passes over it.)
 
     binomial(d, e, v, constant_first)   "(3 x - 5)", "(9 - x)"
-    expand_check, expand_answer_of      the same polynomial, written in standard form
+    expand_check, expand_answer_of      the same polynomial, written in standard form;
+    checker(either), constants_first    or, where the prompt leads with numbers, ascending
     factor_check, factor_answer_of      the same polynomial, factored completely
 """
 import re
@@ -18,15 +19,30 @@ def binomial(d, e, v, constant_first=False):
     """(d v + e), or (e + d v)."""
     return f"({written((e, ''), (d, v)) if constant_first else written((d, v), (e, ''))})"
 
-def expand_answer_of(prompt):
-    return poly.expanded(to_sympy(prompt))
+BINOMIAL = re.compile(r"\(([^()]*)\)")
 
-def expand_check(p):
-    try:
-        ok = poly.standard(p["answer"]) and sp.expand(to_sympy(p["prompt"]) - to_sympy(p["answer"])) == 0
-        return "checked" if ok else "failed"
-    except Exception:
-        return "unchecked"
+def constants_first(prompt):
+    """Does every binomial in the prompt lead with its number, (5 + x)(5 - x)?"""
+    bs = BINOMIAL.findall(prompt)
+    return bool(bs) and all(re.match(r"\s*-?\d+\s*[-+]", b) for b in bs)
+
+def expand_answer_of(prompt, follow=False):
+    """The product multiplied out: standard form, or (follow) ascending when the
+    prompt's binomials lead with their numbers: (5 + x)(5 - x) = 25 - x^2."""
+    return poly.expanded(to_sympy(prompt), follow and constants_first(prompt))
+
+def checker(either):
+    """check() for an expand problem: the same polynomial, in standard form (either:
+    or in ascending order)."""
+    def check(p):
+        try:
+            ok = poly.standard(p["answer"], either) and sp.expand(to_sympy(p["prompt"]) - to_sympy(p["answer"])) == 0
+            return "checked" if ok else "failed"
+        except Exception:
+            return "unchecked"
+    return check
+
+expand_check = checker(False)
 
 def leads_with_number(prompt):
     """Does the prompt start with its constant (81 - x^2), so the key writes (9 - x) (9 + x)?"""
@@ -41,8 +57,8 @@ def factor_check(p):
     except Exception:
         return "unchecked"
 
-def expand_edits(example, example_answer):
-    return gen.edits(expand_answer_of, expand_check, example, example_answer)
+def expand_edits(example, example_answer, follow=False):
+    return gen.edits(lambda t: expand_answer_of(t, follow), checker(follow), example, example_answer)
 
 def factor_edits(example, example_answer):
     return gen.edits(factor_answer_of, factor_check, example, example_answer)

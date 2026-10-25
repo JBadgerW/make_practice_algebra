@@ -163,11 +163,16 @@ since 7^(-17) and 7^(-20) both look like 0 at random points).
 Approved: 11-1 keeps Khan's form (7^2); 11-3's equivalents have one to three
 right ("choose all that apply"); square roots to 400 and cube roots to 1728.
 
-## 5c. Unit 13 (built 2026-10-25; awaiting its checkpoint)
+## 5c. Unit 13 (approved 2026-10-25)
 All fifteen lessons. New shared pieces: `sheets/poly.py` (expanded and
 factored forms, read back from the text), `khan_alg1/figures.py` (area
 models and labeled rectangles in Typst), `khan_alg1/polybank.py`.
 13-1 also serves Khan Algebra 2's 1-1 (the same set).
+Approved: the factored key ((x + 3)^2; binomials by constant; (9 - x) (9 + x)
+when the prompt leads with its number). Changed: an expansion whose binomials
+lead with their numbers is keyed in ascending order, 25 - x^2 (13-6, 13-7;
+13-4 and 13-5 ask for standard form); no negative lengths: 13-2's widths
+are positive.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)

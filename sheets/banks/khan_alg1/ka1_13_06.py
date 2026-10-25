@@ -7,11 +7,12 @@ A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "(3 x - 4) (3 x + 4)"
     answer  "9 x^2 - 16"
 check() expands the prompt and requires the answer to be the same
-polynomial, written in standard form (no parentheses, degrees descending).
+polynomial, multiplied out, its degrees in order. When the binomials lead
+with their numbers, (5 + x)(5 - x), the key does too: 25 - x^2.
 """
 from ... import gen
 from . import courses
-from .polybank import binomial, expand_check, expand_edits, expand_answer_of
+from .polybank import binomial, checker, expand_edits, expand_answer_of
 
 NAME = FAMILY = "ka1_13_06"
 FIXED = False
@@ -62,12 +63,12 @@ TEMPLATES = {"1": [t_x, t_number_first, t_coefficient, t_coefficient_number_firs
 
 def draw(entry, r, tpl):
     prompt = TEMPLATES[entry][tpl](r, r.choice(gen.LETTERS))
-    return dict(prompt=prompt, answer=expand_answer_of(prompt))
+    return dict(prompt=prompt, answer=expand_answer_of(prompt, follow=True))
 
-check = expand_check
+check = checker(True)                         # 25 - x^2 for (5 + x)(5 - x)
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 typst, answer_typst, text, answer_text, height = gen.shown()
-edit_text, from_edit, answer_edit_text, with_answer = expand_edits("(3 x - 4) (3 x + 4)", "9 x^2 - 16")
+edit_text, from_edit, answer_edit_text, with_answer = expand_edits("(3 x - 4) (3 x + 4)", "9 x^2 - 16", follow=True)
 
 def selftest(n, seed):
     return gen.selftest(NAME, generate, KEYS, lambda k: label(TYPE[k]), n, seed)

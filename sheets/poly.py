@@ -1,14 +1,15 @@
 """Integer polynomials in one letter, shared by the banks that multiply and
 factor them: the key's forms, and reading an answer's form from its text.
 
-    expanded(e)              standard form: "6 x^2 - x - 15" (descending degree)
+    expanded(e, ascending)   standard form: "6 x^2 - x - 15" (descending degree),
+                             or ascending: "25 - x^2"
     factored(e, reversed_)   the key's factored form: the greatest common factor
                              (with the sign of the leading term) in front, then each
                              factor, a repeated one as a power: "-2 (x - 3) (x + 5)",
                              "(2 x + 1)^2"; reversed_ writes the constant first, as a
                              prompt that leads with it does: "(9 + x) (9 - x)"
-    standard(text)           the text is a sum of terms, no parentheses, every
-                             degree once, in descending order
+    standard(text, either)   the text is a sum of terms, no parentheses, every
+                             degree once, in descending order (either: or ascending)
     completely_factored(text, prompt)
                              the same polynomial as the prompt, the content pulled
                              out in front, every factor left irreducible over the integers
@@ -23,8 +24,19 @@ def letter(e):
     syms = sorted(e.free_symbols, key=str)
     return syms[0] if syms else sp.Symbol("x")
 
-def expanded(e):
-    return tx(sp.expand(e))
+def expanded(e, ascending=False):
+    """Standard form (descending degree), or ascending: "25 - x^2", "12 - 5 x - 2 x^2"."""
+    e = sp.expand(e)
+    if not ascending or not e.free_symbols:
+        return tx(e)
+    v = letter(e)
+    ts = sorted(sp.Add.make_args(e), key=lambda t: sp.degree(t, v))
+    out = ""
+    for i, t in enumerate(ts):
+        neg = t.could_extract_minus_sign()
+        body = tx(-t if neg else t)
+        out += ("-" + body if neg else body) if i == 0 else (" - " if neg else " + ") + body
+    return out
 
 def content(p):
     """The greatest common factor of the coefficients (positive)."""
@@ -65,15 +77,16 @@ def terms(text):
     t = to_sympy(text, evaluate=False)
     return list(t.args) if isinstance(t, sp.Add) else [t]
 
-def standard(text):
-    """A sum of monomials, as written: no parentheses, every degree once, descending."""
+def standard(text, either=False):
+    """A sum of monomials, as written: no parentheses, every degree once, descending
+    (either: or ascending, "25 - x^2")."""
     if "(" in text:
         return False
     ts = [sp.sympify(t) for t in terms(text)]
     e = to_sympy(text)
     v = letter(e)
     degs = [sp.degree(t, v) if t.free_symbols else 0 for t in ts]
-    return len(set(degs)) == len(degs) and degs == sorted(degs, reverse=True)
+    return len(set(degs)) == len(degs) and (degs == sorted(degs, reverse=True) or (either and degs == sorted(degs)))
 
 def _evaluated(e):
     return e.func(*[_evaluated(a) for a in e.args]) if e.args else e

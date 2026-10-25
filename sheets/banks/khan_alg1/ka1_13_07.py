@@ -1,18 +1,19 @@
 """Khan Algebra 1, Lesson 13-7: Multiply perfect squares of binomials, from the old app's Alg1_13_07
 (twelve generated slots).
 
-(x + e)^2, (d x + e)^2, or written as a product, (x - 4)(x - 4).
+(x + e)^2, (d x + e)^2, (e + d x)^2, or written as a product, (x - 4)(x - 4).
 
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "(3 x - 4)^2"
     answer  "9 x^2 - 24 x + 16"
 check() expands the prompt and requires the answer to be the same
-polynomial, written in standard form (no parentheses, degrees descending).
+polynomial, multiplied out, its degrees in order. When the binomials lead
+with their numbers, (5 + x)(5 - x), the key does too: 25 - x^2.
 """
 from ... import gen
 from ...gen import signed
 from . import courses
-from .polybank import binomial, expand_check, expand_edits, expand_answer_of
+from .polybank import binomial, checker, expand_edits, expand_answer_of
 
 NAME = FAMILY = "ka1_13_07"
 FIXED = False
@@ -45,16 +46,19 @@ def t_product(r, v):                           # (x - 4)(x - 4), (3x + 1)(3x + 1
     b = binomial(r.choice((1, r.randint(2, 9))), signed(r, 1, 9), v)
     return f"{b} {b}"
 
-TEMPLATES = {"1": [t_square, t_square_coefficient, t_product]}
+def t_number_first(r, v):                      # (4 + 3x)^2 = 16 + 24 x + 9 x^2
+    return binomial(r.randint(1, 9), signed(r, 1, 9), v, True) + "^2"
+
+TEMPLATES = {"1": [t_square, t_square_coefficient, t_product, t_number_first]}
 
 def draw(entry, r, tpl):
     prompt = TEMPLATES[entry][tpl](r, r.choice(gen.LETTERS))
-    return dict(prompt=prompt, answer=expand_answer_of(prompt))
+    return dict(prompt=prompt, answer=expand_answer_of(prompt, follow=True))
 
-check = expand_check
+check = checker(True)                         # 25 - x^2 for (5 + x)(5 - x)
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 typst, answer_typst, text, answer_text, height = gen.shown()
-edit_text, from_edit, answer_edit_text, with_answer = expand_edits("(3 x - 4)^2", "9 x^2 - 24 x + 16")
+edit_text, from_edit, answer_edit_text, with_answer = expand_edits("(3 x - 4)^2", "9 x^2 - 24 x + 16", follow=True)
 
 def selftest(n, seed):
     return gen.selftest(NAME, generate, KEYS, lambda k: label(TYPE[k]), n, seed)
