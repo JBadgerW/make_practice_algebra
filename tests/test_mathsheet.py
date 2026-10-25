@@ -384,6 +384,16 @@ xk(f":{where.index(('adv_functions', '4')) + 1}\n"); xk("cc"); xk("\x15f(x) = sq
 assert x.item()["problem"]["answer"] == "x >= 3, x != 5" and x.item()["status"] == "checked", x.item()
 xk("A\x15x >= 3, x != 2, x != 5\n"); assert x.item()["status"] == "checked", "2 is outside the domain anyway"
 xk("A\x15x >= -3, x != 5\n"); assert x.item()["status"] == "failed"
+x = T.App(seed=6); xk = driver(x)
+xk(":mix adv_variation/all:1 adv_mixtures/all:1 adv_word/all:1\n")
+assert len(sh.items(x.sheet)) == 10 and all(it["status"] == "checked" for it in sh.items(x.sheet))
+where = [(it["bank"], it["entry"]) for it in sh.items(x.sheet)]
+xk(f"\t:{where.index(('adv_mixtures', '4')) + 1}\n")
+assert x.item()["problem"]["story"] == "c", "water boiled off"
+xk("cc"); xk("\x15How many ounces of water must be boiled off from 60 ounces of a 10% salt solution to make a 15% salt solution?\n")
+assert x.item()["problem"]["answer"] == "20 ounces of water" and x.item()["status"] == "checked", x.item()   # the answer follows the numbers
+xk("A\x1525 ounces of water\n"); assert x.item()["status"] == "failed"
+xk(f":{where.index(('adv_word', '1')) + 1}\n"); xk("A\x1599, 99\n"); assert x.item()["status"] == "failed"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
