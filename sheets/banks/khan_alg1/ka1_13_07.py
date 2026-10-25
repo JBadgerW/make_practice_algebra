@@ -47,7 +47,7 @@ def t_product(r, v):                           # (x - 4)(x - 4), (3x + 1)(3x + 1
     return f"{b} {b}"
 
 def t_number_first(r, v):                      # (4 + 3x)^2 = 16 + 24 x + 9 x^2
-    return binomial(r.randint(1, 9), signed(r, 1, 9), v, True) + "^2"
+    return binomial(signed(r, 1, 9), r.randint(1, 9), v, True) + "^2"     # the number first is positive: (4 - 3x)^2
 
 TEMPLATES = {"1": [t_square, t_square_coefficient, t_product, t_number_first]}
 
