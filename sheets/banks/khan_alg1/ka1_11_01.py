@@ -9,14 +9,14 @@ A problem: dict(type, prompt, answer, source), in Typst math; a product
 with a dot is stored with *, shown as a dot.
     prompt  "7^(-3) * 7^5"
     answer  "7^2"
-check() compares the values and reads the answer's form: the prompt's
+check() compares the values exactly (check.same_power) and reads the answer's form: the prompt's
 base to one integer power.
 """
 import re
 import sympy as sp
 from ... import gen
 from ...gen import need, signed
-from ...check import same_value, to_sympy
+from ...check import same_power, to_sympy
 from ...typmath import display, dfrac, fr, text as plain
 from ..adv_exponents import pw
 from . import courses
@@ -24,7 +24,7 @@ from . import courses
 NAME = FAMILY = "ka1_11_01"
 FIXED = False
 TITLE = "Lesson 11-1: Multiply & divide powers (integer exponents)"
-INSTRUCTIONS = "Rewrite each expression in the form b^n."
+INSTRUCTIONS = "Rewrite each expression as a power of a single base."
 COURSES = courses(11)
 
 TYPES = [
@@ -79,7 +79,7 @@ def check(p):
     try:
         m = FORM.fullmatch(p["answer"].replace(" ", ""))
         b = re.match(r"\(?(\w+)", p["prompt"]).group(1)
-        ok = m and m.group(1) == b and same_value(p["prompt"].replace("*", ""), p["answer"])
+        ok = m and m.group(1) == b and same_power(p["prompt"].replace("*", ""), p["answer"])
         return "checked" if ok else "failed"
     except Exception:
         return "unchecked"

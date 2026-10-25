@@ -101,3 +101,9 @@ def simplest_form(text, imaginary=False):
         if imaginary and d.has(sp.I):
             return False
     return lowest_terms(text, imaginary)
+
+def same_power(a, b, imaginary=False):
+    """Typst products of powers a and b are equal exactly: their ratio simplifies to 1.
+    For values same_value can't tell apart, like 7^(-17) and 7^(-20) (both nearly 0)."""
+    ratio = to_sympy(a, imaginary) / to_sympy(b, imaginary)
+    return sp.powsimp(sp.expand_power_base(ratio, force=True), force=True) == 1
