@@ -6,6 +6,7 @@ factor them: the key's forms, and reading an answer's form from its text.
     factored(e, reversed_)   the key's factored form: the greatest common factor
                              (with the sign of the leading term) in front, then each
                              factor, a repeated one as a power: "-2 (x - 3) (x + 5)",
+                             a power of the letter before the binomials: "3 x^2 (x - 1)",
                              "(2 x + 1)^2"; reversed_ writes the constant first, as a
                              prompt that leads with it does: "(9 + x) (9 - x)"
     standard(text, either)   the text is a sum of terms, no parentheses, every
@@ -39,8 +40,9 @@ def expanded(e, ascending=False):
     return out
 
 def content(p):
-    """The greatest common factor of the coefficients (positive)."""
-    return math.gcd(*[int(c) for c in sp.Poly(p, letter(p)).coeffs()]) if p.free_symbols else abs(int(p))
+    """The greatest common factor of the coefficients (positive), in every letter."""
+    syms = sorted(p.free_symbols, key=str)
+    return math.gcd(*[int(c) for c in sp.Poly(p, *syms).coeffs()]) if syms else abs(int(p))
 
 def binomial(f, reversed_=False):
     """A factor as the key writes it: "2 x + 1"; reversed_: "1 + 2 x", "9 - x" (constant first)."""
@@ -67,7 +69,8 @@ def factored(e, reversed_=False):
             f, c = -f, c * (-1) ** m
         out.append((f, m))
     v = letter(e)
-    out.sort(key=lambda fm: (sp.degree(fm[0], v), fm[0].subs(v, 0) * (-1 if reversed_ else 1), str(fm[0])))   # (x - 3) (x + 5)
+    out.sort(key=lambda fm: (fm[0].is_Add, sp.degree(fm[0], v), fm[0].subs(v, 0) * (-1 if reversed_ else 1),
+                             str(fm[0])))                   # 3 x^2 (x - 3) (x + 5): a letter before the binomials
     body = " ".join(f"({binomial(f, reversed_)})" + (f"^{m}" if m > 1 else "") if f.is_Add
                     else (tx(f) if m == 1 else f"{tx(f)}^{m}") for f, m in out)
     return body if c == 1 else "-" + body if c == -1 else f"{tx(c)} {body}"
