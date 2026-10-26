@@ -223,13 +223,14 @@ factored. 3-5's "none" expressions are checked to have no factor at all.
 the first step not equal to the one before. 3-10's monkey is "it"; people
 are named, no pronouns (approved). 3-10 keeps Khan's dot in its expressions.
 
-## 5j. Khan Prealgebra (built 2026-10-26; awaiting its checkpoint)
+## 5j. Khan Prealgebra (approved 2026-10-26)
 All seven lessons (`sheets/banks/khan_pre/`, NAME kpa_UU_LL). 6-2 is
 Algebra 1's 1-1 under this course. 1-3's hundred chart is drawn in Typst
 (`khan_pre/numbers.py`); its choices are read back as sets and compared
 with the shaded numbers. 1-1's tables are Typst tables with blank cells.
 The 3-9, 8-1 and 8-2 stories use names, no pronouns; every percent in 8-1
 and 8-2 is exact.
+Approved: the names-for-pronouns wording stays for now.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
