@@ -202,6 +202,15 @@ area models (1-7, 1-9) have positive lengths only; 1-11 and 1-12 key a
 product that leads with its number in ascending order, as 13-6 does.
 Approved: 1-2's rates as exact fractions (-9/4), not decimals.
 
+## 5h. Khan Algebra 2, Unit 2 (built 2026-10-26; awaiting its checkpoint)
+Eight lessons, 2-1 to 2-9 without 2-5 (the complex plane, a graph: Phase 5).
+Shared helpers in `khan_alg2/cx.py` (a + bi written and read back, the form
+check). 2-4 uses Khan's meanings: "imaginary" is a real multiple of i, so
+3.75i + 7 is only Complex, 7 is Real and Complex, -91i is Imaginary and
+Complex. 2-7 and 2-8 keep Khan's dot between the factors. 2-9 writes ±
+where Khan wrote ∓ (a < 0): the same two numbers. All thirty of the old
+2-9 items were checked: each has exactly one right choice.
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
