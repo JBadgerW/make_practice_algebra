@@ -212,7 +212,7 @@ Complex, 7 is Real and Complex, -91i is Purely imaginary and Complex.
 where Khan wrote ∓ (a < 0): the same two numbers. All thirty of the old
 2-9 items were checked: each has exactly one right choice.
 
-## 5i. Khan Algebra 2, Unit 3 (built 2026-10-26; awaiting its checkpoint)
+## 5i. Khan Algebra 2, Unit 3 (approved 2026-10-26)
 All nine lessons (3-1, 3-2, 3-4 to 3-10; the old app has no 3-3). 3-1's
 rectangles are drawn (Algebra 1's labeled box), not pictures. `patterns.py`
 builds U and V for 3-5 to 3-7; `poly.factored` now writes a power of the
@@ -221,14 +221,15 @@ works in several letters, so 3-6 and 3-7 are checked as completely
 factored. 3-5's "none" expressions are checked to have no factor at all.
 3-8 Type 2 builds a student's steps with at most one slip; the check finds
 the first step not equal to the one before. 3-10's monkey is "it"; people
-are named, no pronouns. 3-10 keeps Khan's dot in its expressions.
+are named, no pronouns (approved). 3-10 keeps Khan's dot in its expressions.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
 
-**To revisit:** the dot in 2-7 and 2-8, 5i · (3 − 2i), against the
-textbook's 5i(3 − 2i). Kept for now (2026-10-26).
+**To revisit:** Khan's dot. 2-7 and 2-8 write 5i · (3 − 2i), against the
+textbook's 5i(3 − 2i); 3-10 writes 24 · (1 − (1/3)^n)/(1 − 1/3). Kept for
+now (2026-10-26).
 
 ## 6. Errors found in the old banks so far
 - Alg1 2-2 no. 18: `2 − ½n = 3n + 16` has key `n = 4`. The solution is `n = −4`.
