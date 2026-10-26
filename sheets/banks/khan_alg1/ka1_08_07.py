@@ -80,6 +80,9 @@ STATEMENT = {"equal": re.compile(r"(\w)\((\d+)\) = (\d+)"),
 
 def readings(ctx, statement, name):
     """(the right reading, two wrong ones) of a statement, in the story's words."""
+    return [t.replace("a.m..", "a.m.") for t in _readings(ctx, statement, name)]   # one period after a.m.
+
+def _readings(ctx, statement, name):
     F, intro, at, amount, noun, xs, ys, more, ds = CONTEXTS[ctx]
     fill = lambda s: s.replace("{name}", name)
     cap = lambda s: s[0].upper() + s[1:]
