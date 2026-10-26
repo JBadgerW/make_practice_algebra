@@ -146,12 +146,13 @@ class Graph:
                        f"text(size: 8pt)[{self._math(self.ylabel)}])")
         if self.numbers:
             ex, ey = self._every(self.sx_step, self.kx), self._every(self.sy_step, self.ky)
-            for i, gx in enumerate(xs):
-                if i % ex == 0 and (gx != ay or self.origin) and gx not in (self.x0, self.x1):
+            on = lambda v, every: abs(v / every - round(v / every)) < 1e-9       # numbers on multiples: 2, 4, ...
+            for gx in xs:
+                if on(gx, ex * self.sx_step) and (gx != ay or self.origin) and gx not in (self.x0, self.x1):
                     out.append(f"content({self.c(gx, ax)}, anchor: \"north\", padding: 2pt, "
                                f"text(size: 6pt)[{_minus(gx)}])")
-            for i, gy in enumerate(ys):
-                if i % ey == 0 and gy != ax and gy not in (self.y0, self.y1):
+            for gy in ys:
+                if on(gy, ey * self.sy_step) and gy != ax and gy not in (self.y0, self.y1):
                     out.append(f"content({self.c(ay, gy)}, anchor: \"east\", padding: 2pt, "
                                f"text(size: 6pt)[{_minus(gy)}])")
         return out
