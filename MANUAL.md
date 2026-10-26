@@ -104,6 +104,15 @@ and no equation has a common factor that would turn it into a Type 4. In the
 terminal app, `i` edits a system as `eq1 ; eq2 ; eq3` (solved again), and `A`
 takes `(x, y, z)`, `no solution`, or `infinitely many solutions`.
 
+### Lessons 1-2 and 1-3: Linear Equations
+
+`--mix equations_1_2/3:4` draws from the `equations_1_2` bank (one to three
+steps); `equations_1_3` has the longer ones (fractions to clear, decimals,
+both sides, mixtures). The README lists their types. Problems are built
+backward from the solution, and sympy solves each prompt again to check the
+key. In the terminal app, `i` edits the prompt; the key is recomputed. `A`
+takes `x = 3`, `x = -1.5`, `x = 12/7`, `no solution`, or `all real numbers`.
+
 ### Lesson 1-6: Compound Inequalities
 
 `--mix modeling/2c:3` draws from the `modeling` bank: entry `2c` is Type 2

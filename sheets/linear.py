@@ -73,3 +73,28 @@ def solves(prompt, answer, form=None):
             return False
     l, r = sides(prompt)
     return sp.simplify((l - r).subs(v, exact(rhs))) == 0
+
+# ------------------------------------------------------------------
+# Keys that also say "no solution" and "all real numbers"
+# ------------------------------------------------------------------
+NONE, ALL = "no solution", "all real numbers"
+
+def key(prompt):
+    """The key's answer: "no solution", "all real numbers", or "x = ...", a
+    decimal when the prompt has decimals and the solution is a short one,
+    otherwise an integer or a fraction in lowest terms."""
+    n = count(prompt)
+    if n != "one":
+        return NONE if n == "none" else ALL
+    if "." in prompt:
+        try:
+            return answer_of(prompt, decimals=True)
+        except ValueError:
+            pass
+    return answer_of(prompt)
+
+def keyed(prompt, answer):
+    """The answer is right, and in the key's form (a decimal, or a fraction in lowest terms)."""
+    if answer in (NONE, ALL):
+        return answer == {"none": NONE, "all": ALL}.get(count(prompt))
+    return solves(prompt, answer, "decimal" if "." in answer else "fraction")

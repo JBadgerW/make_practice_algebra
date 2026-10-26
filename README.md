@@ -28,6 +28,9 @@ python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 # Systems of three equations (another bank: name it before the entry)
 python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 
+# Lesson 1-2: Solving Linear Equations: two of each type
+python3 make_practice.py --mix equations_1_2/all:2 --title "Lesson 1-2: Solving Linear Equations"
+
 # Lesson 1-6: Compound Inequalities (modeling): every story at every type, two parallel versions
 python3 make_practice.py --mix modeling/all:1 --versions 2 --title "Lesson 1-6: Compound Inequalities"
 
@@ -94,6 +97,44 @@ sides with denominators up to 6) and decimal ones (like 0.4y + 0.2z = 2, in
 tenths); clearing them leaves an integer system. Answers are ordered triples, `(2, −1, 3)`, or the words *no solution*
 or *infinitely many solutions*. Each system is half width with 2.5in of work
 space, its terms lined up in columns.
+
+### Lesson 1-2: Solving Linear Equations
+
+The `equations_1_2` bank: the one- to three-step equations (rated 1 to 3) of
+the teacher's Lesson 1-2 and 1-3 equation banks, redrawn from templates.
+Integer, decimal, and fraction coefficients appear in every type where the
+lesson had them.
+
+| Key | Type | Example |
+|---|---|---|
+| 1 | Two Steps | `5x + 12 = 37`, `x/4 + 7 = 12`, `1/3 x + 5 = 3`, `0.2r − 3 = 0.5` |
+| 2 | Combine Like Terms First | `0.25 + t + 0.4 = 2`, `6x + 3(2x) = 48`, `x + (x + 1) + (x + 2) = 96` |
+| 3 | Distribute First | `6(p − 12) = 90`, `84 = −3(2r − 6)`, `1/3 (2x + 1) = 15`, `0.045(q + 3) = 2.34` |
+| 4 | Distribute, Then Combine | `−5x + 4(3x + 2) = 50`, `−(9 − 3x) + 5 = −10`, `0.875(x + 4) − 7 = 0` |
+| 5 | A Binomial over a Number | `(x − 7)/4 − 3 = 5`, `6 + (x + 18)/3 = 9` |
+| 6 | Variable on Both Sides | `7n − 23 = 3n + 5`, `40 − 3x = 8x`, `0.79s + 15 = 0.85s` |
+| 7 | Distribute, Then Variable on Both Sides | `4(n − 9) = 3(n + 4)`, `3(x + 4) = 4x + 2 + x`, `x − 5 = −(x − 5)` |
+| A | No Solution or All Real Numbers | `9b + 4 = 9b + 7`, `t − 14 = −(14 − t)`, `(8x + 10)/2 − 5 = 4x` |
+
+### Lesson 1-3: Equations with Fractions, Decimals, and Parentheses
+
+The `equations_1_3` bank: the four- and five-step equations (rated 4 and 5)
+of the same two lesson banks.
+
+| Key | Type | Example |
+|---|---|---|
+| 1 | Distribute a Subtraction | `11 − 3(4 − 2x) = 41`, `1500 − 4(2x + 25) = 600`, `300 = 12(4t − 3)` |
+| 2 | Decimal Coefficients | `4x − 0.5(x + 2) + 3 = 16`, `1.025x + 0.05x + 40 = 61.5`, `20a + 22.5 = 12.5(a + 3)` |
+| 3 | Clear One Denominator | `(3(x + 2))/4 − 5 = 10`, `4y = (10 − 16y)/2 + 3`, `1/4 (n − 8) = −5n + 7` |
+| 4 | Clear Several Denominators | `4/3 x − 1/2 x = 5`, `960 = h/8 + h/4`, `(q + 2)/3 = (q − 1)/4` |
+| 5 | Distribute on Both Sides | `3/4 (8d + 16) = 5(d − 2) + 2`, `0.25(y − 0.4) = 3 − 0.5(1 − y)` |
+| 6 | Mixtures | `0.25(20) = 0.15x + 0.35(20 − x)` |
+| A | No Solution or All Real Numbers | `12(5 − 2m) = 72(−m/3 + 1)` |
+
+In both banks the key writes `x = 18`; a decimal when the prompt has decimals
+(`r = 17.5`), otherwise a fraction in lowest terms (`n = 12/7`); *no
+solution*; or *all real numbers*. The check solves the prompt again with
+sympy and substitutes the key.
 
 ### Lesson 1-6: Compound Inequalities
 
@@ -232,6 +273,7 @@ ever runs code.
 | `sheets/library.py` | The library: finds every bank (generators, `library/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
+| `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
 | `sheets/banks/absolute_words.py` | The Lesson 1-7: Word Problems bank: the ten phrases, the eight stories, the four types, and a check that reads the numbers back out of the prompt |
