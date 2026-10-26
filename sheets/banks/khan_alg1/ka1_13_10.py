@@ -1,7 +1,9 @@
 """Khan Algebra 1, Lesson 13-10: Factoring quadratics with a common factor, from the old app's Alg1_13_10
 (twelve generated slots).
 
-a(x - r)(x - s), multiplied out: a is -7 to 7 (not -1 to 1), r and s -8 to 8,\nnot 0, r != -s. The key takes out the common factor, with the leading\nterm's sign: -2 (x - 3) (x + 5).
+a(x - r)(x - s), multiplied out: a is -7 to 7 (not -1 to 1), r and s -8 to 8,
+not 0, r != -s. The key takes out the common factor, with the leading
+term's sign: -2 (x - 3) (x + 5).
 
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "2 x^2 + 4 x - 30"

@@ -1,7 +1,9 @@
 """Khan Algebra 1, Lesson 13-13: Difference of squares, from the old app's Alg1_13_13
 (sixteen slots, two templates).
 
-d^2 x^2 - e^2 with d 2 to 9 and e 1 to 9 in lowest terms, or written\nconstant first (e^2 - d^2 x^2); Type 2 has a common factor that isn't a\nsquare in front (2, 3, 5, 6, 7, 10), and d and e at most 6.
+d^2 x^2 - e^2 with d 2 to 9 and e 1 to 9 in lowest terms, or written
+constant first (e^2 - d^2 x^2); Type 2 has a common factor that isn't a
+square in front (2, 3, 5, 6, 7, 10), and d and e at most 6.
 
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "9 x^2 - 49"

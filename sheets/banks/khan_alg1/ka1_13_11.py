@@ -1,7 +1,9 @@
 """Khan Algebra 1, Lesson 13-11: Factor quadratics by grouping, from the old app's Alg1_13_11
 (ten slots, one template).
 
-(d x + e)(f x + g), multiplied out, with no common factor: d 2 to 9 (or\n-9 to -9), f 1 most of the time, e and g -9 to 9 (not -1 to 1), and\n|d e f g| at most 72, as the old template had it.
+(d x + e)(f x + g), multiplied out, with no common factor: d 2 to 9 (or
+-9 to -9), f 1 most of the time, e and g -9 to 9 (not -1 to 1), and
+|d e f g| at most 72, as the old template had it.
 
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "2 x^2 + x - 15"

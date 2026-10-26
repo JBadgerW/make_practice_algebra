@@ -1,7 +1,10 @@
 """Khan Algebra 1, Lesson 13-15: Perfect squares, from the old app's Alg1_13_15
 (sixteen slots, one template).
 
-(d x + e)^2 multiplied out, or a (x + e)^2 with a common factor a, sometimes\nwritten constant first. d and e are in lowest terms: the old template\ndidn't reduce them, so (2 x + 4)^2, which is 4 (x + 2)^2, was keyed as\nfactored completely.
+(d x + e)^2 multiplied out, or a (x + e)^2 with a common factor a, sometimes
+written constant first. d and e are in lowest terms: the old template
+didn't reduce them, so (2 x + 4)^2, which is 4 (x + 2)^2, was keyed as
+factored completely.
 
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "4 x^2 - 12 x + 9"

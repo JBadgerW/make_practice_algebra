@@ -1,7 +1,9 @@
 """Khan Algebra 1, Lesson 13-5: Multiply binomials, from the old app's Alg1_13_05
 (twenty-four generated slots).
 
-(d x + e)(f x + g), any coefficients -9 to 9, not 0; about one in six is 1,\nas in Khan's lesson (the old app's note). The number comes first in some\nbinomials: (3 - 2 x)(x + 4).
+(d x + e)(f x + g), any coefficients -9 to 9, not 0; about one in six is 1,
+as in Khan's lesson (the old app's note). The number comes first in some
+binomials: (3 - 2 x)(x + 4).
 
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  "(2 x + 3) (3 x - 5)"
