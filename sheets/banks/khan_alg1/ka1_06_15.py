@@ -3,8 +3,8 @@ and infinite solutions), from the old app's Alg1_06_15 (sixteen stories; no.
 6 marked two choices correct, "many solutions", which was right, and "no
 solution").
 
-A story's system may have one solution, none, or infinitely many: each
-problem draws which, and its numbers to match (the second purchase a
+A story's system may have one solution, none, or infinitely many, spread
+evenly over a sheet (gen.generator's balance): each problem draws which, and its numbers to match (the second purchase a
 multiple of the first, or not). Type 1 asks Khan's way, "Can we find a
 unique price?": Yes with values, "No; the system has no solution", or "No;
 the system has many solutions". Type 2 asks for the values, with "There is
@@ -162,8 +162,13 @@ BY_TYPE = {k: [s for s in STORIES if s["type"] == k] for k in KEYS}
 def initial_seen():
     return set()
 
+def outcome(p):
+    """What the answer says the system does: "one", "none", or "many"."""
+    c = gen.chosen(p)[0]
+    return "none" if c in (NONE1, IMPOSSIBLE) else "many" if c == MANY1 or c.startswith("There is not enough") else "one"
+
 def seen_key(p):
-    return (NAME, p["prompt"])
+    return (NAME, p["prompt"], outcome(p))           # the outcome, for balancing a sheet's answers
 
 def values(st, w, u, v):
     return gen.fill(st["answer"], **{k: x for k, x in w.items() if isinstance(x, str)},
@@ -201,12 +206,14 @@ def decoys(st, prompt, r):
                     break
     return list(dict.fromkeys(out))
 
-def draw(entry, r, tpl):
+def draw(entry, r, tpl, want=None):
     st = BY_TYPE[entry][tpl]
-    outcome = r.choice(("one", "none", "many"))
-    prompt = fill_story(st, st["draw"](r, outcome))
+    result = want or r.choice(("one", "none", "many"))
+    if result == "many" and st["key"] == "h":          # the phone story can't have many
+        result = r.choice(("one", "none"))
+    prompt = fill_story(st, st["draw"](r, result))
     right = right_choice(st, prompt)
-    vals = [right] if outcome == "one" else []
+    vals = [right] if result == "one" else []
     vals += [d for d in decoys(st, prompt, r) if d != right]
     need(len(vals) >= 2)
     vals = vals[:2]
@@ -223,7 +230,8 @@ def check(p):
     except (ValueError, KeyError):
         return "unchecked"
 
-generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(BY_TYPE[e]))
+generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(BY_TYPE[e]),
+                         balance=(("one", "none", "many"), lambda k: k[2] if k[0] == NAME and len(k) == 3 else None))
 
 def typst(p, gap="0.3em"):
     return f"{esc(p['prompt'])} \\\n    {gen.choices_typst([esc(c) for c in p['choices']])}"

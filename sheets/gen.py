@@ -142,16 +142,32 @@ class Types:
 # ------------------------------------------------------------------
 # Drawing
 # ------------------------------------------------------------------
-def generator(family, draw, check, seen_key, templates, tries=400):
+def generator(family, draw, check, seen_key, templates, tries=400, balance=None):
     """generate(entry, rng, seen) for a bank. draw(entry, rng, tpl) returns the
     problem's fields (prompt, answer, ...) or raises Redraw; templates(entry) is
     how many templates the entry has. The template is chosen once, so one that
-    redraws often isn't rarer than the rest. Every problem must pass check()."""
+    redraws often isn't rarer than the rest. Every problem must pass check().
+
+    balance=(outcomes, outcome_of): spread a bank's answers over a sheet. seen
+    holds the sheet's problems of the family; outcome_of(key) reads a seen key's
+    outcome (or None). The draw is told to make one of the outcomes the sheet has
+    fewest of: draw(entry, rng, tpl, want=outcome)."""
+    def wanted(rng, seen):
+        outcomes, outcome_of = balance
+        count = {o: 0 for o in outcomes}
+        for k in seen:
+            o = outcome_of(k)
+            if o in count:
+                count[o] += 1
+        least = min(count.values())
+        return rng.choice([o for o in outcomes if count[o] == least])
+
     def generate(entry, rng, seen):
         tpl = rng.randrange(templates(entry))
+        hint = {} if balance is None else dict(want=wanted(rng, seen))
         for _ in range(tries):
             try:
-                p = dict(type=entry, **draw(entry, rng, tpl), source="template")
+                p = dict(type=entry, **draw(entry, rng, tpl, **hint), source="template")
             except Redraw:
                 continue
             if seen_key(p) in seen:

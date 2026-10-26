@@ -2,6 +2,9 @@
 old app's Alg1_02_06 (twenty-nine of Khan's, without answers, and one
 generated slot, which was always "infinitely many").
 
+The three answers are spread evenly over a sheet: each problem draws the
+answer the sheet has fewest of so far (gen.generator's balance).
+
 Khan's equations come in two shapes, a(x + b) = c x + d and
 a x + b + c x = d x + e; the types follow the shape, not the answer, so a
 section header never gives the answer away. Each problem is equally likely
@@ -45,7 +48,7 @@ def initial_seen():
     return set()
 
 def seen_key(p):
-    return (NAME, p["prompt"])
+    return (NAME, p["prompt"], p["answer"])          # the answer, for balancing a sheet's answers
 
 # ------------------------------------------------------------------
 # Drawing: how many solutions first, then the equation
@@ -97,15 +100,18 @@ TEMPLATES = {
     "2": [t2_combine, t2_combine_flipped, t2_number_first],
 }
 
-def draw(entry, r, tpl):
+OUTCOME = dict(zip("ABC", ("none", "one", "all")))
+
+def draw(entry, r, tpl, want=None):
     v = r.choice(("x", "y", "z", "a", "b", "m", "n", "p", "t"))
-    outcome = r.choice(("none", "one", "all"))
+    outcome = OUTCOME[want] if want else r.choice(("none", "one", "all"))
     prompt = TEMPLATES[entry][tpl](r, v, outcome)
     need(linear.count(prompt) == outcome)          # a changed coefficient can't land back on the same one
     choices, answer = gen.in_order(CHOICES, COUNT[outcome])
     return dict(prompt=prompt, choices=choices, answer=answer)
 
-generate = gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: len(TEMPLATES[e]))
+generate = gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: len(TEMPLATES[e]),
+                         balance=("ABC", lambda k: k[2] if k[0] == NAME and len(k) == 3 else None))
 
 def check(p):
     try:

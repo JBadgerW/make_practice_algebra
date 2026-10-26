@@ -145,7 +145,8 @@ selftest over every Khan type, and byte-identical baselines for the existing ban
   300 draws per type, all verified. The worksheet, key, and slides compiled and
   were inspected. Approved 2026-10-25: the answers stay random (not
   balanced), the work-space sizes stand, and choices are stacked with the
-  key reading "A. No solutions".
+  key reading "A. No solutions". Changed 2026-10-26: answers are balanced
+  over a sheet (2-6, 6-12, 6-15), through gen.generator's balance.
 - Khan Algebra 1, Unit 2: all eleven lessons (2-1 to 2-11, with 2-7a)
   built and committed; awaiting the unit checkpoint. New shared pieces:
   `sheets/ineq.py` (inequality and compound-inequality sets),

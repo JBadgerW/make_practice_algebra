@@ -5,7 +5,8 @@ seven templates).
 How many solutions does the system have? Both equations in slope-intercept
 form (Type 1), or one of them a multiple of that form, k y = k m x + k b
 (Type 2). Each problem is equally likely to have exactly one solution, none,
-or infinitely many; the types follow the form, not the answer. Slopes and
+or infinitely many, spread evenly over a sheet (gen.generator's balance); the
+types follow the form, not the answer. Slopes and
 intercepts -12 to 12, not 0.
 
 A problem: dict(type, prompt, choices, answer, source); prompt "eq1 ; eq2".
@@ -42,15 +43,17 @@ def initial_seen():
     return set()
 
 def seen_key(p):
-    return (NAME, p["prompt"])
+    return (NAME, p["prompt"], p["answer"])          # the answer, for balancing a sheet's answers
 
 def line(m, b, k=1, intercept_first=False):
     """k y = k m x + k b (k = 1: y = m x + b), or with the intercept first."""
     terms = [(k * b, ""), (k * m, "x")] if intercept_first else [(k * m, "x"), (k * b, "")]
     return f"{written((k, 'y'))} = {written(*terms)}"
 
-def draw(entry, r, tpl):
-    outcome = r.choice(("one", "none", "many"))
+OUTCOME = dict(zip("ABC", ("one", "none", "many")))
+
+def draw(entry, r, tpl, want=None):
+    outcome = OUTCOME[want] if want else r.choice(("one", "none", "many"))
     m1, b1 = signed(r, 1, 12), signed(r, 1, 12)
     m2 = m1 if outcome != "one" else signed_except(r, 1, 12, m1)
     b2 = b1 if outcome == "many" else signed_except(r, 1, 12, b1) if outcome == "none" else signed(r, 1, 12)
@@ -73,7 +76,8 @@ def check(p):
     except Exception:
         return "unchecked"
 
-generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
+generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1,
+                         balance=("ABC", lambda k: k[2] if k[0] == NAME and len(k) == 3 else None))
 
 def typst(p, gap="0.3em"):
     return f"{twovar.system_typst(p['prompt'])} \\\n    {gen.choices_typst(p['choices'])}"
