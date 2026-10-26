@@ -223,6 +223,14 @@ factored. 3-5's "none" expressions are checked to have no factor at all.
 the first step not equal to the one before. 3-10's monkey is "it"; people
 are named, no pronouns (approved). 3-10 keeps Khan's dot in its expressions.
 
+## 5j. Khan Prealgebra (built 2026-10-26; awaiting its checkpoint)
+All seven lessons (`sheets/banks/khan_pre/`, NAME kpa_UU_LL). 6-2 is
+Algebra 1's 1-1 under this course. 1-3's hundred chart is drawn in Typst
+(`khan_pre/numbers.py`); its choices are read back as sets and compared
+with the shaded numbers. 1-1's tables are Typst tables with blank cells.
+The 3-9, 8-1 and 8-2 stories use names, no pronouns; every percent in 8-1
+and 8-2 is exact.
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
@@ -232,6 +240,13 @@ textbook's 5i(3 − 2i); 3-10 writes 24 · (1 − (1/3)^n)/(1 − 1/3). Kept for
 now (2026-10-26).
 
 ## 6. Errors found in the old banks so far
+- Prealgebra 8-1 (haircut): for 33% it keyed both 1/3 h and 0.33 h as right; they differ.
+  Its decimals came from floating point (1 - 0.7 can print 0.30000000000000004).
+- Prealgebra 8-2 no. 8 (iris blooms): asked "how many more" and keyed the total.
+- Prealgebra 8-2 nos. 4, 5, 10, 12, 14-16: took 33% (67%) as exactly 1/3 (2/3), so the
+  numbers didn't fit; no. 4 (hiking) could key 2 km as "33% less" than 2 km.
+- Prealgebra 8-2 nos. 3, 9, 13: rounded the percent change to a tenth without saying so.
+- Prealgebra 1-3: the hundred-chart choices lost their numbers ("Only the factors of").
 - Alg1 2-2 no. 18: `2 − ½n = 3n + 16` has key `n = 4`. The solution is `n = −4`.
 - Alg1 2-10 no. 9 (plumber): the key's part (a) was 65 + 28H >= 250; "no more than $250" is <=.
 - Alg1 2-10 no. 10 (Sergei's flour) and others: no answers; part (b) now computed and checked.
