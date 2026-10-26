@@ -1,14 +1,16 @@
 """Khan Algebra 2, Lesson 2-4: Classify complex numbers, from the old app's
 Alg2_02_04 (thirty of Khan's, without answers).
 
-What type of number is 3.75 i + 7? Choose all that apply: Real, Imaginary,
-Complex. Khan's meanings: a real number has no imaginary part; an
-imaginary number is a real multiple of i (no real part); every one of them
-is complex. So 7 is Real and Complex, -91 i is Imaginary and Complex, and
-3.75 i + 7 is only Complex. The three kinds are spread evenly over a sheet.
+What type of number is 3.75 i + 7? Choose all that apply: Real, Purely
+imaginary, Complex. Khan's choice reads "Imaginary"; the standard term for
+a real multiple of i (no real part) is "purely imaginary", since some
+books call any non-real number imaginary. A real number has no imaginary
+part; every number here is complex. So 7 is Real and Complex, -91 i is
+Purely imaginary and Complex, and 3.75 i + 7 is only Complex. The three
+kinds are spread evenly over a sheet.
 
 A problem: dict(type, prompt, choices, answer, source).
-    prompt  "3.75 i + 7"    choices ["Real", "Imaginary", "Complex"]    answer "C"
+    prompt  "3.75 i + 7"    choices ["Real", "Purely imaginary", "Complex"]    answer "C"
 check() reads the parts of the number with sympy.
 """
 from ... import gen
@@ -21,15 +23,15 @@ FIXED = False
 TITLE = "Lesson 2-4: Classify complex numbers"
 INSTRUCTIONS = "What type of number is each? Choose all answers that apply."
 COURSES = courses(2)
-CHOICES = ["Real", "Imaginary", "Complex"]
-KINDS = {"real": ["Real", "Complex"], "imaginary": ["Imaginary", "Complex"], "complex": ["Complex"]}
+CHOICES = ["Real", "Purely imaginary", "Complex"]
+KINDS = {"real": ["Real", "Complex"], "imaginary": ["Purely imaginary", "Complex"], "complex": ["Complex"]}
 OUTCOMES = {"A, C": "real", "B, C": "imaginary", "C": "complex"}
 
 TYPES = [
-    dict(key="1", title="Real, Imaginary, or Complex?",
+    dict(key="1", title="Real, Purely Imaginary, or Complex?",
          look="A number: a real part, an imaginary part, or both.",
-         move="No i: real. Only a multiple of i: imaginary. Every one of them is also complex, so Complex is always "
-              "one of the answers."),
+         move="No i: real. Only a multiple of i, with no real part: purely imaginary. Every one of them is also "
+              "complex (a + bi), so Complex is always one of the answers."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
