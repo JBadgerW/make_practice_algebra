@@ -88,7 +88,7 @@ class App:
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
         self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"]),
-                      out=out or library.config().get("out") or mp.DEFAULTS["out"],   # the folder written to last
+                      out=out or start_out(),
                       name=name or mp.DEFAULTS["name"])
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         self.undo, self.redo = [], []
@@ -1881,6 +1881,13 @@ def home_path(p):
     except ValueError:
         return str(p)
 
+def start_out():
+    """The out folder a session starts in: the folder mathsheet was started from,
+    unless that's your home folder; then the folder written to last, else practice."""
+    if Path.cwd() != Path.home().resolve():
+        return home_path(Path.cwd())
+    return library.config().get("out") or mp.DEFAULTS["out"]
+
 INFO_LABEL, INFO_KEYS_W = 10, 6         # the info box's columns: label, then the keys at the right
 
 MATH_WORDS = {"times": "×", "div": "÷", "dot": "·", "plus.minus": "±", "minus": "−", "eq.not": "≠"}
@@ -2320,7 +2327,7 @@ def parse_args(argv):
     ap.add_argument("--shuffle", action="store_true")
     ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP")
     ap.add_argument("--title", default=mp.DEFAULTS["title"])
-    ap.add_argument("--out", help="default: the folder written to last, else practice")
+    ap.add_argument("--out", help="default: the current folder; started from ~, the folder written to last, else practice")
     ap.add_argument("--name", default=mp.DEFAULTS["name"])
     ap.add_argument("--class", dest="class_name", default=mp.DEFAULTS["class_name"], metavar="NAME")
     return ap.parse_args(argv)

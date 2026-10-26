@@ -339,7 +339,13 @@ mk("A\x15510 <= 480 + 15t <= 540; 2 <= t <= 5\n"); assert m.item()["status"] == 
 mk(f":out {OUT}\n:name model\n:w\n"); assert "1 failing answer" in m.msg, m.msg
 key = parts("model")[1]
 from sheets import library as _lib
-assert T.App().s["out"] == T.home_path(OUT) == _lib.config()["out"], "the next session starts in the folder written to last"
+assert T.App().s["out"] == T.home_path(Path.cwd()), "a session starts in the folder it was started from"
+assert _lib.config()["out"] == T.home_path(OUT), "the folder written to last is remembered"
+_cwd = os.getcwd(); os.chdir(Path.home())
+try:
+    assert T.App().s["out"] == T.home_path(OUT), "started from ~, it starts in the folder written to last"
+finally:
+    os.chdir(_cwd)
 assert T.App(out="elsewhere").s["out"] == "elsewhere", "--out overrides it"
 assert "$510 <= 480 + 15t <= 540$ \\ $2 <= t <= 5$ \\ 2 to 4 treats" in key and "$1 1/2$ servings" in key, "the teacher's answer as written; the count from the prompt"
 

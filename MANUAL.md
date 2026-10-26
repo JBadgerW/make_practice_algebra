@@ -498,10 +498,11 @@ line, and `Ctrl-W` erases a word.
 **The output folder** (*out*, `:out DIR`, `--out DIR`) works as a path does
 in Neovim: `~` is your home folder (`~/Desktop`), and a relative path starts
 in the folder you ran mathsheet from. mathsheet starts in the folder you
-last wrote a sheet to (saved in its config file as a full path, so it's the
-same folder wherever you start mathsheet); the first time, it's `practice`,
-a `practice/` folder where you started it. `--out` overrides it for one
-session. The folder is made if it doesn't exist. While typing it, `Tab`
+started it from, so `cd` to a lesson's folder and run mathsheet there. Started
+from your home folder, it starts instead in the folder you last wrote a sheet
+to (saved in its config file as a full path); the first time, that's
+`practice`, a `practice/` folder in your home folder. `--out` overrides it
+for one session. The folder is made if it doesn't exist. While typing it, `Tab`
 completes a folder name: `~/Docu` becomes `~/Documents/`. When several
 match, the first fills in, the rest show on the status line, and each `Tab`
 moves to the next (`Shift-Tab` back; past the last, you're back to what you
