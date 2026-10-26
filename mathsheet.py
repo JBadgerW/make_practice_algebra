@@ -36,7 +36,7 @@ COURSE_HINT = ("Which course's banks to show, grouped by unit: h/l step through 
 SETTING_HINTS = {
     "versions": "How many parallel versions to write (h/l, or i to type one): each drawn problem is redrawn in its slot; edited problems stay. Each version gets its own worksheet (key appended) and slides.",
     "title": "The worksheet and slide title. i to edit.",
-    "class": "The class name in the worksheet and slide header (default Algebra 1). i to edit.",
+    "class": "The class name in the worksheet and slide header (default: the course). i to edit.",
     "instructions": "The italic line under the header, for the whole sheet. i to edit; empty for none.",
     "name": "File prefix: NAME.sheet.json, NAME_v1.pdf (its key appended), NAME_v1_slides.pdf. i to edit.",
     "out": "Folder to write into: ~ is your home folder, and a relative path starts in the folder you ran mathsheet from. i to edit; Tab completes folder names.",
@@ -87,10 +87,12 @@ PAGE_IN, HEADER_IN, LINE_IN, TITLE_IN, PLAIN_IN, FRAC_IN = 9.5, 0.62, 0.25, 0.30
 class App:
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
-        self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], mp.DEFAULTS["class_name"]),
+        self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], None),
                       out=out or start_out(),
                       name=name or mp.DEFAULTS["name"])
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
+        if not self.sheet.get("class_name"):                                # no --class: the course's
+            self.sheet["class_name"] = self.course or mp.DEFAULTS["class_name"]
         self.undo, self.redo = [], []
         self.row, self.focus, self.version = 2, "left", 0
         self.open = set()               # banks and sequences open in the tree: all closed at start
@@ -341,8 +343,8 @@ class App:
     # -- the library ------------------------------------------------------
     def set_course(self, title):
         """Show this course's banks (None, "" or "all": every bank). The class name
-        follows while it is the default or the last course's title. Returns an
-        error message, or None."""
+        follows while the sheet has no problems and the class is the default or
+        the last course's title. Returns an error message, or None."""
         lib, title = library.current(), (title or "").strip()
         new = None
         if title.lower() not in ("", "all", "all banks"):
@@ -354,7 +356,7 @@ class App:
         old, here = self.course, self.rid()
         def go():
             self.sheet["course"] = new
-            if new and self.sheet["class_name"] in (mp.DEFAULTS["class_name"], old):
+            if new and not self.total() and self.sheet["class_name"] in (mp.DEFAULTS["class_name"], old):
                 self.sheet["class_name"] = new
         self.change(go)
         try:
@@ -2329,7 +2331,7 @@ def parse_args(argv):
     ap.add_argument("--title", default=mp.DEFAULTS["title"])
     ap.add_argument("--out", help="default: the current folder; started from ~, the folder written to last, else practice")
     ap.add_argument("--name", default=mp.DEFAULTS["name"])
-    ap.add_argument("--class", dest="class_name", default=mp.DEFAULTS["class_name"], metavar="NAME")
+    ap.add_argument("--class", dest="class_name", metavar="NAME", help="default: the course, else Algebra 1")
     return ap.parse_args(argv)
 
 def main():

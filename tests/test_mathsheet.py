@@ -537,10 +537,14 @@ ck("/Adding\n"); assert c.err, "/ searches the course"
 ck(":course all\n/Adding\n"); assert c.rid() == ("count", ("ints", "add"))
 assert T.App().course is None, "all banks, as last used"
 library.save_config(course="Algebra 2"); assert T.App().course == "Algebra 2", "a new sheet starts in the last course"
+assert T.App().sheet["class_name"] == "Algebra 2", "and its class is the course"
+assert T.App(sheet=sh.new_sheet("Quiz", "Period 3")).sheet["class_name"] == "Period 3", "--class overrides it"
 
 # the sheet keeps its course; a bank that goes missing still shows and prints
 ck(":course Algebra 1\n"); c.open.add("ints")
 ck("gg/Adding\n"); ck("l"); assert E.count(c.sheet, "ints", "add") == 1
+ck(":class Algebra 1\n:course Prealgebra\n"); assert c.sheet["class_name"] == "Algebra 1", "a sheet with problems keeps its class"
+ck(":course Algebra 1\n")
 ck(f":out {OUT}\n:name course\n:w\n"); assert not c.err, c.msg
 saved = sh.load(Path(OUT) / "course.sheet.json"); assert saved["course"] == "Algebra 1"
 library.save_config(library=str(Path(tempfile.mkdtemp()))); library.rescan()

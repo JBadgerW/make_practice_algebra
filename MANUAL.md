@@ -379,9 +379,9 @@ then a course shows only its own types.
 - `h` `l` on the COURSE row, or `:course Algebra 2` (`Tab` completes,
   `:course all` for every bank), changes the course. `:course` alone says
   which one you're in.
-- The **class name** on the worksheet follows the course (choosing
-  Algebra 2 makes it *Algebra 2*) until you type a class name of your own,
-  which then stays.
+- The **class name** on the worksheet starts as the course and follows it
+  (choosing Algebra 2 makes it *Algebra 2*) until the sheet has problems or
+  you type a class name of your own; then only `:class` changes it.
 - The sheet remembers its course, so reopening it shows that course; a new
   sheet starts in the course you used last. `u` undoes a course change.
 - Courses only change what the banks pane shows. A sheet can mix problems
