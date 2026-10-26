@@ -17,8 +17,8 @@ OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
 KEY_BREAK = "\n#pagebreak()\n#qnum.update(0)\n"
 
 def parts(name):
-    """A written NAME_v1.typ split into its worksheet and the key appended to it."""
-    ws, key = (Path(OUT) / f"{name}_v1.typ").read_text().split(KEY_BREAK)
+    """A written NAME.typ's first version, split into its worksheet and the key after it."""
+    ws, key = (Path(OUT) / f"{name}.typ").read_text().split(KEY_BREAK)[:2]
     return ws, key
 
 def driver(app):
@@ -319,7 +319,7 @@ assert not list(Path(OUT).glob("*_key.*")), "no separate key file"
 assert "— Answer Key" in key and "— Answer Key" not in ws
 assert "ink: red" in key and "ink: red" not in ws, "the key draws the graphs in red"
 assert "$1 >= x$" in key, "the key prints the teacher's answer as written"
-assert "#let numline" not in (Path(OUT) / "systems_v1.typ").read_text(), "only sheets that need it"
+assert "#let numline" not in (Path(OUT) / "systems.typ").read_text(), "only sheets that need it"
 
 # ---- modeling compound inequalities: word problems, a story per entry, parallel versions
 m = T.App(seed=5); mk = driver(m)
@@ -553,7 +553,7 @@ assert d.course == "Algebra 1" and d.missing() == ["ints"] and d.err and "not in
 assert "!1." in text(d) and "-3 + 5" in text(d), "marked, and still shown"
 dk("\tG"); assert "ints (missing)" not in d.msg
 dk("r"); assert d.err and "isn't in the library" in d.msg, d.msg
-dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course_v1.typ").read_text(), "still prints"
+dk(f":out {OUT}\n:w\n"); assert not d.err and "-3 + 5" in (Path(OUT) / "course.typ").read_text(), "still prints"
 dk(f":library {lib}\n"); assert not d.missing() and not d.err and f"{8 + NADV} banks" in d.msg, d.msg
 assert library.config()["library"] == str(lib)
 dk(":library ~/nowhere\n"); assert "no such folder" in d.msg and d.missing() == ["ints"]

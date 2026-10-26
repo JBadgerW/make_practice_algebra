@@ -430,8 +430,9 @@ def read_sheet(path):
 # Writing
 # ------------------------------------------------------------------
 def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
-    """Write NAME.sheet.json and, for every version, the worksheet (its key
-    appended) and slides (compiled when typst is found).
+    """Write NAME.sheet.json, NAME.typ (every version's worksheet, each with its
+    key after it) and NAME_slides.typ (every version's slides), compiled when
+    typst is found.
     Returns dict(out, files, compiled, sheet); raises RuntimeError."""
     if not sh.items(sheet):
         raise RuntimeError("no problems: the sheet is empty")
@@ -440,17 +441,13 @@ def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
     typst = shutil.which("typst") if compile else None
     sh.save(sheet, outp / f"{name}.sheet.json")
     written = [f"{name}.sheet.json"]
-    for v in range(sheet["versions"]):
-        base = f"{name}_v{v + 1}"
-        files = {f"{base}.typ": writer.worksheet(sheet, v, with_key=True),
-                 f"{base}_slides.typ": writer.slides(sheet, v)}
-        for fname, text in files.items():
-            (outp / fname).write_text(text)
-            if typst:
-                r = subprocess.run([typst, "compile", fname], cwd=outp, capture_output=True, text=True)
-                if r.returncode:
-                    raise RuntimeError(f"typst failed on {fname}:\n{r.stderr}")
-            written.append(fname)
+    for fname, text in ((f"{name}.typ", writer.worksheets(sheet)), (f"{name}_slides.typ", writer.slides(sheet))):
+        (outp / fname).write_text(text)
+        if typst:
+            r = subprocess.run([typst, "compile", fname], cwd=outp, capture_output=True, text=True)
+            if r.returncode:
+                raise RuntimeError(f"typst failed on {fname}:\n{r.stderr}")
+        written.append(fname)
     return dict(out=outp, files=written, compiled=bool(typst), sheet=sheet)
 
 def preview(sheet, v=0, what="sheet", folder=None):

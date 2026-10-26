@@ -38,7 +38,7 @@ SETTING_HINTS = {
     "title": "The worksheet and slide title. i to edit.",
     "class": "The class name in the worksheet and slide header (default: the course). i to edit.",
     "instructions": "The italic line under the header, for the whole sheet. i to edit; empty for none.",
-    "name": "File prefix: NAME.sheet.json, NAME_v1.pdf (its key appended), NAME_v1_slides.pdf. i to edit.",
+    "name": "File prefix: NAME.sheet.json, NAME.pdf (every version, each with its key), NAME_slides.pdf (every version's slides). i to edit.",
     "out": "Folder to write into: ~ is your home folder, and a relative path starts in the folder you ran mathsheet from. i to edit; Tab completes folder names.",
 }
 
@@ -64,7 +64,7 @@ I        what's here, in a box      + - W r     change all selected
                                     gs          shuffle selection / section
                                     :scope bank|type  reroll from bank / type
 COMMANDS
-:w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides] [N]
+:w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
 :pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
@@ -1056,19 +1056,15 @@ class App:
     def open_file(self, args):
         if not self.last_build:
             return self.say("E: nothing written yet (:w first)", True)
-        what, v = "sheet", 1
+        what = "sheet"
         for a in args:
-            if a.isdigit():
-                v = int(a)
-            elif a in ("sheet", "slides"):
+            if a in ("sheet", "slides"):
                 what = a
             else:
-                return self.say("usage: :open [sheet|slides] [version]  (the key is in the sheet)", True)
+                return self.say("usage: :open [sheet|slides]  (every version is in one file, each key after its sheet)", True)
         b = self.last_build
-        if not 1 <= v <= b["sheet"]["versions"]:
-            return self.say(f"E: there are {b['sheet']['versions']} versions", True)
         suffix = {"sheet": "", "slides": "_slides"}[what]
-        f = b["out"] / f"{self.s['name']}_v{v}{suffix}.{'pdf' if b['compiled'] else 'typ'}"
+        f = b["out"] / f"{self.s['name']}{suffix}.{'pdf' if b['compiled'] else 'typ'}"
         if self.open_path(f):
             self.say(f"opening {f.name}")
 

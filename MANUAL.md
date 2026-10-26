@@ -538,7 +538,7 @@ through earlier commands.
 | `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
-| `:open [sheet\|slides] [N]` | Open version N's PDF (default: worksheet, version 1; its key is at the end) |
+| `:open [sheet\|slides]` | Open the written PDF (default: the worksheet); every version is in it, each with its key after it |
 | `:pre [sheet\|key\|slides] [N]` | Print preview: compile version N (default: the one showing) as it stands to a temporary PDF and open it. Writes nothing to the out folder and doesn't count as saving. Run it again after a change and an open viewer reloads. |
 | `:N` | On the sheet: problem N. On the types pane: row N. |
 | `:help` or `?` | Show the keys |
@@ -554,8 +554,8 @@ In the output folder:
 | File | Contents |
 |---|---|
 | `NAME.sheet.json` | The sheet: every section and problem of every version (see below) |
-| `NAME_vN.typ` / `.pdf` | Version N's worksheet, in the style of `templates/refined_template.typ`, then its answer key: starting on a new page, the same sheet with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does, and its problems are numbered from 1 again. |
-| `NAME_vN_slides.typ` / `.pdf` | Title slide, a title slide per section (grouped only), then a problem slide and an answer slide for each problem |
+| `NAME.typ` / `.pdf` | Every version's worksheet, in the style of `templates/refined_template.typ`, each followed by its answer key: starting on a new page, the same sheet with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does, and its problems are numbered from 1 again. Each version and key starts on the next page (odd or even), with a bookmark in the PDF viewer's sidebar. |
+| `NAME_slides.typ` / `.pdf` | Every version's deck: a title slide, a title slide per section (grouped only), then a problem slide and an answer slide for each problem. With several versions, the first slide links to each version's title slide, and the sidebar bookmarks each version and its sections. |
 
 **The worksheet.** The header, the instructions block, then each section:
 its bold heading (with italic instructions, if it has any), then its problems
