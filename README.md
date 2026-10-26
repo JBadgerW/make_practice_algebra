@@ -12,7 +12,9 @@ a terminal app with vim keys.
 The terminal app draws from a **library** of problem banks: generators, the
 lesson's fifty, and banks you write yourself, each tagged with the courses it
 belongs to (Algebra 1, Algebra 2, Advanced Math, ...), so you see one course's
-banks at a time.
+banks at a time. Three courses follow Khan Academy lesson by lesson: Khan
+Prealgebra, Khan Algebra 1, and Khan Algebra 2 (113 lessons; see
+[KHAN.md](KHAN.md)).
 
 Every answer, and every line of every worked example, is checked
 numerically with sympy before anything is written.
@@ -37,6 +39,9 @@ python3 make_practice.py --mix absolute_words/all:1 --title "Lesson 1-7: Word Pr
 
 # Advanced Math: two of each type of complex fractions and rationalizing
 python3 make_practice.py --mix adv_complex_fractions/all:2 adv_rationalize/all:2 --class "Advanced Math" --title "Review"
+
+# Khan Algebra 1, Lesson 2-6: two of each type
+python3 make_practice.py --mix ka1_02_06/all:2 --class "Khan Algebra 1"
 
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
@@ -202,6 +207,16 @@ How the keys write answers:
   and use names only, no pronouns.
 - **Polar form**: r to 0.1 and θ to 0.01°, four forms; rectangular to 0.01.
 
+### Khan Academy courses
+
+113 banks, one per Khan Academy lesson, tagged with Khan's courses and units:
+*Khan Prealgebra* (7), *Khan Algebra 1* (76), and *Khan Algebra 2* (30).
+They were ported from the old app's Khan-keyed sets. Multiple choice stays
+where Khan used it, and graphs are drawn with cetz, the key marking the
+answer in red. [KHAN.md](KHAN.md) lists every lesson and its types, and how
+the keys write and check answers. `KHAN_PORT.md` is the port's record: the
+decisions, each unit's approval, and the errors found in the old sets.
+
 ## Files
 
 **Where problems live.** Written problems, sequences, and courses are JSON
@@ -221,11 +236,15 @@ ever runs code.
 | `sheets/banks/absolute_words.py` | The Lesson 1-7: Word Problems bank: the ten phrases, the eight stories, the four types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `sheets/typmath.py` | sympy → Typst math as the key writes it (one fraction, positive exponents, terms by degree), and display-style fractions (`dfrac`) |
-| `sheets/gen.py` | What the Advanced Math banks share: random helpers, letters and names, the type table, the draw-and-check loop, display and editing, and story templates for word problems |
+| `sheets/gen.py` | What the Advanced Math and Khan banks share: random helpers, letters and names, the type table, the draw-and-check loop (with answers spread evenly over a sheet where a bank asks), multiple choice, display and editing, and story templates for word problems |
 | `sheets/banks/adv_*.py` | The twelve Advanced Math banks (see *Advanced Math* above) |
+| `sheets/banks/khan_pre/`, `khan_alg1/`, `khan_alg2/` | The Khan Academy banks, one module per lesson (`kpa_`, `ka1_`, `ka2_`), with what each course's lessons share (systems, polynomials, stories, figures, curves; see [KHAN.md](KHAN.md)) |
+| `sheets/linear.py`, `ineq.py`, `poly.py`, `radicals.py` | Shared math for those banks: one-variable equations and inequalities read and solved from their text, polynomials in standard and factored form, square roots in simplest form |
+| `sheets/graphs.py` | Coordinate-plane graphs drawn with cetz: grids, axes, lines, curves, points; every coordinate worked out in Python |
+| `KHAN.md`, `KHAN_PORT.md` | The Khan courses' reference, and the record of their port |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
-| `tests/` | `test_mathsheet.py`, `test_library.py`, and `test_typmath.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
+| `tests/` | `test_mathsheet.py`, `test_library.py`, `test_typmath.py`, `test_khan.py` (every Khan type draws, checks, and shows), and `test_graphs.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
 | `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty), the built-in sequence `literal_by_type.json` (the lesson's order, built by `lesson_sequence()` in `sheets/banks/literal`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |
@@ -236,6 +255,8 @@ ever runs code.
 
 - Python 3.10+ with **sympy** (tested with 1.13).
 - **Typst** 0.15 to compile PDFs. Without it, the `.typ` files are still written.
+  Graphs use Typst's **cetz** package (0.5.2): Typst downloads it the first
+  time a sheet with a graph is compiled, so that one time needs the internet.
 - The styles live in `templates/` and are read at run time: practice
   worksheets use `refined_template.typ`, and slides use `mixed_review_slides.typ`.
 - Optional: `pyte`, only for `tests/screen_test.py`.

@@ -187,6 +187,32 @@ When sympy can't solve an edited prompt (factoring with letters in the
 exponents), the old answer stays and is marked failed until you write the
 new one with `A`.
 
+### Khan Academy courses
+
+`--mix ka1_02_06/all:2` draws two of each type of a Khan lesson's bank; the
+banks are named for Khan's unit and lesson (`kpa_` Prealgebra, `ka1_` Algebra
+1, `ka2_` Algebra 2), and [KHAN.md](KHAN.md) lists them all with their types.
+Add `--class "Khan Algebra 1"` for the header. In mathsheet, `:course Khan
+Algebra 1` shows the course's banks under Khan's units.
+
+Every answer is checked as it is drawn, by working it out again: values
+compared with sympy, forms read from the text, multiple-choice options each
+tested, stories solved forward from their numbers, and graph answers read
+off the graph that's drawn.
+
+- **Multiple choice.** `A` takes letters: `B`, or `A, C` for "choose all";
+  the check says whether they're the right ones. Where the choices are
+  built from the prompt, `i` says to reroll instead.
+- **Free response.** `i` takes the prompt in Typst math, as the bank writes
+  it (`2 x + 3 = 7 x - 2`, `(x^2 - 5 x + 4)(x^2 - 9)`, `(8 - 10 i) - (-16 + 2 i)`),
+  and the key is worked out again; `A` takes the answer in the key's form
+  (`x = 1`, `(x - 4) (x - 3) (x - 1) (x + 3)`, `24 - 12 i`) and checks it.
+- **Two-part problems** (a choice, then a value) take both in `A`, separated
+  by `;`: `C; (x - 5 + y^3)^2`.
+- **Graphs and most stories** are rerolled rather than edited with `i` (it
+  says so); their keys can still be edited with `A`, and are checked against
+  the graph or the story.
+
 ## 2. mathsheet, the terminal app
 
 ```sh
@@ -720,6 +746,8 @@ python3 make_practice.py --selftest 100     # every type of every bank and every
 python3 tests/test_mathsheet.py              # TUI key handling
 python3 tests/test_library.py                # the library: banks, courses, tags
 python3 tests/test_typmath.py                # sympy -> Typst, and the answer-form checks
+python3 tests/test_khan.py                   # every Khan type draws, checks, and shows
+python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 ```
 
@@ -739,3 +767,4 @@ To confirm a refactor changed nothing, write a set with a fixed seed and
 | A bank you added doesn't show | `:rescan`; check `:warnings`; check it's tagged with the course you're in (or `:course all`); check `:library` names the folder it's in |
 | Problems marked `!` | Their bank isn't in the library any more; see *When a bank goes missing* |
 | `no "name": its id is the file name` | Add `"name"` to the bank file, set to what the warning suggests |
+| `typst failed` on a sheet with graphs, naming `@preview/cetz` | Typst downloads the cetz package the first time; connect to the internet once, or copy `~/.cache/typst/packages/preview/cetz` from another computer |

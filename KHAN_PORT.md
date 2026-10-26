@@ -58,7 +58,7 @@ Khan Algebra 2:  Unit 1: Polynomial arithmetic, Unit 2: Complex numbers,
 ### One bank per Khan lesson
 - `NAME` (the permanent id) is `ka1_02_06`, `ka2_03_07`, or `kpa_08_02`. `TITLE` is
   `Lesson 2-6: Number of solutions to equations`, so lessons sort in order within a unit.
-- The code goes in three subpackages, `sheets/banks/khan_prealg/`, `khan_alg1/`, and
+- The code goes in three subpackages, `sheets/banks/khan_pre/`, `khan_alg1/`, and
   `khan_alg2/`, with one module per lesson. Library discovery learns to look one level
   into a package that has no `NAME` of its own. (`literal/` still counts as a single
   bank.) This keeps 115 files out of `sheets/banks/`.
@@ -263,6 +263,17 @@ Old errors: 8-5 counted only the grid points, but its graph is straight
 between them, so g(x) = k could also hold between two (now every solution
 is counted, and k chosen so the question has the answer it claims); the old
 2-5 key read only "TikZ graph".
+
+## 5m. Phase 6, docs and tests (2026-10-26)
+`KHAN.md` (the courses' reference: using them, the answer forms, the
+checks, and every lesson's types, generated from the banks); the README
+(intro, quick start, a section, files, cetz in the requirements); the
+MANUAL (a section on the courses and editing their problems, the tests,
+cetz troubleshooting); EXTENDING (the tests, lessons from the port).
+Tests: every suite passes; 113 banks, 202 types, 40 draws each, every one
+checked (five types have smaller pools by nature: square roots to 400, cube
+roots to 1728, ...); `:warnings` empty; the existing 19 banks and the
+literal types byte-identical to `main` (a worktree, the same seeds, diffed).
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)

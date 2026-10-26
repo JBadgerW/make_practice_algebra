@@ -214,6 +214,8 @@ python3 make_practice.py --selftest 100     # every type of every family + formu
 python3 tests/test_mathsheet.py              # TUI state and keys, no terminal
 python3 tests/test_library.py                # the library: banks, courses.json, tags
 python3 tests/test_typmath.py                # sympy -> Typst: every form reads back, and the form checks
+python3 tests/test_khan.py                   # every Khan type draws, checks, and shows; tags and titles
+python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
 ```
@@ -367,6 +369,32 @@ banks pane shows); a bank file does this with a type `"id"` apart from its
   ported. Its bugs (a wrong substitution, a sign error in a domain, rounded
   mixture amounts, `coinflip` without parentheses) turned up as soon as
   each answer was checked.
+
+### From the Khan port (113 lessons)
+
+- **A package of banks.** `library.py` looks one level into a package with no
+  `NAME` of its own, so a course's lessons live in `sheets/banks/khan_alg1/`
+  and their shared helpers (not banks) sit beside them.
+- **`gen.lettered` reads a tuple or list as several right answers.** A choice
+  that is itself a pair (an interval, a point) must be a string while it's
+  lettered; it can be turned back into data after.
+- **Spread answers over a sheet** with `gen.generator(..., balance=(outcomes,
+  outcome_of))`: `draw` gets `want=`, the least-used outcome so far. Banks
+  without it are unchanged, byte for byte.
+- **Graphs: work out every coordinate in Python** (`sheets/graphs.py`) and let
+  cetz only draw. A graph whose answer must be read off it is built so the
+  answer is exact: lattice points (`khan_alg1/walk.py`), or a curve eased
+  between knots so its turns are at the knots and its crossings are solvable
+  (`khan_alg1/curves.py`). Then the check reads the same data the picture
+  came from.
+- **Count every solution the picture has.** A polyline through lattice
+  points also meets a level between them; the old 8-5 missed that.
+- **An interpretation question can't be checked by computing**, only by
+  confirming the key fits the story's numbers and the graph. Say so in the
+  docstring and to the teacher.
+- **Compare against main, not a saved baseline.** A worktree of `main` and
+  the same `--no-compile` commands on both sides, diffed (ignoring the output
+  path lines), covers every existing bank at once.
 
 ## 10. Definition of done for a new family
 
