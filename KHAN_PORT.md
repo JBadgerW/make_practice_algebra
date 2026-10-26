@@ -247,6 +247,23 @@ Old 6-4 wording: the cream story's line a fixes the amount of butterfat,
 not the percent; it reads "the intended amount of butterfat" here.
 Approved: the graphs' size and look (about 5 cm, beside the problem), and keys that mark the answer on the graph.
 
+## 5l. Phase 5, graphs: Algebra 1 Unit 8 and Algebra 2's 2-5 (built 2026-10-26; awaiting its checkpoint)
+All the graph lessons: 8-2, 8-3, 8-5 (graphs through lattice points,
+`khan_alg1/walk.py`), 8-8, 8-12, 8-14 to 8-18 (smooth curves whose turns
+and crossings are known exactly, `khan_alg1/curves.py`: a cosine ease
+between knots, so every maximum and minimum is at a knot), 8-19, 8-20
+(average rate of change), 8-21 (inverses: a table, a graph, and graphing
+the inverse of a segment), and Algebra 2's 2-5 (plot a number; or name a
+plotted point). Khan's "mark the points on the graph" (8-14, 8-15) and
+"graph it" (8-21, 2-5) are written answers or drawn by the student; the key
+draws them in red. 8-12 runs the vertical line test exactly, endpoints
+included. The graph tool now puts its numbers on multiples of their
+spacing (2, 4, ...), not on every other line from the edge.
+Old errors: 8-5 counted only the grid points, but its graph is straight
+between them, so g(x) = k could also hold between two (now every solution
+is counted, and k chosen so the question has the answer it claims); the old
+2-5 key read only "TikZ graph".
+
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
 name the thing counted.
