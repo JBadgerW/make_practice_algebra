@@ -189,13 +189,12 @@ system, checked from the words). Approved: answers "x = 2, y = -5" (the old
 key's form); word problems keyed with the sentence only. Changed: 6-3 shows
 a product unmultiplied, 0.5 s = 2 · 0.3 h, as the old key did.
 
-## 5f. Unit 8 in progress (2026-10-25)
-Done: 8-1, 8-4, 8-6, 8-9, 8-10, 8-22 (8-6 and 8-22 key linear answers in
-slope-intercept form, 5/3 q - 10: to confirm with the teacher). Next:
-8-7 and 8-11 (interpretation stories: their answers can't be computed, so
-the check only confirms the key matches the story's template; tell the
-teacher), 8-13 (is the table a function?). Then the Unit 8 checkpoint,
-Khan Algebra 2, Khan Prealgebra, and the graphs phase.
+## 5f. Unit 8 without graphs (built 2026-10-26; awaiting its checkpoint)
+8-1, 8-4, 8-6, 8-7, 8-9, 8-10, 8-11, 8-13, 8-22. 8-2, 8-3, 8-5, 8-8, 8-12, and
+8-14 to 8-21 draw graphs and wait for Phase 5. 8-6 and 8-22 key linear
+answers in slope-intercept form (5/3 q - 10): to confirm. 8-7 and 8-11 are
+interpretation questions: their checks only confirm the key matches the
+story. New: `khan_alg1/domains.py` (8-9, 8-10).
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
