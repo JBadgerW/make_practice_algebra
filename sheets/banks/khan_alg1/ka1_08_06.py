@@ -42,7 +42,7 @@ TYPES = [
          look="A b + B = C a + D.",
          move="Move the number on the output's side across, then divide by the output's coefficient."),
 ]
-T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
+T = gen.Types(TYPES, INSTRUCTIONS, space="1in", width="full")     # the sentence and its equation on one line
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
 label, entry_key, type_of, heading, hint, special, type_instructions = T.functions()
 PAIRS = [("b", "a"), ("a", "b"), ("m", "n"), ("x", "y"), ("q", "r"), ("u", "v"), ("t", "s")]

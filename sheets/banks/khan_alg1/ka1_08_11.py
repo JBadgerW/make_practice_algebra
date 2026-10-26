@@ -15,6 +15,7 @@ out of step is caught.
 
 A problem: dict(type, story, prompt, choices, answer, source).
 """
+import re
 from ... import gen
 from ...gen import need
 from ...typst import esc
@@ -128,8 +129,12 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1,
 def math(c):
     return c if c in (INTEGERS, REALS) else f"${c}$"
 
+FUNCTION = re.compile(r"\b([A-Za-z])\((\w)\)")
+
 def typst(p, gap="0.3em"):
-    return f"{esc(p['prompt'])} \\\n    {gen.choices_typst([math(c) for c in p['choices']], 'grid')}"
+    story = FUNCTION.sub(r"$\1(\2)$", esc(p["prompt"]))                     # H(t) as math
+    story = re.sub(r"domain of (\w)\?$", r"domain of $\1$?", story)
+    return f"{story} \\\n    {gen.choices_typst([math(c) for c in p['choices']], 'grid')}"
 
 def answer_typst(p):
     return gen.choice_answer_typst(p)
