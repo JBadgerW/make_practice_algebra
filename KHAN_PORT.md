@@ -247,7 +247,7 @@ Old 6-4 wording: the cream story's line a fixes the amount of butterfat,
 not the percent; it reads "the intended amount of butterfat" here.
 Approved: the graphs' size and look (about 5 cm, beside the problem), and keys that mark the answer on the graph.
 
-## 5l. Phase 5, graphs: Algebra 1 Unit 8 and Algebra 2's 2-5 (built 2026-10-26; awaiting its checkpoint)
+## 5l. Phase 5, graphs: Algebra 1 Unit 8 and Algebra 2's 2-5 (approved 2026-10-26)
 All the graph lessons: 8-2, 8-3, 8-5 (graphs through lattice points,
 `khan_alg1/walk.py`), 8-8, 8-12, 8-14 to 8-18 (smooth curves whose turns
 and crossings are known exactly, `khan_alg1/curves.py`: a cosine ease
