@@ -232,7 +232,7 @@ The 3-9, 8-1 and 8-2 stories use names, no pronouns; every percent in 8-1
 and 8-2 is exact.
 Approved: the names-for-pronouns wording stays for now.
 
-## 5k. Phase 5, graphs: the tool and Algebra 1 Unit 6 (built 2026-10-26; awaiting its checkpoint)
+## 5k. Phase 5, graphs: the tool and Algebra 1 Unit 6 (approved 2026-10-26)
 `sheets/graphs.py` draws on cetz 0.5.2 (a bank's PREAMBLE imports it): a
 window with its grid, axes, numbers, and axis names; lines, polylines,
 smooth curves, functions, segments with open or closed ends, points, and
@@ -245,6 +245,7 @@ where the point sits), and 6-11 (one, none, or many; the second line is
 always dashed, so a same-line system shows both).
 Old 6-4 wording: the cream story's line a fixes the amount of butterfat,
 not the percent; it reads "the intended amount of butterfat" here.
+Approved: the graphs' size and look (about 5 cm, beside the problem), and keys that mark the answer on the graph.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
