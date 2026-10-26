@@ -196,10 +196,11 @@ answers in slope-intercept form (5/3 q - 10), as the teacher wants. 8-7 and 8-11
 interpretation questions: their checks only confirm the key matches the
 story. New: `khan_alg1/domains.py` (8-9, 8-10).
 
-## 5g. Khan Algebra 2, Unit 1 (built 2026-10-26; awaiting its checkpoint)
+## 5g. Khan Algebra 2, Unit 1 (approved 2026-10-26)
 All twelve lessons (`sheets/banks/khan_alg2/`). 1-1 is Algebra 1's 13-1. The
 area models (1-7, 1-9) have positive lengths only; 1-11 and 1-12 key a
 product that leads with its number in ascending order, as 13-6 does.
+Approved: 1-2's rates as exact fractions (-9/4), not decimals.
 
 **To revisit:** random letters in word problems (2-10). The teacher wants
 to look at this again later: Khan's letters (S for stops, F for flour)
