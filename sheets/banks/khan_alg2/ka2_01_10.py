@@ -28,7 +28,7 @@ TYPES = [
     dict(key="1", title="Binomial Times Trinomial",
          look="A binomial times a polynomial with three terms.",
          move="Multiply each term of the binomial by each term of the trinomial (six products), then combine like terms."),
-    dict(key="2", title="Two Binomials in x^2",
+    dict(key="2", title="Two Binomials with Squared Terms",
          look="Two binomials like (x^2 + 4)(x^2 - 6).",
          move="Multiply as two binomials: first, outer, inner, last. The middle terms are x^2 terms."),
 ]

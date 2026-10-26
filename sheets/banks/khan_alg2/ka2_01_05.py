@@ -71,7 +71,8 @@ def typst(p, gap="0.3em"):
     if p["op"] == "from":
         return f"Subtract {display(dfrac(a))} from {display(dfrac(b))}."
     x, y = p["names"]
-    return (f"$display(cases({x} &= {dfrac(a)}, {y} &= {dfrac(b)}), delim: #none)$ \\\n    ${asked(p)} = $")
+    return (f"#grid(columns: 2, column-gutter: 0.3em, row-gutter: 0.6em, [${x} =$], [${a}$], [${y} =$], [${b}$]) \\\n    "
+            f"${asked(p)} = $")
 
 def answer_typst(p):
     return f"${p['answer']}$"
