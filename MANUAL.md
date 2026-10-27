@@ -104,6 +104,14 @@ and no equation has a common factor that would turn it into a Type 4. In the
 terminal app, `i` edits a system as `eq1 ; eq2 ; eq3` (solved again), and `A`
 takes `(x, y, z)`, `no solution`, or `infinitely many solutions`.
 
+### Prealgebra: Single-Step Equations
+
+`--mix single_step/3:10` draws ten multiplication equations from the
+`single_step` bank (types 1 to 4: addition, subtraction, multiplication,
+division), each from one basic fact on the numbers 1 to 15. The README lists
+the forms. In the terminal app, `i` edits the prompt and the key is
+recomputed; `A` takes `x = 22`.
+
 ### Lessons 1-2 and 1-3: Linear Equations
 
 `--mix equations_1_2/3:4` draws from the `equations_1_2` bank (one to three

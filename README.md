@@ -28,6 +28,9 @@ python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 # Systems of three equations (another bank: name it before the entry)
 python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 
+# Prealgebra: Single-Step Equations: six of each kind of fact
+python3 make_practice.py --mix single_step/all:6 --title "Single-Step Equations"
+
 # Algebra 1, Units 1-2 Cumulative Test: one of each of the 30 questions, two parallel versions
 python3 make_practice.py --mix alg1_units_1_2_cumulative/all:1 --versions 2 --title "Units 1-2 Cumulative Test"
 
@@ -100,6 +103,23 @@ sides with denominators up to 6) and decimal ones (like 0.4y + 0.2z = 2, in
 tenths); clearing them leaves an integer system. Answers are ordered triples, `(2, −1, 3)`, or the words *no solution*
 or *infinitely many solutions*. Each system is half width with 2.5in of work
 space, its terms lined up in columns.
+
+### Prealgebra: Single-Step Equations
+
+The `single_step` bank, after the Single-Step Equations game of Precision
+Teaching: Algebra. Each equation comes from one basic fact on the numbers 1 to
+15 (a + b = c or a × b = c), showing two of its numbers and hiding the third.
+
+| Key | Type | Forms |
+|---|---|---|
+| 1 | Addition | `x + a = c`, `a + x = c` |
+| 2 | Subtraction | `x − a = b`, `c − x = a` (`x − 14 = 8`) |
+| 3 | Multiplication | `ax = c` (`13x = 169`) |
+| 4 | Division | `x/a = b`, `c/x = a` |
+
+Answers are whole numbers from 1 up, written `x = 22`. The number next to x
+is never 1 in multiplication or division. The check solves the prompt again
+with sympy.
 
 ### Lesson 1-2: Solving Linear Equations
 
@@ -299,6 +319,7 @@ ever runs code.
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
 | `sheets/banks/alg1_units_1_2_cumulative.py` | The Algebra 1 Units 1-2 Cumulative Test bank: thirty question types, each drawn new with its own stories and mistake-based choices, and a check per type |
+| `sheets/banks/single_step.py` | The Prealgebra single-step equations bank: one basic fact on 1 to 15 per equation, by kind of fact, and a sympy check |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
