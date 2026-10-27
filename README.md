@@ -28,6 +28,9 @@ python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 # Systems of three equations (another bank: name it before the entry)
 python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 
+# Algebra 1, Units 1-2 Cumulative Test: one of each of the 30 questions, two parallel versions
+python3 make_practice.py --mix alg1_units_1_2_cumulative/all:1 --versions 2 --title "Units 1-2 Cumulative Test"
+
 # Lesson 1-2: Solving Linear Equations: two of each type
 python3 make_practice.py --mix equations_1_2/all:2 --title "Lesson 1-2: Solving Linear Equations"
 
@@ -208,6 +211,28 @@ hotel problems to solve, and `absolute_words/all:1` is one of each. Every
 solved bound is a decimal with at most two places (three for gallons, as on a
 pump). Type 1 is half width; the stories are full width.
 
+### Algebra 1: Units 1-2 Cumulative Test
+
+The `alg1_units_1_2_cumulative` bank (Algebra 1, *Tests*): thirty types, one per
+question of the Units 1-2 cumulative test, every one drawn new. Each type keeps its
+question's logic and form (multiple choice, select all, blanks, parts) and
+draws its own numbers. Each word problem picks from its own stories, written
+fresh with the same logic as the original question (house numbers, jersey
+numbers, or right-hand pages for consecutive integers; nuts or cheese by the
+pound; trail mix or a coffee blend for the mixture model; and so on). Wrong
+choices come from real mistakes: a sign not flipped, a fraction distributed
+to one term, a reciprocal slope without its sign change, a tick misread on
+the number line. The check works each question again from its numbers with
+sympy and confirms that the key's letters are exactly the right choices.
+
+| Keys | Topic |
+|---|---|
+| 1-3 | Sets of integers, ordering real numbers, rational results |
+| 4-10 | Equations: fractions, consecutive integers, price per pound, a mixture model, literal equations, the square pyramid |
+| 11-15 | Inequalities: no solution / all reals, compound, from a number line; absolute value equations and graphs |
+| 16-28 | Lines: graphing, perpendicular, two points, a linear model, horizontal lines, justifying steps, point-slope and standard form, intercepts and solutions in context, parallel and perpendicular |
+| 29-30 | Equivalent profit equations, the cone |
+
 ### Advanced Math
 
 Twelve banks, tagged *Advanced Math → Additional Practice*, ported from the
@@ -273,6 +298,7 @@ ever runs code.
 | `sheets/library.py` | The library: finds every bank (generators, `library/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
+| `sheets/banks/alg1_units_1_2_cumulative.py` | The Algebra 1 Units 1-2 Cumulative Test bank: thirty question types, each drawn new with its own stories and mistake-based choices, and a check per type |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
