@@ -28,6 +28,15 @@ python3 make_practice.py --mix 3:6 3f:2 8:4 A:2 --versions 3 --seed 12
 # Systems of three equations (another bank: name it before the entry)
 python3 make_practice.py --mix systems/1:2 systems/4:4 systems/A:1 --versions 2
 
+# Prealgebra: Single-Step Equations: six of each kind of fact
+python3 make_practice.py --mix single_step/all:6 --title "Single-Step Equations"
+
+# Algebra 1, Units 1-2 Cumulative Test: one of each of the 30 questions, two parallel versions
+python3 make_practice.py --mix alg1_units_1_2_cumulative/all:1 --versions 2 --title "Units 1-2 Cumulative Test"
+
+# Lesson 1-2: Modeling: five Level 3 skills, one problem each
+python3 make_practice.py --mix modeling_1_2/3a:1 modeling_1_2/3b:1 modeling_1_2/3d:1 modeling_1_2/3f:1 modeling_1_2/3m:1 --title "Lesson 1-2: Modeling"
+
 # Lesson 1-2: Solving Linear Equations: two of each type
 python3 make_practice.py --mix equations_1_2/all:2 --title "Lesson 1-2: Solving Linear Equations"
 
@@ -100,6 +109,54 @@ sides with denominators up to 6) and decimal ones (like 0.4y + 0.2z = 2, in
 tenths); clearing them leaves an integer system. Answers are ordered triples, `(2, −1, 3)`, or the words *no solution*
 or *infinitely many solutions*. Each system is half width with 2.5in of work
 space, its terms lined up in columns.
+
+### Prealgebra: Single-Step Equations
+
+The `single_step` bank, after the Single-Step Equations game of Precision
+Teaching: Algebra. Each equation comes from one basic fact on the numbers 1 to
+15 (a + b = c or a × b = c), showing two of its numbers and hiding the third.
+
+| Key | Type | Forms |
+|---|---|---|
+| 1 | Addition | `x + a = c`, `a + x = c` |
+| 2 | Subtraction | `x − a = b`, `c − x = a` (`x − 14 = 8`) |
+| 3 | Multiplication | `ax = c` (`13x = 169`) |
+| 4 | Division | `x/a = b`, `c/x = a` |
+
+Answers are whole numbers from 1 up, written `x = 22`. The number next to x
+is never 1 in multiplication or division. The check solves the prompt again
+with sympy.
+
+### Lesson 1-2: Modeling
+
+The `modeling_1_2` bank: word problems that take one modeling decision at a
+time, from the teacher's Lesson 1-2 modeling bank (100 problems built on the
+Savvas 1-2 word problems). Each asks for one expression or equation, never a
+solved value. Every problem of that bank is one a story here draws, word for
+word, with the bank's answer; the stories also draw new numbers, letters,
+names, and items. `tests/test_modeling_1_2.py` confirms all 100 when the bank
+file is in `~/Documents/alg1/unit_1/lesson_1-2/`.
+
+The types are the bank's difficulty levels. Each entry is one of the bank's
+categories at that level, so a sequence can step through one skill at a time:
+
+| Level | Type | Entries | Example |
+|---|---|---|---|
+| 1 | Direct Translation | 1a cost at a rate, 1b distance, 1c consecutive integers, 1d rows and stacks, 1e equal shares, 1f converting units, 1g verbal phrases | `15h`, `n + 1`, `108 / 4` |
+| 2 | Two Operations or a Reversed Order | 2a budget equations, 2b consecutive integers, 2c discounts, 2d round trips, 2e mixtures, 2f percent of a number, 2g rate plus a fee, 2h totals from an average, 2i what's left, 2j equal shares, 2k related prices, 2l converting units, 2m verbal phrases | `15h + 25`, `x − 8`, `0.20n` |
+| 3 | One Inference | 3a budget equations with a fee, 3b consecutive integers, 3c all but the last, 3d time from distance and rate, 3e groups, 3f mixtures, 3g percent equations, 3h salary plus bonuses, 3i what's left, 3j averages, 3k times that add up, 3l mixed units, 3m verbal phrases | `25 − x`, `0.10x`, `d / 2`, `n − 1` |
+| 4 | Build a Quantity, Then Group It | 4a earnings equations, 4b mortar layers, 4c discounts, 4d percent of a total, 4e related prices, 4f converting units | `4(p − 15) = 108`, `3/8 (n − 1)` |
+| 5 | Two Inferences Combined | 5a brick walls, 5b groups, 5c mixture equations, 5d trip times, 5e two items, one total | `8t + 2(t + 6) = 37` |
+
+Answers are written as the bank writes them: products unevaluated where the
+words give them (`6(20000)`, `0.15(25)`, `4(12) − 1 1/8`), percents as
+two-place decimals (`0.10x`), and the rate before the fee (`3m + 12`). Where
+the bank accepts other forms, the key shows them: `n + (n + 1) + (n + 2) (or
+3n + 3)`. Only the source story's person gets a pronoun (Terrence, he); any
+other name is repeated. The check reads the numbers, words, and letters back
+out of the prompt with the story's template, works the quantity out with
+sympy, and compares it with the key and every alternate (an equation may be
+any nonzero multiple of the right one).
 
 ### Lesson 1-2: Solving Linear Equations
 
@@ -211,6 +268,28 @@ hotel problems to solve, and `absolute_words/all:1` is one of each. Every
 solved bound is a decimal with at most two places (three for gallons, as on a
 pump). Type 1 is half width; the stories are full width.
 
+### Algebra 1: Units 1-2 Cumulative Test
+
+The `alg1_units_1_2_cumulative` bank (Algebra 1, *Tests*): thirty types, one per
+question of the Units 1-2 cumulative test, every one drawn new. Each type keeps its
+question's logic and form (multiple choice, select all, blanks, parts) and
+draws its own numbers. Each word problem picks from its own stories, written
+fresh with the same logic as the original question (house numbers, jersey
+numbers, or right-hand pages for consecutive integers; nuts or cheese by the
+pound; trail mix or a coffee blend for the mixture model; and so on). Wrong
+choices come from real mistakes: a sign not flipped, a fraction distributed
+to one term, a reciprocal slope without its sign change, a tick misread on
+the number line. The check works each question again from its numbers with
+sympy and confirms that the key's letters are exactly the right choices.
+
+| Keys | Topic |
+|---|---|
+| 1-3 | Sets of integers, ordering real numbers, rational results |
+| 4-10 | Equations: fractions, consecutive integers, price per pound, a mixture model, literal equations, the square pyramid |
+| 11-15 | Inequalities: no solution / all reals, compound, from a number line; absolute value equations and graphs |
+| 16-28 | Lines: graphing, perpendicular, two points, a linear model, horizontal lines, justifying steps, point-slope and standard form, intercepts and solutions in context, parallel and perpendicular |
+| 29-30 | Equivalent profit equations, the cone |
+
 ### Advanced Math
 
 Twelve banks, tagged *Advanced Math → Additional Practice*, ported from the
@@ -276,6 +355,9 @@ ever runs code.
 | `sheets/library.py` | The library: finds every bank (generators, `library/`, and your library folder), reads `courses.json`, and groups banks by course and unit |
 | `sheets/sequences.py` | Sequences: ordered steps through banks' entries (with notes on what changes, and pinned examples), read into the library |
 | `sheets/banks/systems.py` | The systems-of-three-equations bank: types, templates, the sympy check, and the aligned Typst layout |
+| `sheets/banks/alg1_units_1_2_cumulative.py` | The Algebra 1 Units 1-2 Cumulative Test bank: thirty question types, each drawn new with its own stories and mistake-based choices, and a check per type |
+| `sheets/banks/single_step.py` | The Prealgebra single-step equations bank: one basic fact on 1 to 15 per equation, by kind of fact, and a sympy check |
+| `sheets/banks/modeling_1_2.py` | The Lesson 1-2: Modeling bank: five levels, an entry per category, a story per problem shape of the teacher's bank, and a check that reads the prompt back with its story |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
@@ -290,7 +372,7 @@ ever runs code.
 | `KHAN.md`, `KHAN_PORT.md` | The Khan courses' reference, and the record of their port |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
 | `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
-| `tests/` | `test_mathsheet.py`, `test_library.py`, `test_typmath.py`, `test_khan.py` (every Khan type draws, checks, and shows), and `test_graphs.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
+| `tests/` | `test_mathsheet.py`, `test_library.py`, `test_typmath.py`, `test_khan.py` (every Khan type draws, checks, and shows), `test_modeling_1_2.py` (the Lesson 1-2 modeling bank, and its 100 source problems), and `test_graphs.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
 | `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty), the built-in sequence `literal_by_type.json` (the lesson's order, built by `lesson_sequence()` in `sheets/banks/literal`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |
 | `practice/` | Default output folder for practice sets |

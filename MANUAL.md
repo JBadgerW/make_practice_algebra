@@ -105,6 +105,24 @@ and no equation has a common factor that would turn it into a Type 4. In the
 terminal app, `i` edits a system as `eq1 ; eq2 ; eq3` (solved again), and `A`
 takes `(x, y, z)`, `no solution`, or `infinitely many solutions`.
 
+### Prealgebra: Single-Step Equations
+
+`--mix single_step/3:10` draws ten multiplication equations from the
+`single_step` bank (types 1 to 4: addition, subtraction, multiplication,
+division), each from one basic fact on the numbers 1 to 15. The README lists
+the forms. In the terminal app, `i` edits the prompt and the key is
+recomputed; `A` takes `x = 22`.
+
+### Lesson 1-2: Modeling
+
+`--mix modeling_1_2/3d:4` draws four Level 3 time-from-distance-and-rate
+problems from the `modeling_1_2` bank; `modeling_1_2/all:1` draws one of each
+of its 44 entries (levels 1 to 5, a category each). The README lists them.
+Each problem asks for one expression or equation. In the terminal app, `i`
+edits the prompt: keep the story's words and change its numbers, names, or
+letters, and the key is written again. `A` takes Typst math, like
+`4(p - 15) = 108`, and checks it (an equivalent form passes).
+
 ### Lessons 1-2 and 1-3: Linear Equations
 
 `--mix equations_1_2/3:4` draws from the `equations_1_2` bank (one to three
@@ -801,6 +819,7 @@ python3 tests/test_mathsheet.py              # TUI key handling
 python3 tests/test_library.py                # the library: banks, courses, tags
 python3 tests/test_typmath.py                # sympy -> Typst, and the answer-form checks
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows
+python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling, and its 100 source problems
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 ```

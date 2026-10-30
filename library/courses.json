@@ -2,7 +2,7 @@
  "format": 1,
  "courses": [
   {"title": "Prealgebra", "units": ["Lessons", "Additional Practice"]},
-  {"title": "Algebra 1", "units": ["Lessons", "Additional Practice"]},
+  {"title": "Algebra 1", "units": ["Lessons", "Additional Practice", "Tests"]},
   {"title": "Geometry", "units": ["Lessons", "Additional Practice"]},
   {"title": "Algebra 2", "units": ["Lessons", "Additional Practice"]},
   {"title": "Advanced Math", "units": ["Lessons", "Additional Practice"]},
