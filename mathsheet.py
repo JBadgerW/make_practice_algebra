@@ -34,7 +34,7 @@ COURSE_HINT = ("Which course's banks to show, grouped by unit: h/l step through 
                "(then All banks); i types one (Tab completes). Banks list their courses; :rescan "
                "rereads the library after you change one.")
 SETTING_HINTS = {
-    "form": "What to print (h/l, or i to type one): a worksheet, or a half-page warm-up: two copies side by side, the answers shuffled and lettered on the back for students to check themselves. A warm-up has one version.",
+    "form": "What to print (h/l, or i to type one): a worksheet, or a half-page warm-up: two copies side by side, the answers shuffled and lettered on the back for students to check themselves. An answer that would give itself away gets a look-alike decoy (:pre key marks them, :decoys redraws them). A warm-up has one version.",
     "versions": "How many parallel versions to write (h/l, or i to type one): each drawn problem is redrawn in its slot; edited problems stay. Each version gets its own worksheet (key appended) and slides.",
     "title": "The worksheet and slide title. i to edit.",
     "class": "The class name in the worksheet and slide header (default: the course). i to edit.",
@@ -67,6 +67,7 @@ I        what's here, in a box      + - W r     change all selected
 COMMANDS
 :w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
 :pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
+:decoys  a warm-up's new decoys (:pre key marks them)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
@@ -1078,9 +1079,23 @@ class App:
         return True
 
     def graph_warning(self):
-        """For a warm-up: the problems whose answer is a graph, which can't be lettered on the back."""
-        k = writer.unlettered(self.sheet) if sh.is_warmup(self.sheet) else 0
-        return f"  ·  {k} graph answer{'s' * (k > 1)} not on the back" if k else ""
+        """For a warm-up: the problems whose answer is a graph, which can't be lettered
+        on the back, and those whose answer gives itself away with no decoy to hide it."""
+        if not sh.is_warmup(self.sheet):
+            return ""
+        k, u = writer.unlettered(self.sheet), writer.unmatched(self.sheet)
+        return (f"  ·  {k} graph answer{'s' * (k > 1)} not on the back" if k else "") + \
+               (f"  ·  {', '.join(f'#{n}' for n in u)} can be matched without solving" if u else "")
+
+    def redraw_decoys(self):
+        """:decoys: new decoys on a warm-up's back (the problems stay)."""
+        if not sh.is_warmup(self.sheet):
+            return self.say("E: decoys are for a warm-up (:form warmup)", True)
+        n = sum(d for _, _, d in writer.back(self.sheet))
+        if not n:
+            return self.say("no decoys: no answer gives itself away" + self.graph_warning())
+        self.change(lambda: self.sheet.__setitem__("decoy_seed", self.sheet.get("decoy_seed", 0) + 1))
+        self.say(f"{n} decoy{'s' * (n > 1)} redrawn (:pre key shows them)" + self.graph_warning())
 
     def open_file(self, args):
         if not self.last_build:
@@ -1244,6 +1259,8 @@ class App:
             self.open_file(rest.split())
         elif cmd in ("pre", "preview"):
             self.preview(rest.split())
+        elif cmd == "decoys":
+            self.redraw_decoys()
         elif cmd in ("h", "help"):
             self.mode = "help"
         else:
@@ -1532,6 +1549,8 @@ class App:
             sheet = self.sheet
             rows = [("Title", sheet["title"], ":title"), ("Class", sheet["class_name"], ":class"),
                     ("Form", "warm-up" if sh.is_warmup(sheet) else "worksheet", ":form"),
+                    *([("Decoys", str(sum(d for _, _, d in writer.back(sheet))), ":decoys")]
+                      if sh.is_warmup(sheet) else []),
                     ("Versions", str(sheet["versions"]), ":versions"),
                     ("Sections", str(len(sheet["sections"])), "")]
             return "The sheet", rows + self.info_items(sh.items(sheet)), "b scope · W + - · R reroll all · Esc"

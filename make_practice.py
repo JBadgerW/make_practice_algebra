@@ -39,7 +39,7 @@ Examples (run from this folder):
                       step). pinned starts each step with its pinned examples.
 --sheet FILE          print a saved .sheet.json (or an older practice .json) again
 --warmup              a half-page warm-up (one version): two copies side by side,
-                      the answers shuffled and lettered on the back
+                      the answers shuffled and lettered on the back, with decoys
 --out DIR, --name N   output folder (default ./practice) and file prefix
 --no-compile          write .typ files only
 """
@@ -463,7 +463,7 @@ def preview(sheet, v=0, what="sheet", folder=None):
     if not typst:
         raise RuntimeError("typst not found: can't preview")
     text = {"sheet": lambda: writer.warmup(sheet) if sh.is_warmup(sheet) else writer.worksheet(sheet, v),
-            "key": lambda: writer.worksheet(sheet, v, key=True),
+            "key": lambda: writer.warmup_key(sheet) if sh.is_warmup(sheet) else writer.worksheet(sheet, v, key=True),
             "slides": lambda: writer.slides(sheet, v)}[what]()
     outp = Path(folder or tempfile.mkdtemp(prefix="mathsheet-"))
     fname = "preview" + {"sheet": "", "key": "_key", "slides": "_slides"}[what] + ".typ"
@@ -533,6 +533,8 @@ def main():
     print("  " + "\n  ".join(r["files"]) + ("" if r["compiled"] else "\n  (not compiled)"))
     if sh.is_warmup(sheet) and (k := writer.unlettered(sheet)):
         print(f"  warning: {k} problem{'s' * (k > 1)} with a graph for an answer, left off the back")
+    if sh.is_warmup(sheet) and (u := writer.unmatched(sheet)):
+        print(f"  warning: {', '.join(f'#{n}' for n in u)} can be matched without solving (no decoy fits)")
 
 if __name__ == "__main__":
     main()

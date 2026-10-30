@@ -550,6 +550,7 @@ through earlier commands.
 | `:group TITLE` | Move the selected problems (or the cursor's) into a new section |
 | `:rename TEXT` | Retitle the cursor's section |
 | `:clear` | Clear the sheet |
+| `:decoys` | A warm-up's new decoys (`:pre key` shows them) |
 | `:form warmup\|worksheet` `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
@@ -587,6 +588,27 @@ problems and changes when you reroll. Both halves are the same, so it doesn't
 matter which edge the printer flips on. A problem whose answer is a graph
 (the number-line inequalities, say) has nothing to letter: it is left off the
 back, and `:w` says how many.
+
+**Decoys.** An answer can give itself away: if `k = 5` is the only answer with
+a `k`, a student can match it without solving. So the back also has a few
+wrong answers that look like real ones. An answer whose *shape* (the answer
+with its numbers blanked: `k = □`) no other answer has gets a decoy: the
+same answer with some of its numbers changed. A changed number keeps its sign,
+its number of digits and decimal places, and its size (within a factor of three), and is never what a
+common slip gives: one or two off, double or half, ten times, its digits
+reversed, or 0. Numbers in exponents, subscripts, and under a root never
+change. So `k = 6` might get `k = 9` or `k = 11`, never `k = -6`, `k = 5`, or
+`k = 12`. A slip that happens to land on a decoy is still possible, just
+rare. It helps to tell students that a few answers belong to no problem.
+
+An answer with no number to change (`no solution`, `V = m/D`, a
+multiple-choice letter) can't have a decoy. `:w` and `:pre` name those
+problems ("#2, #10 can be matched without solving"), so you can reroll them
+or leave them.
+
+`:pre key` shows the back once, each answer marked with its problem and each
+decoy, in gray, with the answer it imitates; it is never written. `:decoys` draws new decoys
+without changing the problems (`u` undoes it).
 
 **The worksheet.** The header, the instructions block, then each section:
 its bold heading (with italic instructions, if it has any), then its problems

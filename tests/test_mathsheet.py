@@ -982,11 +982,31 @@ assert sh.load(Path(OUT) / "warm.sheet.json")["form"] == "warmup"
 wt = (Path(OUT) / "warm.typ").read_text()
 assert wt.count("#two-up(") == 2 and wt.count("question(space-below: 0pt)") == 5 and "#pagebreak()" in wt
 answers = wt.split("answer-half(worksheet-title, (")[1]
-assert answers.count("  [") == 4, "every answer but the graph's, once"
+back = writer.back(w.sheet)
+assert sorted(n for _, n, d in back if not d) == [1, 2, 3, 4], "every answer but the graph's, once"
+assert answers.count("  [") == len(back) and all(f"  [{a}]," in answers for a, _, _ in back), "and its decoys"
 assert wt == writer.warmup(sh.load(Path(OUT) / "warm.sheet.json")), "the same problems shuffle the same way"
 if shutil.which("typst"):
     wk(":pre\n"); assert opened[-1].name == "preview.pdf" and "warm-up" in w.msg
+w.open_path = lambda f: opened.append(f) or True
+if shutil.which("typst"):
+    wk(":pre key\n"); assert opened[-1].name == "preview_key.pdf" and not w.err, w.msg
+before = writer.back(w.sheet)
+wk(":decoys\n"); assert "redrawn" in w.msg and w.sheet["decoy_seed"] == 1
+after = writer.back(w.sheet)
+assert sorted((a, n) for a, n, d in before if not d) == sorted((a, n) for a, n, d in after if not d), "the answers stay"
+assert {a for a, _, d in before if d} != {a for a, _, d in after if d}, "the decoys change"
+wk("u"); assert writer.back(w.sheet) == before
 wk(":form worksheet\n:versions 2\n"); assert w.sheet["versions"] == 2 and all(it["alts"] for it in sh.items(w.sheet)[:4])
 wk("u"); assert w.sheet["versions"] == 1
+wk(":form worksheet\n:decoys\n"); assert w.err and "warm-up" in w.msg
+
+# ---- Lesson 1-2's answers each have their own letter: decoys give every one a look-alike
+ws = mp.draft(mp.parse_mix(["equations_1_2/all:1"]), 1, 4); ws["form"] = "warmup"
+from sheets import decoys as D
+shapes = __import__("collections").Counter(D.shape(a) for a, _, _ in writer.back(ws))
+stuck = writer.unmatched(ws)
+assert all(n > 1 for k, n in shapes.items() if k != "no solution"), shapes
+assert all(banks.get("equations_1_2").answer_typst(sh.problem(sh.items(ws)[i - 1])) == "no solution" for i in stuck)
 
 print("all key tests passed")
