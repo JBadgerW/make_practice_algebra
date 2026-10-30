@@ -46,6 +46,9 @@ python3 make_practice.py --mix adv_complex_fractions/all:2 adv_rationalize/all:2
 # Khan Algebra 1, Lesson 2-6: two of each type
 python3 make_practice.py --mix ka1_02_06/all:2 --class "Khan Algebra 1"
 
+# A half-page warm-up: two copies side by side, the answers shuffled on the back
+python3 make_practice.py --mix adv_rationalize/all:2 --warmup --class "Advanced Math" --title "Warm Up"
+
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 mathsheet.py

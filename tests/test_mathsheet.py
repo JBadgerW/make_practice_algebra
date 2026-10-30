@@ -9,7 +9,7 @@ EMPTY_LIB = tempfile.mkdtemp(prefix="emptylib_")
 (Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet" / "config.json").write_text(
     '{"library": "%s"}' % EMPTY_LIB)                                        # nor their library
 import mathsheet as T, make_practice as mp
-from sheets import sheet as sh, edit as E
+from sheets import sheet as sh, edit as E, writer
 PORTED = ("adv_", "ka1_", "ka2_", "kpa_")                  # the Advanced Math and Khan banks
 NADV = sum(len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob(f"**/{p}*.py"))) for p in PORTED)
 OUT = tempfile.mkdtemp(prefix="mathsheet_test_")
@@ -969,5 +969,24 @@ if shutil.which("typst"):
     assert p.dirty() and p.last_build is None and not (Path(OUT) / "preview_out").exists(), "nothing written or saved"
 pk(":pre 3\n"); assert p.err and "2 versions" in p.msg
 pk(":pre bogus\n"); assert p.err and "usage" in p.msg
+
+# ---- a warm-up: one version, two copies side by side, the answers shuffled on the back
+w = T.App(seed=7); wk = driver(w); opened = []
+w.open_path = lambda f: opened.append(f) or True
+wk(f":out {OUT}\n:name warm\n:mix 1:2 3:2 inequalities/3:1\n:versions 3\n:form warmup\n")
+assert w.sheet["form"] == "warmup" and w.sheet["versions"] == 1 and not any(it["alts"] for it in sh.items(w.sheet))
+wk(":versions 2\n"); assert w.err and w.sheet["versions"] == 1, "a warm-up keeps one version"
+wk(":form bogus\n"); assert w.err and "worksheet or warmup" in w.msg
+wk(":w\n"); assert "1 graph answer not on the back" in w.msg, w.msg
+assert sh.load(Path(OUT) / "warm.sheet.json")["form"] == "warmup"
+wt = (Path(OUT) / "warm.typ").read_text()
+assert wt.count("#two-up(") == 2 and wt.count("question(space-below: 0pt)") == 5 and "#pagebreak()" in wt
+answers = wt.split("answer-half(worksheet-title, (")[1]
+assert answers.count("  [") == 4, "every answer but the graph's, once"
+assert wt == writer.warmup(sh.load(Path(OUT) / "warm.sheet.json")), "the same problems shuffle the same way"
+if shutil.which("typst"):
+    wk(":pre\n"); assert opened[-1].name == "preview.pdf" and "warm-up" in w.msg
+wk(":form worksheet\n:versions 2\n"); assert w.sheet["versions"] == 2 and all(it["alts"] for it in sh.items(w.sheet)[:4])
+wk("u"); assert w.sheet["versions"] == 1
 
 print("all key tests passed")

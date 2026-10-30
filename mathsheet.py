@@ -20,7 +20,7 @@ Press ? inside for the full key list.
 import copy, curses, os, random, re, shlex, subprocess, sys, textwrap
 from pathlib import Path
 import make_practice as mp
-from sheets import sheet as sh, edit as E, banks, library
+from sheets import sheet as sh, edit as E, banks, library, writer
 from sheets.banks.literal import pretty
 
 # ------------------------------------------------------------------
@@ -29,16 +29,17 @@ from sheets.banks.literal import pretty
 # step; ("bank", name), ("count", (bank, entry)), ("problem", (bank, id))
 # under an open type of a fixed bank; ("set", key)
 # ------------------------------------------------------------------
-SETTINGS = ["versions", "title", "class", "instructions", "name", "out"]
+SETTINGS = ["form", "versions", "title", "class", "instructions", "name", "out"]
 COURSE_HINT = ("Which course's banks to show, grouped by unit: h/l step through the courses "
                "(then All banks); i types one (Tab completes). Banks list their courses; :rescan "
                "rereads the library after you change one.")
 SETTING_HINTS = {
+    "form": "What to print (h/l, or i to type one): a worksheet, or a half-page warm-up: two copies side by side, the answers shuffled and lettered on the back for students to check themselves. A warm-up has one version.",
     "versions": "How many parallel versions to write (h/l, or i to type one): each drawn problem is redrawn in its slot; edited problems stay. Each version gets its own worksheet (key appended) and slides.",
     "title": "The worksheet and slide title. i to edit.",
     "class": "The class name in the worksheet and slide header (default: the course). i to edit.",
     "instructions": "The italic line under the header, for the whole sheet. i to edit; empty for none.",
-    "name": "File prefix: NAME.sheet.json, NAME.pdf (every version, each with its key), NAME_slides.pdf (every version's slides). i to edit.",
+    "name": "File prefix: NAME.sheet.json, NAME.pdf (every version, each with its key; or the warm-up), NAME_slides.pdf (every version's slides). i to edit.",
     "out": "Folder to write into: ~ is your home folder, and a relative path starts in the folder you ran mathsheet from. i to edit; Tab completes folder names.",
 }
 
@@ -69,7 +70,7 @@ COMMANDS
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
 :groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
-:title :class :instructions :versions :name :out  :set [no]compact [no]wide
+:form :title :class :instructions :versions :name :out  :set [no]compact [no]wide
 :course NAME|all  (h l on COURSE)   :rescan   :library DIR   :warnings
 Types 1-11, A, B: the lesson's sequence. 3f: real formulas. Banks: built in, and your :library."""
 
@@ -226,7 +227,7 @@ class App:
             return E.count(self.sheet, *key)
         if kind == "problem":
             return E.where_problem(self.sheet, *key) is not None
-        return {"versions": self.sheet["versions"], "title": self.sheet["title"], "class": self.sheet["class_name"],
+        return {"form": "warm-up" if sh.is_warmup(self.sheet) else "worksheet", "versions": self.sheet["versions"], "title": self.sheet["title"], "class": self.sheet["class_name"],
                 "instructions": self.sheet["instructions"]}.get(key, self.s.get(key))
 
     def toggle_open(self, rid=None):
@@ -336,6 +337,8 @@ class App:
             return self.say("o opens the sequence; l on a step adds a problem of it", True)
         elif key == "versions":
             self.set_versions(self.sheet["versions"] + n)
+        elif key == "form":
+            self.set_form(not sh.is_warmup(self.sheet))
         else:
             return self.say(f"{key} is text: press i to edit it", True)
         self.last_change = lambda: self.bump(n)
@@ -395,8 +398,20 @@ class App:
             return self.say(f"E: can't save the config: {e}", True)
         self.rescan()
 
+    def set_form(self, warmup):
+        """A warm-up or a worksheet; a warm-up keeps only version 1."""
+        def go():
+            self.sheet["form"] = "warmup" if warmup else "worksheet"
+            if warmup:
+                self.sheet["versions"] = 1
+                sh.fill_versions(self.sheet)
+        self.change(go)
+        self.version = 0 if warmup else self.version
+
     def set_versions(self, n):
         n = min(26, max(1, n))
+        if n > 1 and sh.is_warmup(self.sheet):
+            return self.say("E: a warm-up has one version (set form to worksheet for more)", True)
         def go():
             self.sheet["versions"] = n
             sh.fill_versions(self.sheet)
@@ -437,6 +452,13 @@ class App:
             return self.set_course(text)
         if kind in ("seq", "problem"):
             return "type a count on a type's or a bank's row"
+        if key == "form":
+            f = text.lower().replace("-", "")
+            if f not in ("warmup", "worksheet", "sheet"):
+                return "form is worksheet or warmup"
+            self.set_form(f == "warmup")
+            self.last_change = lambda: self.set_value(text)
+            return None
         if kind in ("count", "bank") or key == "versions":
             if not text.isdigit():
                 return f"{'count' if kind in ('count', 'bank') else key} must be a whole number"
@@ -444,6 +466,8 @@ class App:
             if key == "versions":
                 if not 1 <= n <= 26:
                     return "versions must be 1-26"
+                if n > 1 and sh.is_warmup(self.sheet):
+                    return "a warm-up has one version (set form to worksheet for more)"
                 self.set_versions(n)
             elif kind == "bank":
                 self.change(lambda: E.set_bank_count(self.sheet, key, n, self.seeds()))
@@ -1048,10 +1072,15 @@ class App:
         where = dir_label(r["out"])
         un, bad = self.statuses()
         warn = (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "") + \
-               (f"  ·  {un} unchecked" if un else "")
+               (f"  ·  {un} unchecked" if un else "") + self.graph_warning()
         self.say(f'"{where}/" {len(r["files"])} files written '
                  f'({"PDFs compiled" if r["compiled"] else "typst not found: .typ only"}){warn}', bool(bad))
         return True
+
+    def graph_warning(self):
+        """For a warm-up: the problems whose answer is a graph, which can't be lettered on the back."""
+        k = writer.unlettered(self.sheet) if sh.is_warmup(self.sheet) else 0
+        return f"  ·  {k} graph answer{'s' * (k > 1)} not on the back" if k else ""
 
     def open_file(self, args):
         if not self.last_build:
@@ -1099,9 +1128,9 @@ class App:
         self.preview_dir = pdf.parent           # the same file every time, so an open viewer reloads it
         if self.open_path(pdf):
             un, bad = self.statuses()
-            self.say(f"preview: version {v} {'worksheet' if what == 'sheet' else what} (not saved)"
+            self.say(f"preview: version {v} {('warm-up' if sh.is_warmup(self.sheet) else 'worksheet') if what == 'sheet' else what} (not saved)"
                      + (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "")
-                     + (f"  ·  {un} unchecked" if un else ""), bool(bad))
+                     + (f"  ·  {un} unchecked" if un else "") + self.graph_warning(), bool(bad))
 
     def load(self, path):
         """Open a .sheet.json (or convert an older practice .json) to edit."""
@@ -1203,7 +1232,7 @@ class App:
             self.rename(rest) if rest else self.say("usage: :rename NEW TITLE (empty title: cS, then Enter)", True)
         elif cmd == "clear":
             self.clear()
-        elif cmd in ("versions", "title", "class", "instructions", "name", "out"):
+        elif cmd in ("form", "versions", "title", "class", "instructions", "name", "out"):
             err = self.set_value(rest, self.rows().index(("set", cmd)))
             if err:
                 self.say(f"E: {err}", True)
@@ -1502,6 +1531,7 @@ class App:
         if si < 0:
             sheet = self.sheet
             rows = [("Title", sheet["title"], ":title"), ("Class", sheet["class_name"], ":class"),
+                    ("Form", "warm-up" if sh.is_warmup(sheet) else "worksheet", ":form"),
                     ("Versions", str(sheet["versions"]), ":versions"),
                     ("Sections", str(len(sheet["sections"])), "")]
             return "The sheet", rows + self.info_items(sh.items(sheet)), "b scope · W + - · R reroll all · Esc"

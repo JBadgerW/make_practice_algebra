@@ -26,6 +26,7 @@ python3 make_practice.py [options]
 | `--name NAME` | File prefix | `untitled` |
 | `--draft SEQ STEPS ...` | Draft from a sequence instead of `--mix`: `--draft by_move 5-6 review 1-4` (see *Drafting from a sequence*) | |
 | `--sheet FILE` | Print a saved `.sheet.json` again, or convert an older `NAME_v1.json` set (with its other versions) and print it in the current style | |
+| `--warmup` | A half-page warm-up instead of a worksheet (one version; see *The warm-up* in section 3) | worksheet |
 | `--no-compile` | Write `.typ` files only | compile |
 | `--selftest N` | Draw N problems of every type, check them all, then check every formula | |
 
@@ -490,6 +491,11 @@ makes it a drawn one again.
 **Versions.** Version 2, 3, ... redraw every drawn problem in its own slot;
 edited problems are the same in every version. `gt` `gT` show the versions.
 
+**Form.** The *form* setting (`h` `l`, or `:form warmup` / `:form worksheet`)
+prints the sheet as a worksheet or as a half-page warm-up (see *The warm-up*
+in section 3). A warm-up has one version: switching to it keeps version 1,
+and `:versions` refuses more until you switch back.
+
 ### Everywhere
 
 | Keys | Action |
@@ -544,7 +550,7 @@ through earlier commands.
 | `:group TITLE` | Move the selected problems (or the cursor's) into a new section |
 | `:rename TEXT` | Retitle the cursor's section |
 | `:clear` | Clear the sheet |
-| `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
+| `:form warmup\|worksheet` `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
 | `:open [sheet\|slides]` | Open the written PDF (default: the worksheet); every version is in it, each with its key after it |
@@ -566,6 +572,22 @@ In the output folder:
 | `NAME.typ` / `.pdf` | Every version's worksheet, in the style of `templates/refined_template.typ`, each followed by its answer key: starting on a new page, the same sheet with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does, and its problems are numbered from 1 again. Each version and key starts on the next page (odd or even), with a bookmark in the PDF viewer's sidebar. |
 | `NAME_slides.typ` / `.pdf` | Every version's deck: a title slide, a title slide per section (grouped only), then a problem slide and an answer slide for each problem. With several versions, the first slide links to each version's title slide, and the sidebar bookmarks each version and its sections. |
 
+For a warm-up, `NAME.typ` / `.pdf` holds the warm-up instead (below); the
+slides are the same.
+
+**The warm-up.** A US Letter page turned sideways, in the style of
+`templates/warmup_template.typ`. The front has two identical half-page copies
+side by side. Each has the class, Name and Date lines, the title, and the
+sheet's instructions, then every problem in rows (section titles don't print).
+The work space is shared evenly among the rows: the more problems, the less
+room for each, so check the fit with `:pre`. The back has the answers twice, once
+behind each copy, shuffled and lettered A, B, C, ... so students can find their
+own answer and check it. The order is the same every time for the same
+problems and changes when you reroll. Both halves are the same, so it doesn't
+matter which edge the printer flips on. A problem whose answer is a graph
+(the number-line inequalities, say) has nothing to letter: it is left off the
+back, and `:w` says how many.
+
 **The worksheet.** The header, the instructions block, then each section:
 its bold heading (with italic instructions, if it has any), then its problems
 in rows. Two half-width problems share a row; a full-width problem gets a row
@@ -573,8 +595,8 @@ of its own; a half-width problem with no partner sits alone. Each problem has
 its own work space below it. Problems are numbered through the whole sheet.
 
 **The sheet file.** `NAME.sheet.json` is the document itself: a title, class,
-instructions, number of versions, the command that drafted it, and a list of
-sections. Each section has a `title`, `instructions`, and `items`. Each item
+instructions, number of versions, the form (`warmup`, or none for a
+worksheet), the command that drafted it, and a list of sections. Each section has a `title`, `instructions`, and `items`. Each item
 has:
 
 | Field | Meaning |

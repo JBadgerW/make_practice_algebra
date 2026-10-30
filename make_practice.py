@@ -38,6 +38,8 @@ Examples (run from this folder):
                       spread over the review steps (default: every earlier
                       step). pinned starts each step with its pinned examples.
 --sheet FILE          print a saved .sheet.json (or an older practice .json) again
+--warmup              a half-page warm-up (one version): two copies side by side,
+                      the answers shuffled and lettered on the back
 --out DIR, --name N   output folder (default ./practice) and file prefix
 --no-compile          write .typ files only
 """
@@ -431,8 +433,8 @@ def read_sheet(path):
 # ------------------------------------------------------------------
 def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
     """Write NAME.sheet.json, NAME.typ (every version's worksheet, each with its
-    key after it) and NAME_slides.typ (every version's slides), compiled when
-    typst is found.
+    key after it; or a warm-up, its front and back) and NAME_slides.typ (every
+    version's slides), compiled when typst is found.
     Returns dict(out, files, compiled, sheet); raises RuntimeError."""
     if not sh.items(sheet):
         raise RuntimeError("no problems: the sheet is empty")
@@ -441,7 +443,8 @@ def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
     typst = shutil.which("typst") if compile else None
     sh.save(sheet, outp / f"{name}.sheet.json")
     written = [f"{name}.sheet.json"]
-    for fname, text in ((f"{name}.typ", writer.worksheets(sheet)), (f"{name}_slides.typ", writer.slides(sheet))):
+    page = writer.warmup(sheet) if sh.is_warmup(sheet) else writer.worksheets(sheet)
+    for fname, text in ((f"{name}.typ", page), (f"{name}_slides.typ", writer.slides(sheet))):
         (outp / fname).write_text(text)
         if typst:
             r = subprocess.run([typst, "compile", fname], cwd=outp, capture_output=True, text=True)
@@ -451,15 +454,15 @@ def build(sheet, out=DEFAULTS["out"], name=DEFAULTS["name"], compile=True):
     return dict(out=outp, files=written, compiled=bool(typst), sheet=sheet)
 
 def preview(sheet, v=0, what="sheet", folder=None):
-    """Compile one document of version v (0-based), the worksheet, key, or
-    slides, into folder (a new temp folder by default), always under the same
+    """Compile one document of version v (0-based), the worksheet (a warm-up's
+    front and back), key, or slides, into folder (a new temp folder by default), always under the same
     name so an open viewer reloads it. Returns the PDF's path; raises RuntimeError."""
     if not sh.items(sheet):
         raise RuntimeError("no problems: the sheet is empty")
     typst = shutil.which("typst")
     if not typst:
         raise RuntimeError("typst not found: can't preview")
-    text = {"sheet": lambda: writer.worksheet(sheet, v),
+    text = {"sheet": lambda: writer.warmup(sheet) if sh.is_warmup(sheet) else writer.worksheet(sheet, v),
             "key": lambda: writer.worksheet(sheet, v, key=True),
             "slides": lambda: writer.slides(sheet, v)}[what]()
     outp = Path(folder or tempfile.mkdtemp(prefix="mathsheet-"))
@@ -490,6 +493,7 @@ def parser():
     ap.add_argument("--draft", nargs="+", metavar="TOKEN",
                     help="a sheet from a sequence: SEQ STEPS [xN] [review STEPS|none] [pinned]")
     ap.add_argument("--sheet", metavar="FILE", help="print a saved .sheet.json (or older practice .json) again")
+    ap.add_argument("--warmup", action="store_true", help="a half-page warm-up (one version)")
     ap.add_argument("--no-compile", action="store_true")
     ap.add_argument("--selftest", type=int, metavar="N")
     return ap
@@ -503,6 +507,8 @@ def main():
         order = first + sorted(n for n in gens if n not in first + ["literal"])     # literal is selftest() here
         sys.exit(0 if selftest(a.selftest, seed) and all(gens[n].selftest(a.selftest, seed)
                                                           for n in order if hasattr(gens[n], "selftest")) else 1)
+    if a.warmup:
+        a.versions = 1
     try:
         if a.sheet:
             sheet = read_sheet(a.sheet)
@@ -515,12 +521,18 @@ def main():
             sheet = draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name)
             sheet["command"] = command_for(mix, a.versions, seed, a.shuffle, a.title, a.out, a.name,
                                            a.class_name, groups)
+        if a.warmup:
+            sheet["form"] = "warmup"
+            if sheet.get("command"):
+                sheet["command"] = sheet["command"].replace(" --versions 1 ", " --warmup ", 1)
         r = build(sheet, a.out, a.name, compile=not a.no_compile)
     except (ValueError, RuntimeError, OSError) as e:
         sys.exit(str(e))
     n = len(sh.items(sheet))
     print(("" if a.sheet else f"seed {seed}: ") + f"{n} problems x {sheet['versions']} version(s) -> {r['out']}")
     print("  " + "\n  ".join(r["files"]) + ("" if r["compiled"] else "\n  (not compiled)"))
+    if sh.is_warmup(sheet) and (k := writer.unlettered(sheet)):
+        print(f"  warning: {k} problem{'s' * (k > 1)} with a graph for an answer, left off the back")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,8 @@
 """The worksheet document: what gets saved, edited, and written.
 
-    Sheet   dict(format, title, class_name, instructions, versions, command, sections)
+    Sheet   dict(format, title, class_name, instructions, versions, command, sections, form)
+                                                   form "warmup" prints the half-page warm-up
+                                                   (one version); no form, or "worksheet", the worksheet
     Section dict(title, instructions, items, auto) an empty title prints no header;
                                                    auto "bank:type" marks a type's own section
     Item    dict(bank, entry, seed, width, space, problem, alts, edited, status, scope)
@@ -21,6 +23,10 @@ from . import banks
 
 FORMAT = 1
 WIDTHS = ("half", "full")
+FORMS = ("worksheet", "warmup")
+
+def is_warmup(sheet):
+    return sheet.get("form") == "warmup"
 
 def new_sheet(title, class_name="Algebra 1", instructions="", versions=1):
     return dict(format=FORMAT, title=title, class_name=class_name, instructions=instructions,
