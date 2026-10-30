@@ -65,7 +65,7 @@ I        what's here, in a box      + - W r     change all selected
                                     gs          shuffle selection / section
                                     :scope bank|type  reroll from bank / type
 COMMANDS
-:w :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
+:w :w! :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
 :pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
 :decoys  a warm-up's new decoys (:pre key marks them)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
@@ -1078,6 +1078,15 @@ class App:
                  f'({"PDFs compiled" if r["compiled"] else "typst not found: .typ only"}){warn}', bool(bad))
         return True
 
+    def write_cmd(self, then_quit=False, force=False):
+        """:w, :wq: write, then quit if asked. While the name is still the default,
+        ask first: the name to write under, filled in, so Enter confirms it and
+        typing changes it (Esc writes nothing). With ! there's no asking."""
+        if self.total() and not force and self.s["name"] == mp.DEFAULTS["name"]:
+            return self.start_edit(("write", then_quit), self.s["name"])
+        if self.write() and then_quit:
+            self.quit = True
+
     def graph_warning(self):
         """For a warm-up: the problems whose answer is a graph, which can't be lettered
         on the back, and those whose answer gives itself away with no decoy to hide it."""
@@ -1185,11 +1194,8 @@ class App:
         rest = rest.strip()
         bang = cmd.endswith("!")
         cmd = cmd.rstrip("!")
-        if cmd in ("w", "write"):
-            self.write()
-        elif cmd in ("wq", "x", "xit"):
-            if self.write():
-                self.quit = True
+        if cmd in ("w", "write", "wq", "x", "xit"):
+            self.write_cmd(then_quit=cmd != "w" and cmd != "write", force=bang)
         elif cmd in ("q", "quit", "qa", "qall"):
             if self.dirty() and self.total() and not bang:
                 self.say("E37: No write since last change (add ! to override)", True)
@@ -1836,6 +1842,13 @@ class App:
             self.edit_problem(buf, ref)
         elif kind == "answer":
             self.edit_answer(buf, ref)
+        elif kind == "write":
+            buf = buf.strip()
+            if buf != self.s["name"]:
+                err = self.set_value(buf, self.rows().index(("set", "name")))
+                if err:
+                    return self.say(f"E: {err}; nothing written", True)
+            self.write_cmd(then_quit=ref, force=True)
 
     def edit_label(self):
         kind, ref = self.editing
@@ -1844,6 +1857,8 @@ class App:
             return f"{'count of ' + key[1] if k == 'count' else 'course' if k == 'course' else key}: "
         if kind in ("title", "instructions"):
             return f"{'sheet' if ref < 0 else 'section'} {kind}: "
+        if kind == "write":
+            return f"name is still {mp.DEFAULTS['name']} (Enter writes, or retype; Esc cancels): "
         return {"problem": "problem (equation ; unknown): ", "answer": "answer: "}[kind]
 
     def completing(self):
@@ -2338,6 +2353,7 @@ def slow(app, ch):
     """Will this key take a moment (writing, or drawing many problems)?"""
     line = app.buf.strip()
     return ((app.mode == "command" and ch in ("\n", "\r") and re.match(r"(w|write|wq|x|xit|mix|reroll|versions)\b", line))
+            or (app.mode == "insert" and ch in ("\n", "\r") and app.editing and app.editing[0] == "write")
             or (app.mode == "normal" and app.pending == "Z" and ch == "Z"))
 
 def run(scr, app):
