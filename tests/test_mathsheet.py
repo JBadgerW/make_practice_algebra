@@ -195,7 +195,9 @@ keys("za"); assert a.answers and " = " in text(a)
 
 # write, then reopen exactly
 keys(f":out {OUT}\n")
-keys(":w\n"); assert not a.err and not a.dirty(), a.msg
+keys(":w\n"); assert a.mode == "insert" and a.buf == "untitled" and a.dirty(), "still untitled: :w asks first"
+keys("\x1b"); assert a.mode == "normal" and a.dirty() and not a.last_build, "Esc writes nothing"
+keys(":w\n\n"); assert not a.err and not a.dirty(), a.msg
 written = sh.load(a.last_build["out"] / "untitled.sheet.json")
 assert written["sections"] == a.sheet["sections"], ":w writes exactly what the sheet pane shows"
 assert written["command"].endswith("untitled.sheet.json")
@@ -704,10 +706,10 @@ try:
     ck("\x1b:title Doc\t"); assert c.buf == "title Doc", "Tab completes paths only"
     ck("\x1b")
 
-    ck(":mix 1:2\n:out ~/Desktop\n:w\n"); assert not c.err, c.msg
+    ck(":mix 1:2\n:out ~/Desktop\n:w!\n"); assert not c.err, c.msg
     assert (home / "Desktop" / "untitled.sheet.json").exists() and '"~/Desktop/"' in c.msg, c.msg
     assert str(home / "Desktop" / "untitled.sheet.json") in c.last_build["sheet"]["command"]
-    ck(":out sets\n:w\n"); assert (here / "sets" / "untitled.sheet.json").exists(), "relative: the current folder"
+    ck(":out sets\n:w!\n"); assert (here / "sets" / "untitled.sheet.json").exists(), "relative: the current folder"
     d = T.App(); d.load("~/Desktop/untitled.sheet.json"); assert d.s["out"] == "~/Desktop", d.s["out"]
     (home / "Desktop" / "old_v1.json").write_text("{}"); (home / "Desktop" / "old_v2.json").write_text("{}")
     (home / "Desktop" / "Unit 1").mkdir()
@@ -1009,4 +1011,13 @@ stuck = writer.unmatched(ws)
 assert all(n > 1 for k, n in shapes.items() if k != "no solution"), shapes
 assert all(banks.get("equations_1_2").answer_typst(sh.problem(sh.items(ws)[i - 1])) == "no solution" for i in stuck)
 
+# ---- still untitled: :w asks for the name first
+r = T.App(seed=3); rk = driver(r)
+rk(f":mix 1:2\n:out {OUT}\n:wq\n\x15bad name\n"); assert r.err and "nothing written" in r.msg and not r.quit, r.msg
+rk(":x\n\x15renamed\n"); assert r.s["name"] == "renamed" and r.quit and not r.dirty(), r.msg
+assert (Path(OUT) / "renamed.sheet.json").exists() and not r.err
+r = T.App(seed=3); rk = driver(r)
+rk(f":mix 1:2\n:out {OUT}\n:name kept\n:w\n"); assert r.mode == "normal" and not r.dirty(), "a name set: no asking"
+
 print("all key tests passed")
+

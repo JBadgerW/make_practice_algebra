@@ -549,7 +549,8 @@ through earlier commands.
 
 | Command | Action |
 |---|---|
-| `:w` | Write the sheet and every version's worksheet (key appended) and slides |
+| `:w` | Write the sheet and every version's worksheet (key appended) and slides. If *name* is still `untitled`, it asks first: the name is filled in, so Enter writes under it and typing changes it; Esc writes nothing. |
+| `:w!` | Write without asking about the name |
 | `:wq` `:x` `ZZ` | Write, then quit |
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |
 | `:q!` `ZQ` | Quit and discard |
