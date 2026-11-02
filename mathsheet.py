@@ -142,8 +142,17 @@ class App:
         return len(sh.items(self.sheet))
 
     def rows(self, everything=False):
-        """The left pane's rows, as shown (or with every bank and type open)."""
-        out, lib = [("course", None)], library.current()
+        """The left pane's rows, as shown (or with every bank and type open).
+        Built once for each library, course, and set of open rows; don't change the list."""
+        lib = library.current()
+        key = (lib, self.course, everything) + ((None, None) if everything else
+                                                    (frozenset(self.open), frozenset(self.open_types)))
+        if getattr(self, "_rows", (None,))[0] != key:
+            self._rows = (key, self._build_rows(lib, everything))
+        return self._rows[1]
+
+    def _build_rows(self, lib, everything):
+        out = [("course", None)]
         for name in [n for _, ns in lib.view(self.course, sequences=True) for n in ns]:
             if name in lib.sequences:
                 out.append(("seq", name))
@@ -208,7 +217,9 @@ class App:
         return lambda it: any(f(it) for f in steps)
 
     def rid(self, row=None):
-        """The id of a row (default: the cursor's)."""
+        """The id of a row (default: the cursor's); a row id passes through."""
+        if isinstance(row, tuple):
+            return row
         rows = self.rows()
         return rows[min(self.row if row is None else row, len(rows) - 1)]
 
@@ -2162,28 +2173,28 @@ class Screen:
             kind, key = rows[i]
             attr_t = 0
             if kind == "course":
-                text, val, attr_v, attr_t = "COURSE", app.value(i), st["count"], curses.A_BOLD
+                text, val, attr_v, attr_t = "COURSE", app.value(rows[i]), st["count"], curses.A_BOLD
             elif kind == "seq":
                 text = f"{'▾' if key in app.open else '▸'} ≡ {library.current().sequence(key).TITLE}"
-                n = app.value(i)
+                n = app.value(rows[i])
                 val, attr_v, attr_t = (str(n) if n else "·"), (st["count"] if n else st["dim"]), curses.A_BOLD
             elif kind == "step":
                 stp = app.step(key)
                 arrow = ("▾" if key in app.open_types else "▸") if app.examples(stp) else " "
                 text = f"  {arrow}{stp['n']:>3}  {stp['title']}" + (" (missing)" if stp["missing"] else "")
-                n = app.value(i)
+                n = app.value(rows[i])
                 val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
                 attr_t = st["err"] if stp["missing"] else 0
             elif kind == "example":
                 b = banks.get(key[2])
-                on = app.value(i)
+                on = app.value(rows[i])
                 text = f"       {key[3]:>3}. {b.text(b.problem(key[3]))}"
                 val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
             elif kind == "bank":
                 b = banks.get(key)
                 size = f" ({len(b.PROBLEMS)})" if getattr(b, "FIXED", False) else ""
                 text = f"{'▾' if key in app.open else '▸'} {b.TITLE}{size}"
-                n = app.value(i)
+                n = app.value(rows[i])
                 val, attr_v, attr_t = (str(n) if n else "·"), (st["count"] if n else st["dim"]), curses.A_BOLD
             elif kind == "count":
                 b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
@@ -2194,16 +2205,16 @@ class Screen:
                     text = f"   {banks.label(b, key[1]):>3}    real formulas"
                 else:
                     text = f"   {banks.label(b, key[1]):>3}  {e['title']}"
-                n = app.value(i)
+                n = app.value(rows[i])
                 val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
                 attr_t = st["special"] if b.special(b.type_of(key[1])) else 0
             elif kind == "problem":
                 b = banks.get(key[0])
-                on = app.value(i)
+                on = app.value(rows[i])
                 text = f"       {key[1]:>3}. {b.text(b.problem(key[1]))}"
                 val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
             else:
-                text, val = f" {key}", str(app.value(i)) or "(none)"
+                text, val = f" {key}", str(app.value(rows[i])) or "(none)"
                 attr_v = st["count"]
             val = val if len(val) <= room - 14 else val[:room - 15] + "…"
             space = room - len(val) - 1                # always a gap before the value

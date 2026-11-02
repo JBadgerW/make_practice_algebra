@@ -171,6 +171,7 @@ class Library:
         self.warnings = []
         self.generators, self.fixed, self.sequences, self.courses, self.missing = {}, {}, {}, [], {}
         self.aliases = {}
+        self._memo = {}                 # derived lookups (view, types_in, unit_of): a library never changes once read
         self._find_generators()
         self._read_courses(BUILTIN / COURSES_FILE, "library/")
         if self._own_folder():
@@ -348,8 +349,19 @@ class Library:
         """A course by title (ignoring case), or None."""
         return next((c for c in self.courses if c["title"].lower() == (title or "").lower()), None)
 
+    def _cached(self, key, make):
+        """make(), computed once per library (a :rescan reads a new one)."""
+        try:
+            return self._memo[key]
+        except KeyError:
+            v = self._memo[key] = make()
+            return v
+
     def types_in(self, name, course=None):
         """A bank's types in a course (every type, for no course)."""
+        return list(self._cached(("types_in", name, course and course.lower()), lambda: self._types_in(name, course)))
+
+    def _types_in(self, name, course):
         b = self.get(name)
         if course is None:
             return types(b)
@@ -359,6 +371,9 @@ class Library:
     def unit_of(self, name, course):
         """The unit a bank is filed under in a course: the bank's own, else its
         first type's there; None for none."""
+        return self._cached(("unit_of", name, course.lower()), lambda: self._unit_of(name, course))
+
+    def _unit_of(self, name, course):
         b, course = self.get(name), course.lower()
         for t in [None] + self.types_in(name, course):
             for c, u in bank_tags(b, t).items():
@@ -371,6 +386,10 @@ class Library:
         order, those without a unit last; everything under None for no course.
         In a unit, the banks go by title (Lesson 1-9 before Lesson 1-10); with
         sequences, each unit's sequences (by title) come before its banks."""
+        key = ("view", course and course.lower(), sequences)
+        return [(u, list(ns)) for u, ns in self._cached(key, lambda: self._view(course, sequences))]
+
+    def _view(self, course, sequences):
         seqs = sorted(self.sequences) if sequences else []
         if course is None:
             return [(None, seqs + self.names())]
