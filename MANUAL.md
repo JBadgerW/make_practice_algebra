@@ -169,6 +169,22 @@ recomputed. `A` takes `|x - 125| <= 20` (or `abs(...)`); Type 4 takes
 `model; solved; answer`, like `|25t - 80| <= 10; 2.8 <= t <= 3.6; 2.8 to 3.6 hours`,
 and its answer must match the key's words exactly.
 
+### Lesson 2-1: Slope-Intercept Form
+
+`--mix slope_intercept_2_1/1:6` draws six Step 1 problems (solve for y) from
+the `slope_intercept_2_1` bank, one from each of its six starting forms; more
+problems cycle through the forms again. The README lists the forms and the
+rules every line keeps. In the terminal app, `i` edits the prompt (any
+equation in x and y) and the key is solved again; `A` takes `y = 2/3 x - 4`.
+A key not in that form, or a line that breaks the lesson's rules (an
+intercept past ±9, no other lattice point on the graph), is marked.
+
+`slope_intercept_2_1/2:4` draws four Step 2 problems (graph y = mx + b on a
+blank −10 to 10 graph); `slope_intercept_2_1/3:4`, four Step 3 problems (a
+Step 1 form to solve for y, then graph). The key draws each line in red
+through its lattice points; Step 2's key is the graph alone. Editing works
+as in Step 1, and a Step 2 prompt must stay in y = mx + b form.
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists
@@ -821,6 +837,7 @@ python3 tests/test_library.py                # the library: banks, courses, tags
 python3 tests/test_typmath.py                # sympy -> Typst, and the answer-form checks
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling, and its 100 source problems
+python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 ```

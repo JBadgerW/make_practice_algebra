@@ -19,6 +19,8 @@
     typst(p, gap), answer_typst(p)  Typst markup for the sheet and the key ("" answer: none printed)
     key_typst(p, gap), PREAMBLE   optional: the prompt as the key shows it; Typst definitions
                                   the markup needs, printed once per file
+    slide_typst(p, key=False)     optional: a problem's whole slide (its answer too, when key);
+                                  None to show it on the slide as usual
     text(p), answer_text(p)       plain text for the terminal
     edit_text(p), from_edit(text, p), answer_edit_text(p), with_answer(p, text)
                                   hand editing; the last two return (problem, status)

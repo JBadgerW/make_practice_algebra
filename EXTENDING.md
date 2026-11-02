@@ -216,6 +216,7 @@ python3 tests/test_library.py                # the library: banks, courses.json,
 python3 tests/test_typmath.py                # sympy -> Typst: every form reads back, and the form checks
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows; tags and titles
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling: draws, checks, edits, and the 100 source problems
+python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
