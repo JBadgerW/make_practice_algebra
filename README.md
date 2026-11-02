@@ -40,8 +40,8 @@ python3 make_practice.py --mix modeling_1_2/3a:1 modeling_1_2/3b:1 modeling_1_2/
 # Lesson 1-2: Solving Linear Equations: two of each type
 python3 make_practice.py --mix equations_1_2/all:2 --title "Lesson 1-2: Solving Linear Equations"
 
-# Lesson 2-1: Slope-Intercept Form: six to solve for y (one of each starting form), four to graph, four to solve and graph
-python3 make_practice.py --mix slope_intercept_2_1/1:6 slope_intercept_2_1/2:4 slope_intercept_2_1/3:4 --title "Lesson 2-1: Slope-Intercept Form"
+# Lesson 2-1: Slope-Intercept Form: six to solve for y (one of each starting form), four to graph, four to solve and graph, four to write from a graph
+python3 make_practice.py --mix slope_intercept_2_1/1:6 slope_intercept_2_1/2:4 slope_intercept_2_1/3:4 slope_intercept_2_1/4:4 --title "Lesson 2-1: Slope-Intercept Form"
 
 # Lesson 1-6: Compound Inequalities (modeling): every story at every type, two parallel versions
 python3 make_practice.py --mix modeling/all:1 --versions 2 --title "Lesson 1-6: Compound Inequalities"
@@ -286,6 +286,7 @@ lattice point besides (0, b).
 | 1 | Solve for y | `3y = 2x − 12`, `3y − 2x = −12`, `2x = 3y + 12`, `x = 3/2 y + 6`, `3/2 y = x − 6`, `−6 = 3/2 y − x` |
 | 2 | Graph | `y = 2/3 x − 4`, with a blank graph |
 | 3 | Solve for y, Then Graph | any Step 1 form, with a blank graph |
+| 4 | Write the Equation | a line drawn on the graph, no equation |
 
 Step 1 starts from six forms (cy = ax + cb, cy − ax = cb, ax = cy − cb,
 x = (c/a)y − cb/a, (c/a)y = x + cb/a, cb/a = (c/a)y − x), spread evenly over
@@ -299,7 +300,10 @@ equation. Step 3 starts from the six Step 1 forms, spread evenly over its own
 problems, apart from Step 1's. On
 the key, the line is drawn in red through every lattice point it passes on
 the graph, from the key's own y = mx + b; Step 3's key also writes that
-equation. Each step has its own instructions line.
+equation. Step 4 draws the line in blue, with no equation; the sheet and the
+key show the same graph, and the key writes y = mx + b. On slides the graph
+is larger and sits beside the equation, and the answer slide never moves it.
+Each step has its own instructions line.
 
 ### Algebra 1: Units 1-2 Cumulative Test
 
@@ -391,7 +395,7 @@ ever runs code.
 | `sheets/banks/alg1_units_1_2_cumulative.py` | The Algebra 1 Units 1-2 Cumulative Test bank: thirty question types, each drawn new with its own stories and mistake-based choices, and a check per type |
 | `sheets/banks/single_step.py` | The Prealgebra single-step equations bank: one basic fact on 1 to 15 per equation, by kind of fact, and a sympy check |
 | `sheets/banks/modeling_1_2.py` | The Lesson 1-2: Modeling bank: five levels, an entry per category, a story per problem shape of the teacher's bank, and a check that reads the prompt back with its story |
-| `sheets/banks/slope_intercept_2_1.py` | The Lesson 2-1: Slope-Intercept Form bank: a step per entry: 1 solve for y from six forms, 2 graph, 3 solve and graph; a sympy check, and the key's graph |
+| `sheets/banks/slope_intercept_2_1.py` | The Lesson 2-1: Slope-Intercept Form bank: a step per entry: 1 solve for y from six forms, 2 graph, 3 solve and graph, 4 write the equation of a drawn line; a sympy check, and the key's graph |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |

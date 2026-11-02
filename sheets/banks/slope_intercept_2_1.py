@@ -27,15 +27,19 @@ Step 2: Graph. The line is given as y = m x + b, with a blank graph, -10 to
 Step 3: Solve for y, then graph. A Step 1 form (spread over the six the
 same way) with a blank graph; the key gives y = m x + b and draws the line.
 
+Step 4: Write the equation. The line is drawn on the graph, with no
+equation; the key gives y = m x + b. The prompt holds the line's own
+y = m x + b, which draws it; the graph is the same on the sheet and the key.
+
 A problem: dict(type, form, prompt, answer, source), in Typst math.
-    form    "A" to "F", as above (None in Step 2)
-    prompt  "x = 3/2 y + 6"; in Step 2, "y = 2/3 x - 4"
+    form    "A" to "F", as above (None in Steps 2 and 4)
+    prompt  "x = 3/2 y + 6"; in Steps 2 and 4, "y = 2/3 x - 4"
     answer  "y = 2/3 x - 4", "y = -1/2 x", "y = 5/3 x + 1"
 check() solves the prompt for y with sympy and compares it with the answer
 read back from its text; the answer must be written y = m x + b (m a
 fraction in lowest terms), and the line must keep the lesson's rules:
 an integer intercept from -9 to 9 and another lattice point on the graph.
-In Step 2 the prompt itself must be written y = m x + b. The key's graph is
+In Steps 2 and 4 the prompt itself must be written y = m x + b. The key's graph is
 drawn from the answer as check() reads it, so it shows the line checked.
 """
 import math
@@ -69,6 +73,12 @@ TYPES = [
          move="Solve for y as in Step 1: y = 2/3 x - 4. Then graph it as in Step 2: plot (0, -4), "
               "rise 2 and run 3, and draw the line.",
          space="0.25in"),
+    dict(key="4", title="Write the Equation", instructions="Write the equation of each line in the form y = mx + b.",
+         look="A line drawn on a graph, and no equation.",
+         move="Find where the line crosses the y-axis: that's b. From there, count the rise and the run to "
+              "another point where the line crosses grid lines exactly: the slope m is rise over run "
+              "(negative if the line goes down to the right). Write y = mx + b.",
+         space="0.25in"),
 ]
 
 class Steps(gen.Types):
@@ -82,6 +92,7 @@ label, entry_key, type_of, heading, hint, special, type_instructions = T.functio
 WINDOW = 10                    # the graph: -10 to 10 on both axes
 INTERCEPT = 9                  # the y-intercept: -9 to 9
 FORMS = "ABCDEF"
+GIVEN = ("2", "4")             # the steps whose prompt is already y = m x + b
 
 def initial_seen():
     return set()
@@ -139,7 +150,7 @@ def slope_intercept(m, b):
 def draw(entry, r, tpl, want=None):
     a, c, b = line(r)
     answer = slope_intercept(F(a, c), F(b))
-    if entry == "2":
+    if entry in GIVEN:
         return dict(form=None, prompt=answer, answer=answer)
     form = want or r.choice(FORMS)
     prompt = FORM[form](a, c, b)
@@ -204,8 +215,8 @@ def check(p):
             return "failed"                          # the text says what it was read as
         if (m, b) != solved(p["prompt"]):
             return "failed"
-        if p.get("type") == "2" and written_form(p["prompt"]) != (m, b):
-            return "failed"                          # Step 2 starts in slope-intercept form
+        if p.get("type") in GIVEN and written_form(p["prompt"]) != (m, b):
+            return "failed"                          # Steps 2 and 4 start in slope-intercept form
         return "checked" if fits(m, b) else "failed"
     except Exception:
         return "unchecked"
@@ -219,16 +230,24 @@ def answer_of(prompt):
 # ------------------------------------------------------------------
 # Showing and editing
 # ------------------------------------------------------------------
-GRAPHED = ("2", "3")                    # the steps with a graph
+GRAPHED = ("2", "3", "4")               # the steps with a graph
+DRAWN = ("4",)                          # the steps whose graph shows the line, with no equation
 SLIDE_WIDTH = 8.0                       # the graph on a slide, in cm (5.5 on the sheet)
 SLIDE_NUMBERS = 14                      # its axis numbers, in pt (6 on the sheet), every 2
 
 def graph(p, key=False, width=5.5, size=6, every=None):
-    """The -10 to 10 graph: blank, or on the key, the answer's line through its lattice points."""
+    """The -10 to 10 graph: blank, or on the key, the answer's line through its lattice points;
+    in Step 4, the prompt's line, the same on the sheet and the key."""
     g = Graph(x=(-WINDOW, WINDOW), y=(-WINDOW, WINDOW), width=width, size=size, label=every)
     edge = WINDOW + 1.5            # a fixed frame, so a line's arrow past the grid never moves the graph
     g.cmds.append(f"rect({g.c(-edge, -edge)}, {g.c(edge, edge)}, stroke: none)")
-    if key:
+    if p["type"] in DRAWN:
+        try:
+            m, b = solved(p["prompt"])
+            g.line(float(m), float(b), color="blue")
+        except Exception:
+            pass                   # an edited prompt that isn't a line: a blank graph, and check() marks it
+    elif key:
         m, b = written_form(p["answer"])
         g.line(float(m), float(b), color="red")
         for x, y in lattice_points(m, b):
@@ -239,6 +258,8 @@ def typst(p, gap="0.3em", key=False):
     eq = display(dfrac(p["prompt"]))
     if p["type"] not in GRAPHED:
         return eq
+    if p["type"] in DRAWN:
+        return f"#align(center)[{graph(p)}]"
     return f"{eq} #v(0.6em) #align(center)[{graph(p, key)}]"
 
 def key_typst(p, gap="0.3em"):
@@ -253,10 +274,11 @@ def slide_typst(p, key=False):
     if p["type"] not in GRAPHED:
         return None
     drawn = key and written_form(p["answer"]) is not None
-    left = display(dfrac(p["prompt"]))
+    left = "" if p["type"] in DRAWN else display(dfrac(p["prompt"]))
     if answer_typst(p):
         ans = f"#text(fill: red)[{answer_typst(p)}]"
-        left += f" #v(0.8em) {ans if key else f'#hide[{ans}]'}"
+        left += f" #v(0.8em) " if left else ""
+        left += ans if key else f"#hide[{ans}]"
     return (f"#grid(columns: 2, column-gutter: 1.5em, align: horizon, [{left}], "
             f"[{graph(p, drawn, width=SLIDE_WIDTH, size=SLIDE_NUMBERS, every=2)}])")
 
@@ -265,11 +287,13 @@ def answer_typst(p):
     return "" if p["type"] == "2" else display(dfrac(p["answer"]))
 
 def text(p):
+    if p["type"] in DRAWN:
+        return f"[graph of {plain(p['prompt'])}]"
     return plain(p["prompt"]) + ("   [graph]" if p["type"] in GRAPHED else "")
 
 def answer_text(p):
     got = written_form(p["answer"])
-    if p["type"] not in GRAPHED or got is None:
+    if p["type"] not in GRAPHED or p["type"] in DRAWN or got is None:
         return plain(p["answer"])
     m, b = got
     pts = ", ".join(f"({x}, {y})" for x, y in lattice_points(m, b))
