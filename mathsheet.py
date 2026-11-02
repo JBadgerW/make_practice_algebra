@@ -96,6 +96,8 @@ class App:
         if not self.sheet.get("class_name"):                                # no --class: the course's
             self.sheet["class_name"] = self.course or mp.DEFAULTS["class_name"]
         self.undo, self.redo = [], []
+        self.rev = 0                    # bumped whenever self.s may have changed: what the caches key on
+        self._memo = (None, {})         # (rev, library) -> values derived from the sheet (see memo)
         self.row, self.focus, self.version = 2, "left", 0
         self.open = set()               # banks and sequences open in the tree: all closed at start
         self.open_types = set()         # (bank, type) showing its problems; (sequence, step) its examples
@@ -139,7 +141,7 @@ class App:
 
     # -- values --------------------------------------------------------
     def total(self):
-        return len(sh.items(self.sheet))
+        return self.memo("total", lambda: len(sh.items(self.sheet)))
 
     def rows(self, everything=False):
         """The left pane's rows, as shown (or with every bank and type open).
@@ -223,7 +225,22 @@ class App:
         rows = self.rows()
         return rows[min(self.row if row is None else row, len(rows) - 1)]
 
+    def memo(self, key, make):
+        """make(), computed once until the sheet or the library changes."""
+        stamp = (self.rev, library.current())
+        if self._memo[0] != stamp:
+            self._memo = (stamp, {})
+        d = self._memo[1]
+        if key not in d:
+            d[key] = make()
+        return d[key]
+
     def value(self, row):
+        """What a row shows (a count, a setting); row is an index or a row id."""
+        rid = self.rid(row)
+        return self.memo(("value", rid), lambda: self._value(rid))
+
+    def _value(self, row):
         if self.rid(row)[0] == "step":
             return sum(map(self.step_items(self.step(self.rid(row)[1])), sh.items(self.sheet)))
         kind, key = self.act(row)
@@ -287,7 +304,7 @@ class App:
         return None
 
     def dirty(self):
-        return self.written != self.snapshot()
+        return self.memo("dirty", lambda: self.written != self.s)
 
     def snapshot(self):
         return copy.deepcopy(self.s)
@@ -296,6 +313,7 @@ class App:
         """Run fn, which edits self.s; undoable. A ValueError or RuntimeError
         undoes it and becomes the message. Returns True if it worked."""
         before, layout = self.snapshot(), self.layout()
+        self.rev += 1
         try:
             fn()
         except (ValueError, RuntimeError) as e:
@@ -318,6 +336,9 @@ class App:
         self.msg, self.err = msg, err
 
     def statuses(self):
+        return self.memo("statuses", self._statuses)
+
+    def _statuses(self):
         its = sh.items(self.sheet)
         return (sum(it["status"] == "unchecked" for it in its), sum(it["status"] == "failed" for it in its))
 
@@ -387,6 +408,9 @@ class App:
 
     def missing(self):
         """The banks this sheet uses that the library doesn't have."""
+        return list(self.memo("missing", self._missing))
+
+    def _missing(self):
         return sorted({it["bank"] for it in sh.items(self.sheet) if not banks.has(it["bank"])})
 
     def rescan(self):
@@ -545,6 +569,7 @@ class App:
                 return self.say("Already at oldest change")
             self.redo.append(self.snapshot())
             self.s = self.undo.pop()
+            self.rev += 1
             self.end_visual()
         self.clamp()
         self.say(f"{n} change{'s' * (n > 1)} undone")
@@ -555,6 +580,7 @@ class App:
                 return self.say("Already at newest change")
             self.undo.append(self.snapshot())
             self.s = self.redo.pop()
+            self.rev += 1
             self.end_visual()
         self.clamp()
         self.say(f"{n} change{'s' * (n > 1)} redone")
@@ -952,14 +978,20 @@ class App:
     def render(self, width):
         """The sheet as the page shows it, for a pane `width` columns wide.
         Returns (lines, span): each line is [(x, text, style, target)], and
-        span is the (first, last) line of the cursor's target."""
+        span is the (first, last) line of the cursor's target. The lines are
+        built once for each sheet and view; moving the cursor only looks up its span."""
+        key = ("render", self.version, max(30, width), self.answers, self.compact, self.folded)
+        lines, spans = self.memo(key, lambda: self._render(width))
+        return lines, spans.get(self.cur, (None, None))
+
+    def _render(self, width):
+        """(lines, {target: (first, last) line}) for render."""
         sheet, v, width = self.sheet, self.version, max(30, width)
-        lines, span = [], [None, None]
+        lines, spans = [], {}
         def emit(*segs):
             segs = [sg for sg in segs if sg[1]]
-            if any(sg[3] == self.cur for sg in segs):
-                span[0] = len(lines) if span[0] is None else span[0]
-                span[1] = len(lines)
+            for t in {sg[3] for sg in segs if sg[3] is not None}:
+                spans[t] = (spans.get(t, (len(lines),))[0], len(lines))
             lines.append(segs)
         un, bad = self.statuses()
         info = [f"Version {v + 1}/{sheet['versions']}", f"answers {'on' if self.answers else 'off'} (za)",
@@ -975,7 +1007,7 @@ class App:
             emit()
             emit((0, "No problems yet. On the types pane, l adds one;", "dim", None))
             emit((0, ":mix all:2 drafts two of every type.", "dim", None))
-            return lines, tuple(span)
+            return lines, spans
 
         used, page, n = HEADER_IN + LINE_IN * len(textwrap.wrap(sheet["instructions"], 90)), 1, 0
         def page_break():
@@ -1048,7 +1080,7 @@ class App:
             emit()
             emit((0, f"about {page} page{'s' * (page > 1)}" + (f" · {bad} failing" if bad else "")
                   + (f" · {un} unchecked" if un else ""), "dim", None))
-        return lines, tuple(span)
+        return lines, spans
 
     def where(self):
         """A short description of what the sheet cursor is on, for the status line."""
@@ -1077,6 +1109,7 @@ class App:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
         self.written, self.last_build = self.snapshot(), r
+        self.rev += 1                               # dirty() compares against the new written state
         try:
             library.save_config(out=home_path(r["out"]))   # the next session starts here
         except OSError:
@@ -1185,6 +1218,7 @@ class App:
         older = not str(p).endswith(".sheet.json")
         if not older:
             self.written = self.snapshot()
+            self.rev += 1
         gone = self.missing()
         self.say(f'"{path}" opened: {self.total()} problems' +
                  (" (an older set, converted: :w saves it as a sheet)" if older else "") +
