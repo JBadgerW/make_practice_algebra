@@ -43,8 +43,14 @@ their classroom. Ease of building comes second.
 4. `make_practice.py`, read top to bottom:
    - `draw_versions`, `build`: the API;
    - `worksheet`, `slides`: Typst output.
-5. `mathsheet.py`: `App` holds all the state and key handling, and has no
-   curses in it. `Screen` draws. `run` is the loop.
+5. `mathsheet.py` starts the app, which lives in `tui/` (its `__init__.py`
+   maps the files). `App` (`tui/app.py`) holds all the state, and has no
+   curses in it; its methods come from one mixin per part (`tree.py` the banks
+   pane, `sheet.py` the sheet pane, `keys.py`, `commands.py`, ...). What the
+   panes show is cached by `App.rev`, which `change()`, undo and redo bump:
+   change the sheet only inside `change()`. `Screen` (`tui/screen.py`) draws,
+   and `run` is the loop; a long key runs in a worker thread, and
+   `sheet.progress` lets Esc cancel it between draws.
 6. `tests/`: `test_mathsheet.py` and `screen_test.py`.
 
 Then run everything in section 7 to record a baseline before you change

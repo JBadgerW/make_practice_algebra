@@ -1,0 +1,137 @@
+"""Writing, previewing, opening, and loading sheets."""
+import copy, re, shlex, subprocess
+from pathlib import Path
+import make_practice as mp
+from sheets import sheet as sh, library, writer
+from .common import dir_label, home_path, SHEET
+
+class Files:
+    # -- files ---------------------------------------------------------
+    def write(self):
+        if not self.total():
+            return self.say("E: nothing to write: the sheet is empty", True) or False
+        out, name = self.s["out"], self.s["name"]
+        sheet = copy.deepcopy(self.sheet)
+        path = Path(out).expanduser().resolve() / f"{name}.sheet.json"
+        sheet["command"] = f"python3 make_practice.py --sheet {shlex.quote(str(path))}"
+        try:
+            r = mp.build(sheet, out, name)
+        except (RuntimeError, OSError) as e:
+            self.say(f"E: {e}".splitlines()[0], True)
+            return False
+        self.written, self.last_build = self.snapshot(), r
+        self.rev += 1                               # dirty() compares against the new written state
+        try:
+            library.save_config(out=home_path(r["out"]))   # the next session starts here
+        except OSError:
+            pass
+        where = dir_label(r["out"])
+        un, bad = self.statuses()
+        warn = (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "") + \
+               (f"  ·  {un} unchecked" if un else "") + self.graph_warning()
+        self.say(f'"{where}/" {len(r["files"])} files written '
+                 f'({"PDFs compiled" if r["compiled"] else "typst not found: .typ only"}){warn}', bool(bad))
+        return True
+
+    def write_cmd(self, then_quit=False, force=False):
+        """:w, :wq: write, then quit if asked. While the name is still the default,
+        ask first: the name to write under, filled in, so Enter confirms it and
+        typing changes it (Esc writes nothing). With ! there's no asking."""
+        if self.total() and not force and self.s["name"] == mp.DEFAULTS["name"]:
+            return self.start_edit(("write", then_quit), self.s["name"])
+        if self.write() and then_quit:
+            self.quit = True
+
+    def graph_warning(self):
+        """For a warm-up: the problems whose answer is a graph, which can't be lettered
+        on the back, and those whose answer gives itself away with no decoy to hide it."""
+        if not sh.is_warmup(self.sheet):
+            return ""
+        k, u = writer.unlettered(self.sheet), writer.unmatched(self.sheet)
+        return (f"  ·  {k} graph answer{'s' * (k > 1)} not on the back" if k else "") + \
+               (f"  ·  {', '.join(f'#{n}' for n in u)} can be matched without solving" if u else "")
+
+    def redraw_decoys(self):
+        """:decoys: new decoys on a warm-up's back (the problems stay)."""
+        if not sh.is_warmup(self.sheet):
+            return self.say("E: decoys are for a warm-up (:form warmup)", True)
+        n = sum(d for _, _, d in writer.back(self.sheet))
+        if not n:
+            return self.say("no decoys: no answer gives itself away" + self.graph_warning())
+        self.change(lambda: self.sheet.__setitem__("decoy_seed", self.sheet.get("decoy_seed", 0) + 1))
+        self.say(f"{n} decoy{'s' * (n > 1)} redrawn (:pre key shows them)" + self.graph_warning())
+
+    def open_file(self, args):
+        if not self.last_build:
+            return self.say("E: nothing written yet (:w first)", True)
+        what = "sheet"
+        for a in args:
+            if a in ("sheet", "slides"):
+                what = a
+            else:
+                return self.say("usage: :open [sheet|slides]  (every version is in one file, each key after its sheet)", True)
+        b = self.last_build
+        suffix = {"sheet": "", "slides": "_slides"}[what]
+        f = b["out"] / f"{self.s['name']}{suffix}.{'pdf' if b['compiled'] else 'typ'}"
+        if self.open_path(f):
+            self.say(f"opening {f.name}")
+
+    def open_path(self, f):
+        """Open f in the desktop's viewer; False (and an error shown) if that can't start."""
+        try:
+            subprocess.Popen(["xdg-open", str(f)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             start_new_session=True)
+            return True
+        except OSError as e:
+            self.say(f"E: {e}", True)
+            return False
+
+    def preview(self, args):
+        """:pre [sheet|key|slides] [N]: compile the sheet as it stands (version N,
+        else the one showing) to a temporary PDF and open it. Nothing is written
+        to the out folder and the sheet isn't marked saved."""
+        what, v = "sheet", self.version + 1
+        for a in args:
+            if a.isdigit():
+                v = int(a)
+            elif a in ("sheet", "key", "slides"):
+                what = a
+            else:
+                return self.say("usage: :pre [sheet|key|slides] [version]", True)
+        if not 1 <= v <= self.sheet["versions"]:
+            return self.say(f"E: there are {self.sheet['versions']} versions", True)
+        try:
+            pdf = mp.preview(self.sheet, v - 1, what, self.preview_dir)
+        except (RuntimeError, OSError) as e:
+            return self.say(f"E: {e}".splitlines()[0], True)
+        self.preview_dir = pdf.parent           # the same file every time, so an open viewer reloads it
+        if self.open_path(pdf):
+            un, bad = self.statuses()
+            self.say(f"preview: version {v} {('warm-up' if sh.is_warmup(self.sheet) else 'worksheet') if what == 'sheet' else what} (not saved)"
+                     + (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "")
+                     + (f"  ·  {un} unchecked" if un else "") + self.graph_warning(), bool(bad))
+
+    def load(self, path):
+        """Open a .sheet.json (or convert an older practice .json) to edit."""
+        p = Path(path).expanduser()
+        try:
+            sheet = mp.read_sheet(p)
+        except (OSError, ValueError, KeyError, TypeError, SystemExit) as e:
+            return self.say(f"E: can't open {path}: {e}", True)
+        name = re.sub(r"(\.sheet\.json|_v\d+\.json|\.json)$", "", p.name)
+        out = dir_label(p.resolve().parent)
+        sheet.setdefault("course", self.sheet.get("course"))
+        def go():
+            self.s.update(sheet=sheet, out=out, name=name)
+        self.change(go)
+        self.cur, self.version = SHEET, 0
+        self.clamp()
+        older = not str(p).endswith(".sheet.json")
+        if not older:
+            self.written = self.snapshot()
+            self.rev += 1
+        gone = self.missing()
+        self.say(f'"{path}" opened: {self.total()} problems' +
+                 (" (an older set, converted: :w saves it as a sheet)" if older else "") +
+                 (f"  ·  not in the library: {', '.join(gone)} (marked !; :library or :rescan)" if gone else ""),
+                 bool(gone))

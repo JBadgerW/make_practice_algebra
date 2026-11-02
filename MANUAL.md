@@ -837,6 +837,8 @@ Rules that keep templates honest:
 ```sh
 python3 make_practice.py --selftest 100     # every type of every bank and every formula
 python3 tests/test_mathsheet.py              # TUI key handling
+python3 tests/test_perf.py                   # the screen stays quick (frame time, 1000 made-up banks)
+python3 tests/bench_banks.py                 # ms a problem for each bank, slowest first
 python3 tests/test_library.py                # the library: banks, courses, tags
 python3 tests/test_typmath.py                # sympy -> Typst, and the answer-form checks
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows

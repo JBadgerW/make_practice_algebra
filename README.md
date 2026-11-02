@@ -409,7 +409,7 @@ ever runs code.
 | `sheets/graphs.py` | Coordinate-plane graphs drawn with cetz: grids, axes, lines, curves, points; every coordinate worked out in Python |
 | `KHAN.md`, `KHAN_PORT.md` | The Khan courses' reference, and the record of their port |
 | `make_practice.py` | Practice generator: drafts a sheet from `--mix`/`--groups`/`--seed`, writes it, and the command line |
-| `mathsheet.py` | mathsheet: the terminal worksheet editor (vim keys) |
+| `mathsheet.py`, `tui/` | mathsheet: the terminal worksheet editor (vim keys); `tui/__init__.py` maps its parts |
 | `tests/` | `test_mathsheet.py`, `test_library.py`, `test_typmath.py`, `test_khan.py` (every Khan type draws, checks, and shows), `test_modeling_1_2.py` (the Lesson 1-2 modeling bank, and its 100 source problems), and `test_graphs.py` (no terminal needed), and `screen_test.py` (draws the real screen; needs `pyte`) |
 | `library/` | The built-in library: fixed banks (written problems as JSON; `lesson_1-4.json` is the lesson's fifty), the built-in sequence `literal_by_type.json` (the lesson's order, built by `lesson_sequence()` in `sheets/banks/literal`), and the starter `courses.json`. Your own banks go in your library folder (`~/Documents/mathsheet-library` by default; see the MANUAL). |
 | `templates/` | Typst style headers shared by every worksheet and slide deck |

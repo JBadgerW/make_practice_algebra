@@ -12,7 +12,7 @@ os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never th
 (Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet").mkdir()
 (Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet" / "config.json").write_text(
     '{"library": "%s"}' % tempfile.mkdtemp(prefix="emptylib_"))
-import mathsheet as T
+import mathsheet as T, tui.screen
 from sheets import library
 
 BUDGET_MS = 15          # a frame, cursor moving, every bank open
@@ -27,7 +27,7 @@ class Scr:
     def move(self, *a): pass
     def refresh(self): pass
 
-T.cursor = lambda visible: None
+tui.screen.cursor = lambda visible: None
 def screen():
     s = T.Screen.__new__(T.Screen)
     s.scr = Scr()

@@ -9,6 +9,7 @@ EMPTY_LIB = tempfile.mkdtemp(prefix="emptylib_")
 (Path(os.environ["XDG_CONFIG_HOME"]) / "mathsheet" / "config.json").write_text(
     '{"library": "%s"}' % EMPTY_LIB)                                        # nor their library
 import mathsheet as T, make_practice as mp
+import tui.screen
 from sheets import sheet as sh, edit as E, writer
 PORTED = ("adv_", "ka1_", "ka2_", "kpa_")                  # the Advanced Math and Khan banks
 NADV = sum(len(list((Path(__file__).resolve().parent.parent / "sheets/banks").glob(f"**/{p}*.py"))) for p in PORTED)
@@ -1038,7 +1039,7 @@ class FakeScreen:
     def busy(self, text): self.shown.append(text)
 fast, ahead = FakeScreen([]), []
 T.handle(fast, k, "j", 10, ahead); assert not fast.shown and not ahead, "a quick key never says it's working"
-T.BUSY_AFTER = 0
+tui.screen.BUSY_AFTER = 0
 slow_scr, ahead = FakeScreen(["j", "\x1b"]), []
 kk(":mix 1:40"); n_undo = len(k.undo)
 T.handle(slow_scr, k, "\n", 10, ahead)
@@ -1047,7 +1048,7 @@ assert not ahead, "Esc drops the keys typed while it worked"
 slow_scr, ahead = FakeScreen(["j", "k"]), []
 kk(":mix 1:10"); T.handle(slow_scr, k, "\n", 10, ahead)
 assert k.total() == 10 and ahead == ["j", "k"], "keys typed while it works run after it"
-T.BUSY_AFTER, sh.progress = 0.15, None
+tui.screen.BUSY_AFTER, sh.progress = 0.15, None
 
 print("all key tests passed")
 
