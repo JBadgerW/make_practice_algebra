@@ -218,6 +218,8 @@ python3 tests/test_khan.py                   # every Khan type draws, checks, an
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling: draws, checks, edits, and the 100 source problems
 python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
+python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
+python3 tests/bench_banks.py NEW_BANK        # ms a problem; a new bank should be under 100
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @ "?" @   # real screen (needs pyte)
 TT=vt100 python3 tests/screen_test.py 80 24 wait1 @                # a terminal without color
 ```
@@ -403,6 +405,7 @@ banks pane shows); a bank file does this with a type `"id"` apart from its
 - [ ] Types approved by the teacher; coverage checked by code.
 - [ ] 3+ templates per type, each guarded against drifting into another type.
 - [ ] `check` passes for hundreds of draws per type and doesn't depend on the formatter.
+- [ ] `tests/bench_banks.py BANK` under 100 ms a problem (draw with integers; sympy for the check).
 - [ ] Samples per type read by you and approved by the teacher.
 - [ ] Worksheet, key, and slides compile; rendered pages inspected.
 - [ ] TUI: family selectable, preview correct, help and hints updated, tests added.
