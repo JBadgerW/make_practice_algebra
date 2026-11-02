@@ -94,9 +94,31 @@ assert B.slide_typst(dict(type="1", prompt="3 y = x + 3", answer="y = 1/3 x + 1"
 assert B.graph(p) != B.graph(p, width=B.SLIDE_WIDTH) and "#grid" not in B.typst(p)
 assert "text(size: 6pt)[" in B.graph(p) and "text(size: 14pt)[" in B.slide_typst(p), "larger numbers on slides only"
 
+# ---- Step 4: the line drawn, no equation; the key writes y = m x + b
+rng, seen = random.Random(8), set()
+for _ in range(40):
+    p = B.generate("4", rng, seen)
+    m, b = B.written_form(p["answer"])
+    assert p["prompt"] == p["answer"] and p["form"] is None and B.check(p) == "checked" and B.fits(m, b)
+    sheet, key = B.typst(p), B.key_typst(p)
+    assert sheet == key, "the same graph on the sheet and the key"
+    assert "line(" in sheet and "rgb" in sheet and "circle(" not in sheet and "$display" not in sheet, "the line, no points, no equation"
+    assert B.answer_typst(p).startswith("$display(y =") and B.answer_text(p) == B.text(p)[len("[graph of "):-1]
+    q, k = B.slide_typst(p), B.slide_typst(p, key=True)
+    assert f"#hide[#text(fill: red)[{B.answer_typst(p)}]]" in q and "#hide" not in k
+    assert q.replace(f"#hide[#text(fill: red)[{B.answer_typst(p)}]]", "") == k.replace(f"#text(fill: red)[{B.answer_typst(p)}]", ""), \
+        "the slides differ only in showing the answer"
+p = dict(type="4", form=None, prompt="y = 2/3 x - 4", answer="y = 2/3 x - 4")
+assert B.check(B.with_answer(p, "y = 2/3 x + 4")[0]) == "failed"
+assert B.check(dict(p, prompt="3 y = 2 x - 12")) == "failed", "Step 4's prompt is written y = m x + b"
+new, status = B.from_edit("y = -1/2 x + 3", p)
+assert status == "checked" and new["answer"] == "y = -1/2 x + 3" and new["prompt"] == "y = -1/2 x + 3"
+assert "rgb(" not in B.graph(dict(p, prompt="y = x^2")), "an edited prompt that isn't a line: a blank graph"
+
 # ---- each step's own instructions; the sheet's come from the step when there's one
 assert [B.type_instructions(k) for k in B.KEYS] == [
-    "Solve each equation for y. Write it in the form y = mx + b.", "Graph each line.", "Solve each equation for y, then graph it."]
+    "Solve each equation for y. Write it in the form y = mx + b.", "Graph each line.", "Solve each equation for y, then graph it.",
+    "Write the equation of each line in the form y = mx + b."]
 
 B.selftest(300, 1)
 print("all slope_intercept_2_1 tests passed")

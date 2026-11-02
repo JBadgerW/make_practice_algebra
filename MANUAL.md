@@ -185,6 +185,10 @@ Step 1 form to solve for y, then graph). The key draws each line in red
 through its lattice points; Step 2's key is the graph alone. Editing works
 as in Step 1, and a Step 2 prompt must stay in y = mx + b form.
 
+`slope_intercept_2_1/4:4` draws four Step 4 problems: the line is drawn on
+the graph and students write its equation; the key writes y = mx + b. `i`
+edits the drawn line (as `y = 2/3 x - 4`, the form it must stay in).
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists
