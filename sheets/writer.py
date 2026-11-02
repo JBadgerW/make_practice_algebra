@@ -238,6 +238,11 @@ def _deck(sheet, v, start, bookmark):
         for it in sec["items"]:
             n += 1
             b, p = banks.get(it["bank"]), problem(it, v)
+            own = getattr(b, "slide_typst", lambda p, key=False: None)
+            if own(p) is not None:                  # the bank lays out its own slide, answer and all
+                s += f"#pagebreak()\n#slide({n}, [{own(p)}])\n"
+                s += f"#pagebreak()\n#slide({n}, [{own(p, key=True)}])\n"
+                continue
             pr, ans = b.typst(p, gap="0.5em"), b.answer_typst(p)
             s += f"#pagebreak()\n#slide({n}, [{pr}])\n"
             s += f"#pagebreak()\n#slide({n}, [{_key_prompt(b, p, '0.5em')}], answer: {f'[{ans}]' if ans else 'none'})\n"

@@ -87,9 +87,10 @@ def runs(points, box):
 
 class Graph:
     def __init__(self, x=(-10, 10), y=(-10, 10), width=5.0, height=None, step=1, label=None,
-                 xlabel="x", ylabel="y", grid=True, numbers=True, origin=False):
+                 xlabel="x", ylabel="y", grid=True, numbers=True, origin=False, size=6):
         """width (and height) in cm; step: grid spacing, one number or (x, y); label: the numbers
-        every so many grid lines (default: every one if they fit, else every 2 or 5)."""
+        every so many grid lines (default: every one if they fit, else every 2 or 5);
+        size: the numbers' size in pt (the axis names a third larger)."""
         self.x0, self.x1 = x
         self.y0, self.y1 = y
         self.sx_step, self.sy_step = step if isinstance(step, tuple) else (step, step)
@@ -99,6 +100,7 @@ class Graph:
         self.ky = self.height / (self.y1 - self.y0)
         self.xlabel, self.ylabel, self.grid, self.numbers, self.origin = xlabel, ylabel, grid, numbers, origin
         self.label = label
+        self.size = size
         self.cmds = []
 
     # ---- coordinates
@@ -116,7 +118,7 @@ class Graph:
         if self.label:
             return self.label
         size = k * steps                            # cm between grid lines
-        return next(n for n in (1, 2, 5, 10, 20) if size * n >= 0.42)
+        return next(n for n in (1, 2, 5, 10, 20) if size * n >= 0.42 * self.size / 6)   # room for the numbers
 
     # ---- the window
     def _frame(self):
@@ -140,21 +142,21 @@ class Graph:
         out.append(f"line({self.c(ay, lo_y)}, {self.c(ay, self.y1 + over_y)}, {arrow(self.y0 < 0)}, stroke: 0.7pt)")
         if self.xlabel:
             out.append(f"content({self.c(self.x1 + over_x, ax)}, anchor: \"west\", padding: 3pt, "
-                       f"text(size: 8pt)[{self._math(self.xlabel)}])")
+                       f"text(size: {_num(self.size * 4 / 3)}pt)[{self._math(self.xlabel)}])")
         if self.ylabel:
             out.append(f"content({self.c(ay, self.y1 + over_y)}, anchor: \"south\", padding: 3pt, "
-                       f"text(size: 8pt)[{self._math(self.ylabel)}])")
+                       f"text(size: {_num(self.size * 4 / 3)}pt)[{self._math(self.ylabel)}])")
         if self.numbers:
             ex, ey = self._every(self.sx_step, self.kx), self._every(self.sy_step, self.ky)
             on = lambda v, every: abs(v / every - round(v / every)) < 1e-9       # numbers on multiples: 2, 4, ...
             for gx in xs:
                 if on(gx, ex * self.sx_step) and (gx != ay or self.origin) and gx not in (self.x0, self.x1):
                     out.append(f"content({self.c(gx, ax)}, anchor: \"north\", padding: 2pt, "
-                               f"text(size: 6pt)[{_minus(gx)}])")
+                               f"text(size: {self.size}pt)[{_minus(gx)}])")
             for gy in ys:
                 if on(gy, ey * self.sy_step) and gy != ax and gy not in (self.y0, self.y1):
                     out.append(f"content({self.c(ay, gy)}, anchor: \"east\", padding: 2pt, "
-                               f"text(size: 6pt)[{_minus(gy)}])")
+                               f"text(size: {self.size}pt)[{_minus(gy)}])")
         return out
 
     @staticmethod
