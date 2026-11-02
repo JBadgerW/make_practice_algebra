@@ -36,12 +36,20 @@ def new_sheet(title, class_name="Algebra 1", instructions="", versions=1):
 def new_section(title="", instructions="", auto=""):
     return dict(title=title, instructions=instructions, items=[], auto=auto)
 
+class Cancelled(Exception):
+    """Esc stopped a long draw. Not a RuntimeError, so the code that tries
+    another type when a bank runs dry doesn't swallow it."""
+
+progress = None     # the app sets it: called before each problem is drawn; it may raise Cancelled
+
 def items(sheet):
     return [it for sec in sheet["sections"] for it in sec["items"]]
 
 def _draw(bank, entry, seed, seen):
     """Draw from a bank, avoiding what's on the sheet (seen[family]) and what the
     bank itself excludes; the new problem joins seen[family]."""
+    if progress:
+        progress()
     b = banks.get(bank)
     on = seen.setdefault(b.FAMILY, set())
     random.seed(seed)                       # the numeric checks, so a seed always gives the same problem

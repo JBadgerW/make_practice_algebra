@@ -1019,5 +1019,35 @@ assert (Path(OUT) / "renamed.sheet.json").exists() and not r.err
 r = T.App(seed=3); rk = driver(r)
 rk(f":mix 1:2\n:out {OUT}\n:name kept\n:w\n"); assert r.mode == "normal" and not r.dirty(), "a name set: no asking"
 
+# ---- a long draw runs beside the screen: Esc cancels it, and nothing changes
+k = T.App(seed=6); kk = driver(k)
+kk(":mix 1:2\n"); n_undo, total = len(k.undo), k.total()
+sh.progress = k.progress
+k.cancel = True; kk(":mix 3:4\n")
+assert k.total() == total and len(k.undo) == n_undo and "cancelled" in k.msg and not k.err, k.msg
+k.cancel = False; kk(":mix 3:2\n"); assert k.total() == 2 and k.drawn >= 2, "not cancelled: it draws, counting"
+class FakeScr:
+    def __init__(self, keys): self.keys = list(keys)
+    def timeout(self, t): pass
+    def get_wch(self):
+        if self.keys:
+            return self.keys.pop(0)
+        raise T.curses.error
+class FakeScreen:
+    def __init__(self, keys): self.scr, self.shown = FakeScr(keys), []
+    def busy(self, text): self.shown.append(text)
+fast, ahead = FakeScreen([]), []
+T.handle(fast, k, "j", 10, ahead); assert not fast.shown and not ahead, "a quick key never says it's working"
+T.BUSY_AFTER = 0
+slow_scr, ahead = FakeScreen(["j", "\x1b"]), []
+kk(":mix 1:40"); n_undo = len(k.undo)
+T.handle(slow_scr, k, "\n", 10, ahead)
+assert slow_scr.shown and k.total() == 2 and len(k.undo) == n_undo and "cancelled" in k.msg, (k.total(), k.msg)
+assert not ahead, "Esc drops the keys typed while it worked"
+slow_scr, ahead = FakeScreen(["j", "k"]), []
+kk(":mix 1:10"); T.handle(slow_scr, k, "\n", 10, ahead)
+assert k.total() == 10 and ahead == ["j", "k"], "keys typed while it works run after it"
+T.BUSY_AFTER, sh.progress = 0.15, None
+
 print("all key tests passed")
 

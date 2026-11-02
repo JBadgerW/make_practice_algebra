@@ -17,7 +17,7 @@ as in vim); the banks stay beside it, and
 it shows.
 Press ? inside for the full key list.
 """
-import copy, curses, os, random, re, shlex, subprocess, sys, textwrap
+import copy, curses, os, random, re, shlex, subprocess, sys, textwrap, threading
 from pathlib import Path
 import make_practice as mp
 from sheets import sheet as sh, edit as E, banks, library, writer
@@ -98,6 +98,8 @@ class App:
         self.undo, self.redo = [], []
         self.rev = 0                    # bumped whenever self.s may have changed: what the caches key on
         self._memo = (None, {})         # (rev, library) -> values derived from the sheet (see memo)
+        self.drawn, self.cancel = 0, False  # problems drawn by the key being handled; Esc asked it to stop
+        self._changing = 0              # how deep in change() we are: only a change can be cancelled
         self.row, self.focus, self.version = 2, "left", 0
         self.open = set()               # banks and sequences open in the tree: all closed at start
         self.open_types = set()         # (bank, type) showing its problems; (sequence, step) its examples
@@ -314,12 +316,21 @@ class App:
         undoes it and becomes the message. Returns True if it worked."""
         before, layout = self.snapshot(), self.layout()
         self.rev += 1
+        self._changing += 1
         try:
             fn()
         except (ValueError, RuntimeError) as e:
             self.s = before
             self.say(f"E: {e}".splitlines()[0], True)
             return False
+        except sh.Cancelled:
+            self.s = before
+            if self._changing > 1:              # a change inside a change: undo the outer one too
+                raise
+            self.say("cancelled: nothing changed")
+            return False
+        finally:
+            self._changing -= 1
         if self.anchor is not None and self.layout() != layout:
             self.end_visual()                  # its positions no longer mean the same problems
         if self.s != before:
@@ -327,6 +338,13 @@ class App:
             self.redo.clear()
         self.clamp()
         return True
+
+    def progress(self):
+        """Called before each problem is drawn (sheet.progress): counts them for the
+        status line, and stops the change in progress once Esc has asked."""
+        self.drawn += 1
+        if self.cancel and self._changing:
+            raise sh.Cancelled()
 
     def layout(self):
         """Which problem is where (by identity), to tell a change that moves them."""
@@ -2379,6 +2397,15 @@ class Screen:
         for y, line in enumerate(lines[:bh - 2], 1):
             self.put(y0 + y, x0 + 2, line, curses.A_REVERSE, bw - 4)
 
+    def busy(self, text):
+        """While a long key runs: only the message line changes (the rest of the
+        screen stays as it was, since the sheet is being changed)."""
+        h, w = self.scr.getmaxyx()
+        cursor(0)
+        self.put(h - 1, 0, " " * (w - 1))
+        self.put(h - 1, 0, text, self.st["dim"])
+        self.scr.refresh()
+
     def cmdline(self, app, h, w):
         st = self.st
         if app.mode in ("command", "search", "insert"):
@@ -2394,34 +2421,74 @@ class Screen:
             cursor(0)
             self.put(h - 1, 0, app.msg, st["err"] if app.err else 0)
 
-def slow(app, ch):
-    """Will this key take a moment (writing, or drawing many problems)?"""
-    line = app.buf.strip()
-    return ((app.mode == "command" and ch in ("\n", "\r") and re.match(r"(w|write|wq|x|xit|mix|reroll|versions)\b", line))
-            or (app.mode == "insert" and ch in ("\n", "\r") and app.editing and app.editing[0] == "write")
-            or (app.mode == "normal" and app.pending == "Z" and ch == "Z"))
+BUSY_AFTER = 0.15                      # seconds a key may take before the status line says it's working
+
+def handle(screen, app, ch, page, typeahead):
+    """app.key(ch) in a worker thread, so a long one (drawing many problems,
+    writing) never freezes the screen: after BUSY_AFTER the status line counts
+    the problems drawn, Esc or ^C cancels the change (nothing is changed), and
+    other keys wait in typeahead until it's done. Only this thread touches
+    curses, and nothing reads the sheet while the worker has it."""
+    app.drawn, app.cancel = 0, False
+    failed = []
+    def go():
+        try:
+            app.key(ch, page=page)
+        except BaseException as e:      # re-raised here, as if the key ran in this thread
+            failed.append(e)
+    t = threading.Thread(target=go, daemon=True)
+    t.start()
+    try:
+        t.join(BUSY_AFTER)
+    except KeyboardInterrupt:
+        app.cancel = True
+    if t.is_alive():
+        scr, spin = screen.scr, 0
+        scr.timeout(100)
+        try:
+            while t.is_alive():
+                spin += 1
+                n = app.drawn
+                try:
+                    screen.busy("cancelling…" if app.cancel else
+                                f"working {'⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[spin % 10]} "
+                                + (f"{n} problem{'s' * (n != 1)} drawn  ·  Esc cancels" if n else ""))
+                    k = scr.get_wch()
+                except curses.error:    # no key within the timeout
+                    k = None
+                except KeyboardInterrupt:
+                    k = "\x03"
+                if k in ("\x1b", "\x03"):
+                    app.cancel = True
+                    typeahead.clear()
+                elif k is not None and k != curses.KEY_RESIZE:
+                    typeahead.append(k)
+        finally:
+            scr.timeout(-1)
+        t.join()
+    if failed:
+        raise failed[0]
 
 def run(scr, app):
     screen = Screen(scr)
+    sh.progress = app.progress
+    typeahead = []                      # keys pressed while a long one ran, in order
     while not app.quit:
         h, _ = scr.getmaxyx()
         screen.draw(app)
         scr.refresh()
-        try:
-            ch = scr.get_wch()
-        except curses.error:
-            continue
-        except KeyboardInterrupt:
-            ch = "\x03"
+        if typeahead:
+            ch = typeahead.pop(0)
+        else:
+            try:
+                ch = scr.get_wch()
+            except curses.error:
+                continue
+            except KeyboardInterrupt:
+                ch = "\x03"
         if ch == curses.KEY_RESIZE:
             continue
-        if slow(app, ch):                    # say so before the wait
-            saved = app.mode, app.msg, app.err
-            app.mode, app.msg, app.err = "normal", "working…", False
-            screen.draw(app)
-            scr.refresh()
-            app.mode, app.msg, app.err = saved
-        app.key(ch, page=max(2, h - 3))
+        handle(screen, app, ch, max(2, h - 3), typeahead)
 
 def parse_args(argv):
     import argparse
