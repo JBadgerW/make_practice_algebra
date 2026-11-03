@@ -41,13 +41,15 @@ points differ in x and in y (no vertical or horizontal line).
     Step 5  integer points; the y-intercept a non-zero integer from -10 to 10,
             on the graph (easy scaffolding)
     Step 6  integer points; any y-intercept
-    Step 7  each coordinate n/2, n/3, n/4 in lowest terms, or an integer
-            (written 3, never 3/1); the slope's and the intercept's
+    Step 7  each coordinate n/2 or n/4 in lowest terms (no thirds: halves and
+            fourths read as decimals, 2.5 and 1.75), or an integer
+            (written 3, never 3/1), shown as a mixed number past 1:
+            "(4 1/2, -2 3/4)", read as 9/2 and -11/4; the slope's and the intercept's
             denominators are at most 12, and the intercept is from -10 to 10
 
 A problem: dict(type, form, prompt, answer, source), in Typst math.
     form    "A" to "F", as above (None in Steps 2, 4, 5, 6, 7)
-    prompt  "x = 3/2 y + 6"; in Steps 2 and 4, "y = 2/3 x - 4"; in 5 to 7, "(1/2, -3), (4, 5/3)"
+    prompt  "x = 3/2 y + 6"; in Steps 2 and 4, "y = 2/3 x - 4"; in 5 to 7, "(1/2, -3), (4, 1 2/3)"
     answer  "y = 2/3 x - 4", "y = -1/2 x", "y = 5/3 x + 1", "y = 2 x - 7/2"
 check() solves the prompt for y with sympy and compares it with the answer
 read back from its text; the answer must be written y = m x + b (m a
@@ -106,9 +108,9 @@ TYPES = [
               "for b: 4 = 1/2 (1) + b, so b = 7/2. Write y = 1/2 x + 7/2."),
     dict(key="7", title="Fractional Coordinates",
          instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
-         look="Two points with fractions for coordinates: (1/2, 3) and (5/2, -1).",
-         move="Slope first, subtracting the fractions with a common denominator: m = (-1 - 3)/(5/2 - 1/2) "
-              "= -4/2 = -2. Put m and one point into y = mx + b and solve for b: 3 = -2(1/2) + b, so b = 4. "
+         look="Two points with fractions or mixed numbers for coordinates: (1/2, 3) and (2 1/2, -1).",
+         move="Slope first; write a mixed number as a fraction (2 1/2 = 5/2) and subtract with a common "
+              "denominator: m = (-1 - 3)/(5/2 - 1/2) = -4/2 = -2. Put m and one point into y = mx + b and solve for b: 3 = -2(1/2) + b, so b = 4. "
               "Write y = -2x + 4."),
 ]
 
@@ -125,7 +127,7 @@ INTERCEPT = 9                  # the y-intercept: -9 to 9
 FORMS = "ABCDEF"
 GIVEN = ("2", "4")             # the steps whose prompt is already y = m x + b
 POINTS = ("5", "6", "7")       # the steps whose prompt is two points
-DENOMINATORS = {"5": (1,), "6": (1,), "7": (1, 2, 3, 4)}   # a coordinate's denominator, in lowest terms
+DENOMINATORS = {"5": (1,), "6": (1,), "7": (1, 2, 4)}   # a coordinate's denominator, in lowest terms
 KEY_DENOMINATOR = 12           # Step 7: the slope's and the intercept's denominators at most this
 
 def initial_seen():
@@ -209,25 +211,44 @@ def coordinate(entry, r):
     d = r.choice(DENOMINATORS[entry])
     return F(r.randint(-WINDOW * d, WINDOW * d), d)  # in lowest terms: 4/2 is 2
 
-def point_prompt(pts):
-    """"(1/2, -3), (4, 5/3)": each coordinate in lowest terms, an integer as an integer."""
-    return ", ".join(f"({x}, {y})" for x, y in pts)
+def mixed(v):
+    """A coordinate as a student reads it on a graph: 3, 1/2, -3/4, 4 1/3, -2 3/4."""
+    if v.denominator == 1 or abs(v) < 1:
+        return str(v)
+    whole, part = divmod(abs(v), 1)
+    return f"{'-' if v < 0 else ''}{whole} {part}"
 
-POINT = re.compile(r"\(\s*(-?\d+(?:/\d+)?)\s*,\s*(-?\d+(?:/\d+)?)\s*\)")
+def point_prompt(pts):
+    """"(1/2, -3), (4, 1 3/4)": each coordinate in lowest terms, an integer as an integer,
+    a mixed number past 1."""
+    return ", ".join(f"({mixed(x)}, {mixed(y)})" for x, y in pts)
+
+NUMBER = r"-?\d+ \d+/\d+|-?\d+/\d+|-?\d+"   # 4 1/3, 13/3, 4
+POINT = re.compile(rf"\(\s*({NUMBER})\s*,\s*({NUMBER})\s*\)")
+
+def number(s):
+    """A coordinate's value: "4 1/3" is 13/3, "-4 1/3" is -13/3; a fraction in lowest
+    terms (a mixed number's part proper too); ValueError otherwise."""
+    whole, _, part = s.rpartition(" ")
+    if str(F(part)) != part:
+        raise ValueError("write each coordinate in lowest terms")
+    if not whole:
+        return F(part)
+    if not 0 < F(part) < 1:
+        raise ValueError("a mixed number's fraction is less than 1")
+    w = int(whole)
+    return w - F(part) if whole.startswith("-") else w + F(part)
 
 def points_of(prompt):
-    """The two points, as Fractions, of a prompt "(1/2, -3), (4, 5/3)"; ValueError if it isn't
+    """The two points, as Fractions, of a prompt "(1/2, -3), (4, 1 3/4)"; ValueError if it isn't
     two points, each coordinate written in lowest terms."""
     t = " ".join(prompt.replace("−", "-").split())
     pts = POINT.findall(t)
     if len(pts) != 2 or POINT.sub("", t).replace(",", "").replace("and", "").strip():
-        raise ValueError("write two points, like (1/2, -3), (4, 5/3)")
+        raise ValueError("write two points, like (1/2, -3), (4, 1 3/4)")
     out = []
     for xs, ys in pts:
-        x, y = F(xs), F(ys)
-        if str(x) != xs or str(y) != ys:
-            raise ValueError("write each coordinate in lowest terms")
-        out.append((x, y))
+        out.append((number(xs), number(ys)))
     return out
 
 def draw_points(entry, r):
@@ -362,7 +383,7 @@ def through_typst(p):
         pts = points_of(p["prompt"])
     except ValueError:
         return display(dfrac(p["prompt"]))
-    a, b = (display(dfrac(f"({x}, {y})")) for x, y in pts)
+    a, b = (display(dfrac(f"({mixed(x)}, {mixed(y)})")) for x, y in pts)
     return f"Through {a} and {b}"
 
 def typst(p, gap="0.3em", key=False):
@@ -401,7 +422,11 @@ def answer_typst(p):
 
 def text(p):
     if p["type"] in POINTS:
-        return "Through " + plain(p["prompt"]).replace("), (", ") and (")
+        try:
+            shown = point_prompt(points_of(p["prompt"]))
+        except ValueError:
+            shown = p["prompt"]
+        return "Through " + plain(shown).replace("), (", ") and (")
     if p["type"] in DRAWN:
         return f"[graph of {plain(p['prompt'])}]"
     if p["type"] in GRAPHED:

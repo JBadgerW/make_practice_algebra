@@ -142,7 +142,7 @@ for step in B.POINTS:
         assert pts[0][0] != pts[1][0] and pts[0][1] != pts[1][1]
         for x, y in pts:
             assert all(v != 0 and abs(v) <= 10 for v in (x, y)), "on the graph, and not an intercept"
-            assert all(v.denominator in ((1,) if step != "7" else (1, 2, 3, 4)) for v in (x, y))
+            assert all(v.denominator in ((1,) if step != "7" else (1, 2, 4)) for v in (x, y)), "no thirds in Step 7"
         assert "/1)" not in p["prompt"] and "/1," not in p["prompt"], "an integer is written as an integer"
         if step == "5":
             assert b.denominator == 1 and b != 0 and abs(b) <= 10, "the intercept on the graph"
@@ -173,6 +173,29 @@ assert any(any(x.denominator == y.denominator == 1 for x, y in B.points_of(p["pr
     "an integer point now and then"
 assert B.check(dict(type="7", prompt="(1/5, 3), (5/2, -1)", answer="y = -40/23 x + 77/23")) == "failed", "fifths"
 assert B.check(dict(type="7", prompt="(2/4, 3), (5/2, -1)", answer="y = -2 x + 4")) == "unchecked", "not in lowest terms"
+
+# ---- Step 7 shows a coordinate past 1 as a mixed number, and reads it back
+assert [B.mixed(F(v)) for v in ("13/3", "-11/4", "1/2", "-3/4", "5", "-7")] == ["4 1/3", "-2 3/4", "1/2", "-3/4", "5", "-7"]
+assert B.points_of("(4 1/3, -2 3/4), (13/3, 1/2)") == [(F(13, 3), F(-11, 4)), (F(13, 3), F(1, 2))]
+for bad in ("(4 2/6, 1), (2, 3)", "(4 4/3, 1), (2, 3)", "(4 -1/3, 1), (2, 3)"):
+    try:
+        B.points_of(bad)
+        raise AssertionError(bad)
+    except ValueError:
+        pass
+rng, seen = random.Random(17), set()
+for _ in range(80):
+    p = B.generate("7", rng, seen)
+    assert p["prompt"] == B.point_prompt(B.points_of(p["prompt"]))
+    for x, y in B.points_of(p["prompt"]):
+        for v in (x, y):
+            assert (B.mixed(v) in p["prompt"]) and (abs(v) < 1 or v.denominator == 1 or " " in B.mixed(v))
+old = dict(type="7", form=None, prompt="(9/2, 1), (-1/2, -11/4)", answer="")
+assert B.text(old) == "Through (4 1/2, 1) and (−1/2, −2 3/4)", "a saved improper fraction shows mixed"
+assert "4 display(1/2)" in B.typst(old) and "-2 display(3/4)" in B.typst(old)
+new, status = B.from_edit("(9/2, 1), (1/2, -3)", old)
+assert new["prompt"] == "(4 1/2, 1), (1/2, -3)" and new["answer"] == "y = x - 7/2" and status == "checked"
+assert B.check(dict(type="7", prompt="(4 1/3, 1), (1/3, -3)", answer="y = x - 10/3")) == "failed", "no thirds in Step 7"
 
 # ---- editing the points: the key is solved again
 p = dict(type="6", form=None, prompt="(1, 4), (3, 5)", answer="y = 1/2 x + 7/2")

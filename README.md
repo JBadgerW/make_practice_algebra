@@ -289,7 +289,7 @@ lattice point besides (0, b).
 | 4 | Write the Equation | a line drawn on the graph, no equation |
 | 5 | Points to Equation, Integer b | `(2, 3)` and `(5, 9)`: integer points; the y-intercept a non-zero integer from −10 to 10 |
 | 6 | Points to Equation, Any b | `(1, 4)` and `(3, 5)`: integer points; any y-intercept (`y = 1/2 x + 7/2`) |
-| 7 | Fractional Coordinates | `(1/2, 3)` and `(5/2, −1)`: coordinates n/2, n/3, n/4 (or integers); the key's denominators at most 12, the intercept from −10 to 10 |
+| 7 | Fractional Coordinates | `(1/2, 3)` and `(2 1/2, −1)`: coordinates n/2 or n/4 (or integers; no thirds), past 1 as mixed numbers; the key's denominators at most 12, the intercept from −10 to 10 |
 
 Steps 5 to 7 give two points, each coordinate from −10 to 10 and not 0 (so
 neither point is an intercept), different in x and in y; Step 7's
