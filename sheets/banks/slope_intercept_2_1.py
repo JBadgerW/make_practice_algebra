@@ -1,7 +1,7 @@
 """Lesson 2-1: Slope-Intercept Form, taught as a sequence of steps; each
 step is an entry ("1" is Step 1). More steps will follow.
 
-Every line is built backward from the answer, y = (a/c) x + b:
+Steps 1 to 4: every line is built backward from the answer, y = (a/c) x + b:
     - the slope a/c is in lowest terms, a != 0: a fraction (c 2 to 6, |a| up to 9)
       or a whole number (c = 1, |a| up to 5);
     - the y-intercept b is an integer, -9 to 9;
@@ -33,14 +33,27 @@ Step 4: Write the equation. The line is drawn on the graph, with no
 equation; the key gives y = m x + b. The prompt holds the line's own
 y = m x + b, which draws it; the graph is the same on the sheet and the key.
 
+Steps 5 to 7: Write the equation through two points. The prompt is two
+points, "(2, 3), (5, 9)" (shown "Through (2, 3) and (5, 9)"); the key gives
+y = m x + b, b a fraction in lowest terms when it isn't whole. Every
+coordinate is from -10 to 10 and not 0 (neither point is an intercept); the
+points differ in x and in y (no vertical or horizontal line).
+    Step 5  integer points; the y-intercept a non-zero integer from -10 to 10,
+            on the graph (easy scaffolding)
+    Step 6  integer points; any y-intercept
+    Step 7  each coordinate n/2, n/3, n/4 in lowest terms, or an integer
+            (written 3, never 3/1); the slope's and the intercept's
+            denominators are at most 12, and the intercept is from -10 to 10
+
 A problem: dict(type, form, prompt, answer, source), in Typst math.
-    form    "A" to "F", as above (None in Steps 2 and 4)
-    prompt  "x = 3/2 y + 6"; in Steps 2 and 4, "y = 2/3 x - 4"
-    answer  "y = 2/3 x - 4", "y = -1/2 x", "y = 5/3 x + 1"
+    form    "A" to "F", as above (None in Steps 2, 4, 5, 6, 7)
+    prompt  "x = 3/2 y + 6"; in Steps 2 and 4, "y = 2/3 x - 4"; in 5 to 7, "(1/2, -3), (4, 5/3)"
+    answer  "y = 2/3 x - 4", "y = -1/2 x", "y = 5/3 x + 1", "y = 2 x - 7/2"
 check() solves the prompt for y with sympy and compares it with the answer
 read back from its text; the answer must be written y = m x + b (m a
 fraction in lowest terms), and the line must keep the lesson's rules:
-an integer intercept from -9 to 9 and another lattice point on the graph.
+an integer intercept from -9 to 9 and another lattice point on the graph
+(in Steps 5 to 7, the line through the prompt's points, which keep the step's rules).
 In Steps 2 and 4 the prompt itself must be written y = m x + b. The key's graph is
 drawn from the answer as check() reads it, so it shows the line checked.
 """
@@ -81,6 +94,22 @@ TYPES = [
               "another point where the line crosses grid lines exactly: the slope m is rise over run "
               "(negative if the line goes down to the right). Write y = mx + b.",
          space="0.25in"),
+    dict(key="5", title="Points to Equation, Integer b",
+         instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
+         look="Two points, neither on an axis: (2, 3) and (5, 9). The y-intercept comes out a whole number.",
+         move="Slope first: m = (y2 - y1)/(x2 - x1) = (9 - 3)/(5 - 2) = 2. Put m and one point into "
+              "y = mx + b and solve for b: 3 = 2(2) + b, so b = -1. Write y = 2x - 1."),
+    dict(key="6", title="Points to Equation, Any b",
+         instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
+         look="Two points, neither on an axis: (1, 4) and (3, 5). The y-intercept may be a fraction.",
+         move="Slope first: m = (5 - 4)/(3 - 1) = 1/2. Put m and one point into y = mx + b and solve "
+              "for b: 4 = 1/2 (1) + b, so b = 7/2. Write y = 1/2 x + 7/2."),
+    dict(key="7", title="Fractional Coordinates",
+         instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
+         look="Two points with fractions for coordinates: (1/2, 3) and (5/2, -1).",
+         move="Slope first, subtracting the fractions with a common denominator: m = (-1 - 3)/(5/2 - 1/2) "
+              "= -4/2 = -2. Put m and one point into y = mx + b and solve for b: 3 = -2(1/2) + b, so b = 4. "
+              "Write y = -2x + 4."),
 ]
 
 class Steps(gen.Types):
@@ -95,6 +124,9 @@ WINDOW = 10                    # the graph: -10 to 10 on both axes
 INTERCEPT = 9                  # the y-intercept: -9 to 9
 FORMS = "ABCDEF"
 GIVEN = ("2", "4")             # the steps whose prompt is already y = m x + b
+POINTS = ("5", "6", "7")       # the steps whose prompt is two points
+DENOMINATORS = {"5": (1,), "6": (1,), "7": (1, 2, 3, 4)}   # a coordinate's denominator, in lowest terms
+KEY_DENOMINATOR = 12           # Step 7: the slope's and the intercept's denominators at most this
 
 def initial_seen():
     return set()
@@ -149,7 +181,64 @@ def slope_intercept(m, b):
     """y = m x + b as the key writes it: "y = 2/3 x - 4", "y = -1/2 x"."""
     return f"y = {written((m, 'x'), (b, ''))}"
 
+# ------------------------------------------------------------------
+# Steps 5 to 7: two points
+# ------------------------------------------------------------------
+def through(pts):
+    """(m, b), Fractions, of the line through two points with different x."""
+    (x1, y1), (x2, y2) = pts
+    m = (y2 - y1) / (x2 - x1)
+    return m, y1 - m * x1
+
+def points_keep_rules(entry, pts):
+    """The step's rules for its two points (Fractions): see the docstring."""
+    if len(pts) != 2 or pts[0][0] == pts[1][0] or pts[0][1] == pts[1][1]:
+        return False
+    for x, y in pts:
+        for v in (x, y):
+            if v == 0 or abs(v) > WINDOW or v.denominator not in DENOMINATORS[entry]:
+                return False
+    m, b = through(pts)
+    if entry == "5":
+        return b.denominator == 1 and b != 0 and abs(b) <= WINDOW   # the intercept on the graph
+    if entry == "7":
+        return m.denominator <= KEY_DENOMINATOR and b.denominator <= KEY_DENOMINATOR and abs(b) <= WINDOW
+    return True
+
+def coordinate(entry, r):
+    d = r.choice(DENOMINATORS[entry])
+    return F(r.randint(-WINDOW * d, WINDOW * d), d)  # in lowest terms: 4/2 is 2
+
+def point_prompt(pts):
+    """"(1/2, -3), (4, 5/3)": each coordinate in lowest terms, an integer as an integer."""
+    return ", ".join(f"({x}, {y})" for x, y in pts)
+
+POINT = re.compile(r"\(\s*(-?\d+(?:/\d+)?)\s*,\s*(-?\d+(?:/\d+)?)\s*\)")
+
+def points_of(prompt):
+    """The two points, as Fractions, of a prompt "(1/2, -3), (4, 5/3)"; ValueError if it isn't
+    two points, each coordinate written in lowest terms."""
+    t = " ".join(prompt.replace("−", "-").split())
+    pts = POINT.findall(t)
+    if len(pts) != 2 or POINT.sub("", t).replace(",", "").replace("and", "").strip():
+        raise ValueError("write two points, like (1/2, -3), (4, 5/3)")
+    out = []
+    for xs, ys in pts:
+        x, y = F(xs), F(ys)
+        if str(x) != xs or str(y) != ys:
+            raise ValueError("write each coordinate in lowest terms")
+        out.append((x, y))
+    return out
+
+def draw_points(entry, r):
+    pts = [(coordinate(entry, r), coordinate(entry, r)) for _ in range(2)]
+    need(points_keep_rules(entry, pts))
+    m, b = through(pts)
+    return dict(form=None, prompt=point_prompt(pts), answer=slope_intercept(m, b))
+
 def draw(entry, r, tpl, want=None):
+    if entry in POINTS:
+        return draw_points(entry, r)
     a, c, b = line(r)
     answer = slope_intercept(F(a, c), F(b))
     if entry in GIVEN:
@@ -172,7 +261,7 @@ def generate(entry, rng, seen):
 # Checking: solve the prompt for y, read the answer back
 # ------------------------------------------------------------------
 X, Y = sp.Symbol("x"), sp.Symbol("y")
-ANSWER = re.compile(r"y = (?P<m>-?(\d+/\d+ |\d+ )?)x( (?P<sign>[+-]) (?P<b>\d+))?")
+ANSWER = re.compile(r"y = (?P<m>-?(\d+/\d+ |\d+ )?)x( (?P<sign>[+-]) (?P<b>\d+(/\d+)?))?")
 
 def solved(prompt):
     """(m, b), Fractions, for a prompt that is a line in x and y with a slope; ValueError otherwise."""
@@ -202,9 +291,9 @@ def written_form(answer):
         return None                                  # not in lowest terms
     if t in ("1", "-1"):
         return None                                  # x, not 1 x
-    b = F(0) if g["b"] is None else F(int(g["b"])) * (-1 if g["sign"] == "-" else 1)
-    if g["b"] == "0":
-        return None
+    if g["b"] is not None and (g["b"] == "0" or str(F(g["b"])) != g["b"]):
+        return None                                  # b in lowest terms, not 0 or 4/2
+    b = F(0) if g["b"] is None else F(g["b"]) * (-1 if g["sign"] == "-" else 1)
     return m, b
 
 def check(p):
@@ -215,6 +304,9 @@ def check(p):
         m, b = got
         if sp.simplify(to_sympy(p["answer"].partition("=")[2]) - (sp.Rational(m.numerator, m.denominator) * X + b)) != 0:
             return "failed"                          # the text says what it was read as
+        if p.get("type") in POINTS:
+            pts = points_of(p["prompt"])
+            return "checked" if points_keep_rules(p["type"], pts) and through(pts) == (m, b) else "failed"
         if (m, b) != solved(p["prompt"]):
             return "failed"
         if p.get("type") in GIVEN and written_form(p["prompt"]) != (m, b):
@@ -223,8 +315,14 @@ def check(p):
     except Exception:
         return "unchecked"
 
-def answer_of(prompt):
-    m, b = solved(prompt)
+def answer_of(prompt, step=None):
+    if step in POINTS:
+        pts = points_of(prompt)
+        if pts[0][0] == pts[1][0]:
+            raise ValueError("a vertical line")
+        m, b = through(pts)
+    else:
+        m, b = solved(prompt)
     if m == 0:
         raise ValueError("a horizontal line")
     return slope_intercept(m, b)
@@ -258,7 +356,18 @@ def graph(p, key=False, width=5.5, size=6, every=None):
 
 ASKED = "Graph: "                       # before the equation in Steps 2 and 3, so the problem says what to do
 
+def through_typst(p):
+    """Steps 5 to 7: "Through (2, 3) and (5, 9)", each point in display math."""
+    try:
+        pts = points_of(p["prompt"])
+    except ValueError:
+        return display(dfrac(p["prompt"]))
+    a, b = (display(dfrac(f"({x}, {y})")) for x, y in pts)
+    return f"Through {a} and {b}"
+
 def typst(p, gap="0.3em", key=False):
+    if p["type"] in POINTS:
+        return through_typst(p)
     eq = display(dfrac(p["prompt"]))
     if p["type"] not in GRAPHED:
         return eq
@@ -291,6 +400,8 @@ def answer_typst(p):
     return "" if p["type"] == "2" else display(dfrac(p["answer"]))
 
 def text(p):
+    if p["type"] in POINTS:
+        return "Through " + plain(p["prompt"]).replace("), (", ") and (")
     if p["type"] in DRAWN:
         return f"[graph of {plain(p['prompt'])}]"
     if p["type"] in GRAPHED:
@@ -326,10 +437,15 @@ def answer_edit_text(p):
     return p["answer"]
 
 def from_edit(t, old):
-    """An edited prompt, solved for y again (a prompt that isn't a line keeps the old answer, which check() marks)."""
-    t = _equation(t, "x = 3/2 y + 6")
+    """An edited prompt, solved for y again (a prompt that isn't a line keeps the old answer, which check() marks);
+    in Steps 5 to 7, two points, and the line through them."""
+    step = old.get("type")
+    if step in POINTS:
+        t = point_prompt(points_of(t))
+    else:
+        t = _equation(t, "x = 3/2 y + 6")
     try:
-        answer = answer_of(t)
+        answer = answer_of(t, step)
     except (ValueError, gen.Redraw):
         answer = old["answer"]
     new = dict(old, prompt=t, answer=answer, source="edited")

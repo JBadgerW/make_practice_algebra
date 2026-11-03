@@ -189,6 +189,13 @@ as in Step 1, and a Step 2 prompt must stay in y = mx + b form.
 the graph and students write its equation; the key writes y = mx + b. `i`
 edits the drawn line (as `y = 2/3 x - 4`, the form it must stay in).
 
+`slope_intercept_2_1/5:4`, `/6:4`, and `/7:4` draw four problems each from
+Steps 5 to 7: two points, and students write the line through them (Step 5's
+y-intercept is a non-zero integer on the graph, Step 6's anything, Step 7's
+points have coordinates in halves, thirds, and fourths, with the key's
+slope and intercept in twelfths or simpler and the intercept on the graph). `i` edits the points, as
+`(1/2, -3), (4, 5/3)`, and the key is found again.
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists

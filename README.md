@@ -287,6 +287,15 @@ lattice point besides (0, b).
 | 2 | Graph | `y = 2/3 x − 4`, with a blank graph |
 | 3 | Solve for y, Then Graph | any Step 1 form, with a blank graph |
 | 4 | Write the Equation | a line drawn on the graph, no equation |
+| 5 | Points to Equation, Integer b | `(2, 3)` and `(5, 9)`: integer points; the y-intercept a non-zero integer from −10 to 10 |
+| 6 | Points to Equation, Any b | `(1, 4)` and `(3, 5)`: integer points; any y-intercept (`y = 1/2 x + 7/2`) |
+| 7 | Fractional Coordinates | `(1/2, 3)` and `(5/2, −1)`: coordinates n/2, n/3, n/4 (or integers); the key's denominators at most 12, the intercept from −10 to 10 |
+
+Steps 5 to 7 give two points, each coordinate from −10 to 10 and not 0 (so
+neither point is an intercept), different in x and in y; Step 7's
+coordinates are in lowest terms (an integer as an integer, never n/1), and
+now and then a point is all integers. The key writes y = mx + b, b a fraction in lowest
+terms when it isn't whole; the check finds the line through the points.
 
 Step 1 starts from six forms (cy = ax + cb, cy − ax = cb, ax = cy − cb,
 x = (c/a)y − cb/a, (c/a)y = x + cb/a, cb/a = (c/a)y − x), spread evenly over

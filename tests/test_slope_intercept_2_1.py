@@ -127,7 +127,64 @@ assert not B.typst(dict(type="1", prompt="3 y = x + 3", answer="y = 1/3 x + 1"))
 # ---- each step's own instructions; the sheet's come from the step when there's one
 assert [B.type_instructions(k) for k in B.KEYS] == [
     "Solve each equation for y. Write it in the form y = mx + b.", "Graph each line.", "Solve each equation for y, then graph it.",
-    "Write the equation of each line in the form y = mx + b."]
+    "Write the equation of each line in the form y = mx + b."] + [
+    "Write the equation of the line through each pair of points in the form y = mx + b."] * 3
+
+# ---- Steps 5 to 7: two points, neither on an axis; the key is the line through them
+for step in B.POINTS:
+    rng, seen = random.Random(10 + int(step)), set()
+    for _ in range(80):
+        p = B.generate(step, rng, seen)
+        pts = B.points_of(p["prompt"])
+        m, b = B.through(pts)
+        assert p["form"] is None and B.check(p) == "checked" and p["answer"] == B.slope_intercept(m, b)
+        assert B.written_form(p["answer"]) == (m, b) and m != 0
+        assert pts[0][0] != pts[1][0] and pts[0][1] != pts[1][1]
+        for x, y in pts:
+            assert all(v != 0 and abs(v) <= 10 for v in (x, y)), "on the graph, and not an intercept"
+            assert all(v.denominator in ((1,) if step != "7" else (1, 2, 3, 4)) for v in (x, y))
+        assert "/1)" not in p["prompt"] and "/1," not in p["prompt"], "an integer is written as an integer"
+        if step == "5":
+            assert b.denominator == 1 and b != 0 and abs(b) <= 10, "the intercept on the graph"
+        if step == "7":
+            assert m.denominator <= 12 and b.denominator <= 12 and abs(b) <= 10, "the intercept on the graph"
+        assert B.typst(p).startswith("Through $display(") and " and $display(" in B.typst(p)
+        assert B.text(p).startswith("Through (") and ") and (" in B.text(p)
+        assert B.slide_typst(p) is None
+ws = [B.generate("6", random.Random(i), set()) for i in range(200)]
+assert any(B.written_form(p["answer"])[1].denominator > 1 for p in ws), "Step 6 draws fractional intercepts"
+
+# ---- a fractional intercept in the key: lowest terms, read back exactly
+assert B.written_form("y = 1/2 x + 7/2") == (F(1, 2), F(7, 2))
+assert B.written_form("y = 1/2 x + 14/4") is None and B.written_form("y = 1/2 x + 4/2") is None
+assert B.check(dict(type="6", prompt="(1, 4), (3, 5)", answer="y = 1/2 x + 7/2")) == "checked"
+assert B.check(dict(type="6", prompt="(1, 4), (3, 5)", answer="y = 1/2 x - 7/2")) == "failed"
+assert B.check(dict(type="5", prompt="(1, 4), (3, 5)", answer="y = 1/2 x + 7/2")) == "failed", "Step 5's b is an integer"
+assert B.check(dict(type="5", prompt="(1, 2), (2, 4)", answer="y = 2 x")) == "failed", "Step 5's b isn't 0"
+assert B.check(dict(type="6", prompt="(0, 4), (3, 5)", answer="y = 1/3 x + 4")) == "failed", "a point on an axis"
+assert B.check(dict(type="6", prompt="(1, 4), (3, 12)", answer="y = 4 x")) == "failed", "past the graph"
+assert B.check(dict(type="7", prompt="(1/2, 3), (5/2, -1)", answer="y = -2 x + 4")) == "checked"
+assert B.check(dict(type="7", prompt="(1, 3), (5/2, -1)", answer="y = -8/3 x + 17/3")) == "checked", "an integer point is fine"
+assert B.check(dict(type="7", prompt="(-3/4, 3), (-5, -23/3)", answer="y = 128/51 x + 83/17")) == "failed", "past twelfths"
+assert B.check(dict(type="7", prompt="(-23/4, -8), (-6, -13/4)", answer="y = -19 x - 469/4")) == "failed", "Step 7's b is off the graph"
+assert B.check(dict(type="5", prompt="(-6, -9), (-8, -1)", answer="y = -4 x - 33")) == "failed", "Step 5's b is off the graph"
+ps = [B.generate("7", random.Random(i), set()) for i in range(300)]
+assert any(any(x.denominator == y.denominator == 1 for x, y in B.points_of(p["prompt"])) for p in ps), \
+    "an integer point now and then"
+assert B.check(dict(type="7", prompt="(1/5, 3), (5/2, -1)", answer="y = -40/23 x + 77/23")) == "failed", "fifths"
+assert B.check(dict(type="7", prompt="(2/4, 3), (5/2, -1)", answer="y = -2 x + 4")) == "unchecked", "not in lowest terms"
+
+# ---- editing the points: the key is solved again
+p = dict(type="6", form=None, prompt="(1, 4), (3, 5)", answer="y = 1/2 x + 7/2")
+new, status = B.from_edit("(2, 3) and (5, 9)", p)
+assert new["prompt"] == "(2, 3), (5, 9)" and new["answer"] == "y = 2 x - 1" and status == "checked"
+new, status = B.from_edit("(2, 3), (2, 9)", p)
+assert new["answer"] == p["answer"] and status == "failed", "a vertical line keeps the old key, marked"
+try:
+    B.from_edit("y = 2 x - 1", p)
+    raise AssertionError("Steps 5 to 7 take two points")
+except ValueError:
+    pass
 
 B.selftest(300, 1)
 print("all slope_intercept_2_1 tests passed")
