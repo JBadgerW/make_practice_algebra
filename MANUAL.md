@@ -197,6 +197,14 @@ slope and intercept in twelfths or simpler and the intercept on the graph). `i` 
 `(1/2, -3), (4, 1 3/4)` (a fraction like `7/4` is fine too, and is shown
 as `1 3/4`), and the key is found again.
 
+`slope_intercept_2_1/8:2`, `/9:2`, and `/10:2` draw the Estimation Graphs:
+two points and bare axes (no grid, numbers, or ticks) for students to sketch
+on. Step 8 is integer points on axes to 10; Step 9, one scale for both axes
+(1, 10, 100, 1000, or 10000); Step 10, a different scale on each. The key
+ticks and numbers the axes, draws the line, the labeled rise-over-run
+triangle, and the y-intercept with its estimate. `i` edits the points, as
+`(2.5, -7), (-4, 3.5)`.
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists

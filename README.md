@@ -290,11 +290,24 @@ lattice point besides (0, b).
 | 5 | Points to Equation, Integer b | `(2, 3)` and `(5, 9)`: integer points; the y-intercept a non-zero integer from −10 to 10 |
 | 6 | Points to Equation, Any b | `(1, 4)` and `(3, 5)`: integer points; any y-intercept (`y = 1/2 x + 7/2`) |
 | 7 | Fractional Coordinates | `(1/2, 3)` and `(2 1/2, −1)`: coordinates n/2 or n/4 (or integers; no thirds), past 1 as mixed numbers; the key's denominators at most 12, the intercept from −10 to 10 |
+| 8 | Estimation Graphs 1 | `(2, 4)` and `(−4, −5)`, with bare axes: integer points, both axes to 10 |
+| 9 | Estimation Graphs 2 | `(0.3, −0.7)` and `(−0.8, 0.4)`, or `(450, −200)` and `(−700, 900)`: both axes to the same scale |
+| 10 | Estimation Graphs 3 | `(0.4, 650)` and `(−0.9, −300)`: a different scale on each axis |
 
 Steps 5 to 7 give two points, each coordinate from −10 to 10 and not 0 (so
 neither point is an intercept), different in x and in y; Step 7's
 coordinates are in lowest terms (an integer as an integer, never n/1), and
-now and then a point is all integers. The key writes y = mx + b, b a fraction in lowest
+now and then a point is all integers.
+
+Steps 8 to 10 are sketches: two points and bare square axes, named x and y,
+with no grid, no frame, and no tick marks. Students tick and number each
+axis at its middle and its end, plot the points, draw the line to the
+edges, draw and label the rise-over-run triangle, and mark and estimate the
+y-intercept; the key draws all of that (its graph is the answer). Each axis
+runs to 1, 10, 100, 1000, or 10000, with coordinates in multiples of 0.1,
+0.5, 1, 10, or 100 to match, written as decimals; an axis's scale is the
+smallest that holds its coordinates. No coordinate is 0, the points are at
+least a fifth of an axis apart each way, and the y-intercept is on the graph. The key writes y = mx + b, b a fraction in lowest
 terms when it isn't whole; the check finds the line through the points.
 
 Step 1 starts from six forms (cy = ax + cb, cy − ax = cb, ax = cy − cb,

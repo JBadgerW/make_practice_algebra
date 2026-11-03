@@ -4,6 +4,7 @@ every line keeps the lesson's rules; the key's graph draws the line checked.
     python3 tests/test_slope_intercept_2_1.py
 """
 import random
+import re
 import sys
 from collections import Counter
 from fractions import Fraction as F
@@ -128,7 +129,10 @@ assert not B.typst(dict(type="1", prompt="3 y = x + 3", answer="y = 1/3 x + 1"))
 assert [B.type_instructions(k) for k in B.KEYS] == [
     "Solve each equation for y. Write it in the form y = mx + b.", "Graph each line.", "Solve each equation for y, then graph it.",
     "Write the equation of each line in the form y = mx + b."] + [
-    "Write the equation of the line through each pair of points in the form y = mx + b."] * 3
+    "Write the equation of the line through each pair of points in the form y = mx + b."] * 3 + [
+    B.TYPE[k]["instructions"] for k in B.ESTIMATE]
+assert all(B.type_instructions(k).startswith("Sketch the line through each pair of points.") for k in B.ESTIMATE)
+assert [B.TYPE[k]["title"] for k in B.ESTIMATE] == ["Estimation Graphs 1", "Estimation Graphs 2", "Estimation Graphs 3"]
 
 # ---- Steps 5 to 7: two points, neither on an axis; the key is the line through them
 for step in B.POINTS:
@@ -208,6 +212,58 @@ try:
     raise AssertionError("Steps 5 to 7 take two points")
 except ValueError:
     pass
+
+# ---- Steps 8 to 10: estimation graphs, two points and bare axes; the key sketches
+GRAINS = {1: F(1, 10), 10: F(1, 2), 100: 1, 1000: 10, 10000: 100}
+seen_scales = {k: set() for k in B.ESTIMATE}
+for step in B.ESTIMATE:
+    rng, seen = random.Random(20 + int(step)), set()
+    for _ in range(150):
+        p = B.generate(step, rng, seen)
+        pts = B.points_of(p["prompt"])
+        sx, sy = B.scales(step, pts)
+        seen_scales[step].add((sx, sy))
+        assert p["form"] is None and B.check(p) == "checked" and B.written_form(p["answer"]) == B.through(pts)
+        assert p["prompt"] == B.point_prompt(pts, step) and "/" not in p["prompt"], "decimals, never fractions"
+        for i, s in ((0, sx), (1, sy)):
+            grain = 1 if step == "8" else GRAINS[s]
+            vs = [pt[i] for pt in pts]
+            assert all(v != 0 and abs(v) <= s and v % grain == 0 for v in vs)
+            assert abs(vs[0] - vs[1]) >= F(s, 5) and (step == "8" or s == 1 or max(map(abs, vs)) > F(s, 10))
+        assert abs(B.through(pts)[1]) <= sy, "the y-intercept on the graph"
+        assert (step != "8" or (sx, sy) == (10, 10)) and (step != "9" or sx == sy) and (step != "10" or sx != sy)
+        sheet, key = B.typst(p), B.key_typst(p)
+        assert sheet.startswith("Sketch: $display(") and " and $display(" in sheet
+        assert sheet.count("line(") == 2 and "content(" in sheet and "circle(" not in sheet, "bare axes: no ticks, no numbers"
+        assert "luma(200)" not in sheet, "no grid"
+        assert key.count("circle(") == 3 and "run " in key and "rise " in key and "b " in key
+        assert key.count("stroke: 0.7pt)") == 2 + 8, "the axes, and four ticks on each"
+        assert B.answer_typst(p) == "" and B.text(p).startswith("Sketch: (") and B.text(p).endswith("[axes]")
+        assert B.answer_text(p).startswith("run ") and "y-intercept" in B.answer_text(p)
+        q, k = B.slide_typst(p), B.slide_typst(p, key=True)
+        assert q.startswith("#grid(columns: 2") and "run " in k and "run " not in q
+        frame = lambda t: [l.strip() for l in t.splitlines() if l.strip().startswith("rect(")]
+        assert len(frame(sheet)) == 1 and frame(sheet) == frame(key) and frame(q) == frame(k), \
+            "the same frame on the question and the answer, so the graph never moves"
+        (fx0, fy0), (fx1, fy1) = (tuple(map(float, c.split(", "))) for c in re.findall(r"\(([-\d.]+, [-\d.]+)\)", frame(k)[0]))
+        for c in re.findall(r"content\(\(([-\d.]+), ([-\d.]+)\)", k):
+            assert fx0 - 1e-6 <= float(c[0]) <= fx1 + 1e-6 and fy0 - 1e-6 <= float(c[1]) <= fy1 + 1e-6
+assert seen_scales["8"] == {(10, 10)} and seen_scales["9"] == {(s, s) for s in GRAINS}
+assert len(seen_scales["10"]) >= 12, "Step 10 mixes the scales"
+assert B.decimal(F(9, 2)) == "4.5" and B.decimal(F(4500)) == "4500" and B.decimal(F(-3, 10)) == "-0.3"
+
+p = dict(type="9", form=None, prompt="(0.3, -0.7), (-0.8, 0.4)", answer="y = -x - 2/5")
+assert B.check(p) == "checked" and B.scales("9", B.points_of(p["prompt"])) == (1, 1)
+assert B.check(dict(p, prompt="(0.35, -0.7), (-0.8, 0.4)", answer="y = -22/23 x - 91/230")) == "failed", "a multiple of 0.1"
+assert B.check(dict(p, prompt="(3, -7), (-8, 4)", answer="y = -x - 4")) == "checked", "an axis to 10, by halves"
+assert B.check(dict(p, prompt="(3, -70), (-8, 40)", answer="y = -10 x - 40")) == "failed", "Step 9's axes match"
+assert B.check(dict(p, type="10", prompt="(3, -70), (-8, 40)", answer="y = -10 x - 40")) == "checked"
+assert B.check(dict(p, type="10", prompt="(0.3, -0.7), (-0.8, 0.4)", answer="y = -x - 2/5")) == "failed", "Step 10's axes differ"
+assert B.check(dict(p, prompt="(0.3, -0.7), (0.2, 0.4)", answer="y = -11 x + 13/5")) == "failed", "too close to draw a triangle"
+assert B.check(dict(p, type="8", prompt="(9, 1), (8, 3)", answer="y = -2 x + 19")) == "failed", "b off the graph"
+assert B.check(dict(p, type="8", prompt="(2.5, 1), (8, 3)", answer="y = 4/11 x + 1/11")) == "failed", "Step 8 is integers"
+new, status = B.from_edit("(2.50, -7) and (-4, 3.5)", dict(p, type="9"))
+assert new["prompt"] == "(2.5, -7), (-4, 3.5)" and new["answer"] == "y = -21/13 x - 77/26" and status == "checked"
 
 B.selftest(300, 1)
 print("all slope_intercept_2_1 tests passed")
