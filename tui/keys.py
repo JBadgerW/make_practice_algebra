@@ -287,7 +287,15 @@ class Keys:
                 err = self.set_value(buf, self.rows().index(("set", "name")))
                 if err:
                     return self.say(f"E: {err}; nothing written", True)
-            self.write_cmd(then_quit=ref, force=True)
+            self.write_cmd(then=ref, force=True)
+        elif kind == "new":
+            a = buf.strip().lower()
+            if a in ("w", "write", "s", "save", "y", "yes"):
+                self.write_cmd(then="new")
+            elif a in ("d", "discard", "n", "no"):
+                self.new_sheet()
+            else:
+                self.say("kept this sheet: nothing changed")
 
     def edit_label(self):
         kind, ref = self.editing
@@ -296,6 +304,8 @@ class Keys:
             return f"{'count of ' + key[1] if k == 'count' else 'course' if k == 'course' else key}: "
         if kind in ("title", "instructions"):
             return f"{'sheet' if ref < 0 else 'section'} {kind}: "
+        if kind == "new":
+            return "unsaved changes: w writes them first, d discards them (Enter; Esc cancels): "
         if kind == "write":
             return f"name is still {mp.DEFAULTS['name']} (Enter writes, or retype; Esc cancels): "
         return {"problem": "problem (equation ; unknown): ", "answer": "answer: "}[kind]

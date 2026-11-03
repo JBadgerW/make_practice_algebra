@@ -20,12 +20,14 @@ class Commands:
         bang = cmd.endswith("!")
         cmd = cmd.rstrip("!")
         if cmd in ("w", "write", "wq", "x", "xit"):
-            self.write_cmd(then_quit=cmd != "w" and cmd != "write", force=bang)
+            self.write_cmd(then=None if cmd in ("w", "write") else "quit", force=bang)
         elif cmd in ("q", "quit", "qa", "qall"):
             if self.dirty() and self.total() and not bang:
                 self.say("E37: No write since last change (add ! to override)", True)
             else:
                 self.quit = True
+        elif cmd in ("new", "enew", "ene"):
+            self.new_cmd(force=bang)
         elif cmd == "mix":
             self.redraft(rest.split())
         elif cmd == "draft":

@@ -33,14 +33,41 @@ class Files:
                  f'({"PDFs compiled" if r["compiled"] else "typst not found: .typ only"}){warn}', bool(bad))
         return True
 
-    def write_cmd(self, then_quit=False, force=False):
-        """:w, :wq: write, then quit if asked. While the name is still the default,
-        ask first: the name to write under, filled in, so Enter confirms it and
-        typing changes it (Esc writes nothing). With ! there's no asking."""
+    def write_cmd(self, then=None, force=False):
+        """:w, :wq: write, then (then="quit") quit or (then="new") start a new sheet.
+        While the name is still the default, ask first: the name to write under,
+        filled in, so Enter confirms it and typing changes it (Esc writes nothing).
+        With ! there's no asking."""
         if self.total() and not force and self.s["name"] == mp.DEFAULTS["name"]:
-            return self.start_edit(("write", then_quit), self.s["name"])
-        if self.write() and then_quit:
-            self.quit = True
+            return self.start_edit(("write", then), self.s["name"])
+        if self.write():
+            if then == "quit":
+                self.quit = True
+            elif then == "new":
+                self.new_sheet()
+
+    def new_cmd(self, force=False):
+        """:new: start a new sheet. With unsaved changes, ask first: write them
+        (then start), discard them, or Esc to keep working. :new! doesn't ask."""
+        if self.dirty() and self.total() and not force:
+            return self.start_edit(("new", None), "")
+        self.new_sheet()
+
+    def new_sheet(self):
+        """Close this sheet and start a blank one: the title, name, versions, form,
+        and instructions go back to their defaults; the out folder, class, and
+        course stay. Undoable, like :clear."""
+        keep = {k: self.sheet.get(k) for k in ("class_name", "course")}
+        def go():
+            self.s.update(sheet=sh.new_sheet(mp.DEFAULTS["title"], keep["class_name"]),
+                          name=mp.DEFAULTS["name"])
+            self.sheet["course"] = keep["course"]
+        self.end_visual()
+        if not self.change(go):
+            return
+        self.cur, self.version, self.last_build = SHEET, 0, None
+        self.clamp()
+        self.say("new sheet (u to undo)")
 
     def graph_warning(self):
         """For a warm-up: the problems whose answer is a graph, which can't be lettered

@@ -48,6 +48,7 @@ I        what's here, in a box      + - W r     change all selected
                                     :scope bank|type  reroll from bank / type
 COMMANDS
 :w :w! :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
+:new  start a new sheet (asks to write or discard changes; :new! discards)
 :pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
 :decoys  a warm-up's new decoys (:pre key marks them)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full

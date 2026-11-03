@@ -1020,6 +1020,25 @@ assert (Path(OUT) / "renamed.sheet.json").exists() and not r.err
 r = T.App(seed=3); rk = driver(r)
 rk(f":mix 1:2\n:out {OUT}\n:name kept\n:w\n"); assert r.mode == "normal" and not r.dirty(), "a name set: no asking"
 
+# ---- :new starts a blank sheet; the out folder, class, and course stay
+r = T.App(seed=3); rk = driver(r)
+rk(f":mix 1:2\n:out {OUT}\n:class Period 3\n:title Quiz\n:versions 3\n:form warmup\n:instructions Show work.\n")
+out, course = r.s["out"], r.sheet.get("course")
+rk(":new\n"); assert r.mode == "insert" and "unsaved" in r.edit_label() and r.total() == 2, "dirty: asks first"
+rk("\x1b"); assert r.mode == "normal" and r.total() == 2 and r.sheet["title"] == "Quiz", "Esc keeps it"
+rk(":new\nx\n"); assert r.total() == 2 and "kept" in r.msg, "anything else keeps it"
+rk(":new\nd\n"); assert r.total() == 0 and not r.err, r.msg
+assert (r.sheet["title"], r.s["name"], r.sheet["versions"], sh.is_warmup(r.sheet), r.sheet["instructions"]) == \
+    ("Untitled Worksheet", "untitled", 1, False, ""), "the fields go back to their defaults"
+assert (r.s["out"], r.sheet["class_name"], r.sheet.get("course")) == (out, "Period 3", course), "these stay"
+rk("u"); assert r.total() == 2 and r.sheet["title"] == "Quiz", "u brings the old sheet back"
+rk(":name newtest\n:new\nw\n"); assert r.total() == 0 and (Path(OUT) / "newtest.sheet.json").exists(), "w writes, then starts"
+assert r.last_build is None and r.s["name"] == "untitled"
+rk(":mix 1:2\n:new\nw\n"); assert r.mode == "insert" and r.buf == "untitled", "still untitled: asks for the name"
+rk("\x15fromnew\n"); assert (Path(OUT) / "fromnew.sheet.json").exists() and r.total() == 0, r.msg
+rk(":mix 1:2\n:new!\n"); assert r.total() == 0 and r.mode == "normal", ":new! doesn't ask"
+rk(":new\n"); assert r.mode == "normal", "nothing to lose: no asking"
+
 # ---- a long draw runs beside the screen: Esc cancels it, and nothing changes
 k = T.App(seed=6); kk = driver(k)
 kk(":mix 1:2\n"); n_undo, total = len(k.undo), k.total()

@@ -609,6 +609,8 @@ through earlier commands.
 | `:form warmup\|worksheet` `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
 | `:e FILE.sheet.json` | Open a sheet |
+| `:new` | Start a new sheet. With unwritten changes it asks first: `w` writes them (asking for the name if it's still `untitled`), `d` discards them, and Esc keeps working on this one. The title, name, versions, form, and instructions go back to their defaults; the out folder, class, and course stay. `u` brings the old sheet back. |
+| `:new!` | Start a new sheet without asking, discarding changes |
 | `:open [sheet\|slides]` | Open the written PDF (default: the worksheet); every version is in it, each with its key after it |
 | `:pre [sheet\|key\|slides] [N]` | Print preview: compile version N (default: the one showing) as it stands to a temporary PDF and open it. Writes nothing to the out folder and doesn't count as saving. Run it again after a change and an open viewer reloads. |
 | `:N` | On the sheet: problem N. On the types pane: row N. |
