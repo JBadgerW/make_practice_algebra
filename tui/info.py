@@ -17,7 +17,7 @@ class Info:
             sheet = self.sheet
             rows = [("Title", sheet["title"], ":title"), ("Class", sheet["class_name"], ":class"),
                     ("Form", "warm-up" if sh.is_warmup(sheet) else "worksheet", ":form"),
-                    *([("Decoys", str(sum(d for _, _, d in writer.back(sheet))), ":decoys")]
+                    *([("Decoys", str(sum(d for _, _, d in writer.back(sheet, self.version))), ":decoys")]
                       if sh.is_warmup(sheet) else []),
                     ("Versions", str(sheet["versions"]), ":versions"),
                     ("Sections", str(len(sheet["sections"])), "")]

@@ -7,7 +7,7 @@
 
 #let half-gutter = 0.8in
 
-#let warmup-header(class-name, title) = grid(
+#let warmup-header(class-name, title, version: none) = grid(
   columns: (1fr, auto),
   column-gutter: 0.5em,
   row-gutter: 1.2em,
@@ -16,17 +16,17 @@
   align(right)[Name #answer-blank(5cm)],
 
   text(size: 14pt, weight: "bold", title),
-  align(right)[Date #answer-blank(2.5cm)],
+  align(right)[Date #answer-blank(2.5cm)#if version != none [ Ver: #version]],
 )
 
 // One half: the header, the instructions, then the problems. The body puts
 // #v(1fr) after each row of problems, so the work space is shared evenly.
-#let warmup-half(class-name, title, instructions: none, body) = block(
+#let warmup-half(class-name, title, instructions: none, version: none, body) = block(
   height: 100%,
   breakable: false,
   {
     qnum.update(0)
-    warmup-header(class-name, title)
+    warmup-header(class-name, title, version: version)
     if instructions != none {
       v(0.6em)
       instructions-block(instructions)
@@ -36,12 +36,15 @@
   },
 )
 
+// A title with its version, when there are several versions to tell apart.
+#let versioned(title, version) = if version == none [#title] else [#title (Ver: #version)]
+
 // The back of one half: the answers in shuffled order, lettered A, B, ...
-#let answer-half(title, answers) = block(
+#let answer-half(title, version: none, answers) = block(
   height: 100%,
   breakable: false,
   {
-    text(size: 14pt, weight: "bold")[#title — Answers]
+    text(size: 14pt, weight: "bold")[#versioned(title, version) — Answers]
     v(1em)
     grid(
       columns: (1fr, 1fr),
@@ -54,8 +57,8 @@
 
 // The teacher's look at the back, never printed for students: each entry is
 // (answer, note, decoy?), the note naming its problem or the one it imitates.
-#let answer-key(title, entries) = {
-  text(size: 14pt, weight: "bold")[#title — Answers, with decoys marked]
+#let answer-key(title, version: none, entries) = {
+  text(size: 14pt, weight: "bold")[#versioned(title, version) — Answers, with decoys marked]
   v(1em)
   grid(
     columns: (1fr, 1fr, 1fr),

@@ -71,18 +71,23 @@ class Files:
 
     def graph_warning(self):
         """For a warm-up: the problems whose answer is a graph, which can't be lettered
-        on the back, and those whose answer gives itself away with no decoy to hide it."""
+        on the back, and those whose answer gives itself away with no decoy to hide it
+        (by version, when there are several)."""
         if not sh.is_warmup(self.sheet):
             return ""
-        k, u = writer.unlettered(self.sheet), writer.unmatched(self.sheet)
-        return (f"  ·  {k} graph answer{'s' * (k > 1)} not on the back" if k else "") + \
-               (f"  ·  {', '.join(f'#{n}' for n in u)} can be matched without solving" if u else "")
+        out = ""
+        for v in range(self.sheet["versions"]):
+            ver = f"v{v + 1}: " if self.sheet["versions"] > 1 else ""
+            k, u = writer.unlettered(self.sheet, v), writer.unmatched(self.sheet, v)
+            out += (f"  ·  {ver}{k} graph answer{'s' * (k > 1)} not on the back" if k else "") + \
+                   (f"  ·  {ver}{', '.join(f'#{n}' for n in u)} can be matched without solving" if u else "")
+        return out
 
     def redraw_decoys(self):
         """:decoys: new decoys on a warm-up's back (the problems stay)."""
         if not sh.is_warmup(self.sheet):
             return self.say("E: decoys are for a warm-up (:form warmup)", True)
-        n = sum(d for _, _, d in writer.back(self.sheet))
+        n = sum(d for v in range(self.sheet["versions"]) for _, _, d in writer.back(self.sheet, v))
         if not n:
             return self.say("no decoys: no answer gives itself away" + self.graph_warning())
         self.change(lambda: self.sheet.__setitem__("decoy_seed", self.sheet.get("decoy_seed", 0) + 1))

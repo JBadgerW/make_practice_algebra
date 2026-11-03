@@ -2,7 +2,7 @@
 
     Sheet   dict(format, title, class_name, instructions, versions, command, sections, form)
                                                    form "warmup" prints the half-page warm-up
-                                                   (one version); no form, or "worksheet", the worksheet
+                                                   (each version a front and back); no form, or "worksheet", the worksheet
                                                    decoy_seed (warm-up): bumped to redraw its decoys
     Section dict(title, instructions, items, auto) an empty title prints no header;
                                                    auto "bank:type" marks a type's own section

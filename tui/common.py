@@ -16,7 +16,7 @@ COURSE_HINT = ("Which course's banks to show, grouped by unit: h/l step through 
                "(then All banks); i types one (Tab completes). Banks list their courses; :rescan "
                "rereads the library after you change one.")
 SETTING_HINTS = {
-    "form": "What to print (h/l, or i to type one): a worksheet, or a half-page warm-up: two copies side by side, the answers shuffled and lettered on the back for students to check themselves. An answer that would give itself away gets a look-alike decoy (:pre key marks them, :decoys redraws them). A warm-up has one version.",
+    "form": "What to print (h/l, or i to type one): a worksheet, or a half-page warm-up: two copies side by side, the answers shuffled and lettered on the back for students to check themselves. An answer that would give itself away gets a look-alike decoy (:pre key marks them, :decoys redraws them). Each version of a warm-up gets its own front and back.",
     "versions": "How many parallel versions to write (h/l, or i to type one): each drawn problem is redrawn in its slot; edited problems stay. Each version gets its own worksheet (key appended) and slides.",
     "title": "The worksheet and slide title. i to edit.",
     "class": "The class name in the worksheet and slide header (default: the course). i to edit.",

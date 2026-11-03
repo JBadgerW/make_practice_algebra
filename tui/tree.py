@@ -241,19 +241,11 @@ class Tree:
         self.rescan()
 
     def set_form(self, warmup):
-        """A warm-up or a worksheet; a warm-up keeps only version 1."""
-        def go():
-            self.sheet["form"] = "warmup" if warmup else "worksheet"
-            if warmup:
-                self.sheet["versions"] = 1
-                sh.fill_versions(self.sheet)
-        self.change(go)
-        self.version = 0 if warmup else self.version
+        """A warm-up or a worksheet; the versions stay."""
+        self.change(lambda: self.sheet.__setitem__("form", "warmup" if warmup else "worksheet"))
 
     def set_versions(self, n):
         n = min(26, max(1, n))
-        if n > 1 and sh.is_warmup(self.sheet):
-            return self.say("E: a warm-up has one version (set form to worksheet for more)", True)
         def go():
             self.sheet["versions"] = n
             sh.fill_versions(self.sheet)
@@ -308,8 +300,6 @@ class Tree:
             if key == "versions":
                 if not 1 <= n <= 26:
                     return "versions must be 1-26"
-                if n > 1 and sh.is_warmup(self.sheet):
-                    return "a warm-up has one version (set form to worksheet for more)"
                 self.set_versions(n)
             elif kind == "bank":
                 self.change(lambda: E.set_bank_count(self.sheet, key, n, self.seeds()))

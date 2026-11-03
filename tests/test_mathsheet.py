@@ -973,12 +973,12 @@ if shutil.which("typst"):
 pk(":pre 3\n"); assert p.err and "2 versions" in p.msg
 pk(":pre bogus\n"); assert p.err and "usage" in p.msg
 
-# ---- a warm-up: one version, two copies side by side, the answers shuffled on the back
+# ---- a warm-up: two copies side by side, the answers shuffled on the back
 w = T.App(seed=7); wk = driver(w); opened = []
 w.open_path = lambda f: opened.append(f) or True
 wk(f":out {OUT}\n:name warm\n:mix 1:2 3:2 inequalities/3:1\n:versions 3\n:form warmup\n")
-assert w.sheet["form"] == "warmup" and w.sheet["versions"] == 1 and not any(it["alts"] for it in sh.items(w.sheet))
-wk(":versions 2\n"); assert w.err and w.sheet["versions"] == 1, "a warm-up keeps one version"
+assert w.sheet["form"] == "warmup" and w.sheet["versions"] == 3, "the versions stay"
+wk(":versions 1\n"); assert not w.err and not any(it["alts"] for it in sh.items(w.sheet))
 wk(":form bogus\n"); assert w.err and "worksheet or warmup" in w.msg
 wk(":w\n"); assert "1 graph answer not on the back" in w.msg, w.msg
 assert sh.load(Path(OUT) / "warm.sheet.json")["form"] == "warmup"
@@ -1000,8 +1000,25 @@ after = writer.back(w.sheet)
 assert sorted((a, n) for a, n, d in before if not d) == sorted((a, n) for a, n, d in after if not d), "the answers stay"
 assert {a for a, _, d in before if d} != {a for a, _, d in after if d}, "the decoys change"
 wk("u"); assert writer.back(w.sheet) == before
-wk(":form worksheet\n:versions 2\n"); assert w.sheet["versions"] == 2 and all(it["alts"] for it in sh.items(w.sheet)[:4])
-wk("u"); assert w.sheet["versions"] == 1
+body = wt[wt.index("#let front"):]; assert "version:" not in body and "#bookmark[" not in wt, "one version: no version marks"
+
+# ---- a warm-up with versions: each its own front and back, in order, marked
+wk(":versions 3\n"); assert w.sheet["versions"] == 3 and all(it["alts"] for it in sh.items(w.sheet)[:4])
+wk(":w\n"); assert "v1: 1 graph answer" in w.msg and "v3: 1 graph answer" in w.msg, w.msg
+wt = (Path(OUT) / "warm.typ").read_text()
+assert wt.count("#two-up(front)") == 3 and wt.count("#two-up(back)") == 3 and wt.count("#bookmark[Version") == 3
+assert wt.count("question(space-below: 0pt)") == 15
+for v in range(3):
+    part = wt.split(f"#bookmark[Version {v + 1}]")[1].split("#bookmark[")[0]
+    assert f'version: "{v + 1}")[' in part and f'answer-half(worksheet-title, version: "{v + 1}", (' in part
+    assert all(f"  [{a}]," in part for a, _, _ in writer.back(w.sheet, v)), "each back holds its own version's answers"
+    assert part.index("#two-up(front)") < part.index("#two-up(back)"), "front, then its back"
+assert {a for a, _, d in writer.back(w.sheet, 0) if not d} != {a for a, _, d in writer.back(w.sheet, 1) if not d}
+assert 'answer-key(worksheet-title, version: "2", (' in writer.warmup_key(w.sheet, 1)
+if shutil.which("typst"):
+    wk(":pre 2\n"); assert opened[-1].name == "preview.pdf" and "version 2 warm-up" in w.msg and not w.err, w.msg
+    wk(":pre key 3\n"); assert opened[-1].name == "preview_key.pdf" and not w.err, w.msg
+wk(":form worksheet\n"); assert w.sheet["versions"] == 3, "switching back keeps them too"
 wk(":form worksheet\n:decoys\n"); assert w.err and "warm-up" in w.msg
 
 # ---- Lesson 1-2's answers each have their own letter: decoys give every one a look-alike

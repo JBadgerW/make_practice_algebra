@@ -26,7 +26,7 @@ python3 make_practice.py [options]
 | `--name NAME` | File prefix | `untitled` |
 | `--draft SEQ STEPS ...` | Draft from a sequence instead of `--mix`: `--draft by_move 5-6 review 1-4` (see *Drafting from a sequence*) | |
 | `--sheet FILE` | Print a saved `.sheet.json` again, or convert an older `NAME_v1.json` set (with its other versions) and print it in the current style | |
-| `--warmup` | A half-page warm-up instead of a worksheet (one version; see *The warm-up* in section 3) | worksheet |
+| `--warmup` | A half-page warm-up instead of a worksheet (each version its own front and back; see *The warm-up* in section 3) | worksheet |
 | `--no-compile` | Write `.typ` files only | compile |
 | `--selftest N` | Draw N problems of every type, check them all, then check every formula | |
 
@@ -547,8 +547,8 @@ edited problems are the same in every version. `gt` `gT` show the versions.
 
 **Form.** The *form* setting (`h` `l`, or `:form warmup` / `:form worksheet`)
 prints the sheet as a worksheet or as a half-page warm-up (see *The warm-up*
-in section 3). A warm-up has one version: switching to it keeps version 1,
-and `:versions` refuses more until you switch back.
+in section 3). The versions stay when you switch: a warm-up prints each
+version as its own front and back.
 
 ### Everywhere
 
@@ -630,8 +630,9 @@ In the output folder:
 | `NAME.typ` / `.pdf` | Every version's worksheet, in the style of `templates/refined_template.typ`, each followed by its answer key: starting on a new page, the same sheet with answers in red. The answers float in the work space, so the key breaks pages exactly where the worksheet does, and its problems are numbered from 1 again. Each version and key starts on the next page (odd or even), with a bookmark in the PDF viewer's sidebar. |
 | `NAME_slides.typ` / `.pdf` | Every version's deck: a title slide, a title slide per section (grouped only), then a problem slide and an answer slide for each problem. With several versions, the first slide links to each version's title slide, and the sidebar bookmarks each version and its sections. |
 
-For a warm-up, `NAME.typ` / `.pdf` holds the warm-up instead (below); the
-slides are the same.
+For a warm-up, `NAME.typ` / `.pdf` holds the warm-up instead (below): every
+version's front, each followed by its back, so printing it two-sided pairs them
+(with a bookmark per version when there are several). The slides are the same.
 
 **The warm-up.** A US Letter page turned sideways, in the style of
 `templates/warmup_template.typ`. The front has two identical half-page copies
@@ -642,7 +643,10 @@ room for each, so check the fit with `:pre`. The back has the answers twice, onc
 behind each copy, shuffled and lettered A, B, C, ... so students can find their
 own answer and check it. The order is the same every time for the same
 problems and changes when you reroll. Both halves are the same, so it doesn't
-matter which edge the printer flips on. A problem whose answer is a graph
+matter which edge the printer flips on. With several versions, each front's
+header shows *Ver: N* beside the Date line and each back's title says
+*(Ver: N)*, so students can match their copy to its answers; `:pre` and
+`:pre key` show the version on screen (`gt`) or `:pre 2`, `:pre key 2`. A problem whose answer is a graph
 (the number-line inequalities, say) has nothing to letter: it is left off the
 back, and `:w` says how many.
 
