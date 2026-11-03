@@ -115,6 +115,15 @@ new, status = B.from_edit("y = -1/2 x + 3", p)
 assert status == "checked" and new["answer"] == "y = -1/2 x + 3" and new["prompt"] == "y = -1/2 x + 3"
 assert "rgb(" not in B.graph(dict(p, prompt="y = x^2")), "an edited prompt that isn't a line: a blank graph"
 
+# ---- Steps 2 and 3 say "Graph:" before the equation, on the sheet, the key, the slides, and the terminal
+for t, prompt in (("2", "y = 2/3 x - 4"), ("3", "3 y = 2 x - 12")):
+    p = dict(type=t, form=None, prompt=prompt, answer="y = 2/3 x - 4")
+    eq = B.display(B.dfrac(prompt))
+    assert B.typst(p).startswith("Graph: " + eq) and B.key_typst(p).startswith("Graph: " + eq)
+    assert f"[Graph: {eq}" in B.slide_typst(p) and B.text(p).startswith("Graph: ")
+    assert B.edit_text(p) == prompt, "the prompt itself stays the equation"
+assert not B.typst(dict(type="1", prompt="3 y = x + 3", answer="y = 1/3 x + 1")).startswith("Graph")
+
 # ---- each step's own instructions; the sheet's come from the step when there's one
 assert [B.type_instructions(k) for k in B.KEYS] == [
     "Solve each equation for y. Write it in the form y = mx + b.", "Graph each line.", "Solve each equation for y, then graph it.",

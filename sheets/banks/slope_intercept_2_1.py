@@ -26,6 +26,8 @@ Step 2: Graph. The line is given as y = m x + b, with a blank graph, -10 to
 
 Step 3: Solve for y, then graph. A Step 1 form (spread over the six the
 same way) with a blank graph; the key gives y = m x + b and draws the line.
+Steps 2 and 3 show "Graph: " before the equation, so a problem says what to
+do without its step's instructions (the prompt itself is the equation alone).
 
 Step 4: Write the equation. The line is drawn on the graph, with no
 equation; the key gives y = m x + b. The prompt holds the line's own
@@ -254,13 +256,15 @@ def graph(p, key=False, width=5.5, size=6, every=None):
             g.point(x, float(y), color="red")
     return g.typst()
 
+ASKED = "Graph: "                       # before the equation in Steps 2 and 3, so the problem says what to do
+
 def typst(p, gap="0.3em", key=False):
     eq = display(dfrac(p["prompt"]))
     if p["type"] not in GRAPHED:
         return eq
     if p["type"] in DRAWN:
         return f"#align(center)[{graph(p)}]"
-    return f"{eq} #v(0.6em) #align(center)[{graph(p, key)}]"
+    return f"{ASKED}{eq} #v(0.6em) #align(center)[{graph(p, key)}]"
 
 def key_typst(p, gap="0.3em"):
     """The key's prompt: the line drawn on the graph."""
@@ -274,7 +278,7 @@ def slide_typst(p, key=False):
     if p["type"] not in GRAPHED:
         return None
     drawn = key and written_form(p["answer"]) is not None
-    left = "" if p["type"] in DRAWN else display(dfrac(p["prompt"]))
+    left = "" if p["type"] in DRAWN else ASKED + display(dfrac(p["prompt"]))
     if answer_typst(p):
         ans = f"#text(fill: red)[{answer_typst(p)}]"
         left += f" #v(0.8em) " if left else ""
@@ -289,7 +293,9 @@ def answer_typst(p):
 def text(p):
     if p["type"] in DRAWN:
         return f"[graph of {plain(p['prompt'])}]"
-    return plain(p["prompt"]) + ("   [graph]" if p["type"] in GRAPHED else "")
+    if p["type"] in GRAPHED:
+        return ASKED + plain(p["prompt"]) + "   [graph]"
+    return plain(p["prompt"])
 
 def answer_text(p):
     got = written_form(p["answer"])
