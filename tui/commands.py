@@ -92,6 +92,8 @@ class Commands:
             self.open_file(rest.split())
         elif cmd in ("pre", "preview"):
             self.preview(rest.split())
+        elif cmd in ("present", "pres"):
+            self.present(rest.split())
         elif cmd == "decoys":
             self.redraw_decoys()
         elif cmd in ("h", "help"):

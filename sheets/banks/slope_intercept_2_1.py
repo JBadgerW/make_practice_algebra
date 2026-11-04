@@ -580,10 +580,10 @@ def key_typst(p, gap="0.3em"):
     """The key's prompt: the line drawn on the graph."""
     return typst(p, gap, key=p["type"] in GRAPHED and written_form(p["answer"]) is not None)
 
-def slide_typst(p, key=False):
-    """On a slide, the graph is larger and sits beside the equation (with the key's
-    answer under it); None for a step without a graph, which shows as usual.
-    The question's slide holds the answer too, hidden, so the two slides lay out
+def slide_parts(p, key=False):
+    """A graphed problem's slide in two parts, (text, graph): the equation with the
+    key's answer under it, and the larger graph; None for a step without a graph.
+    The question's text holds the answer too, hidden, so the two slides lay out
     alike: the graph never moves when the answer shows."""
     if p["type"] not in GRAPHED:
         return None
@@ -593,8 +593,16 @@ def slide_typst(p, key=False):
         ans = f"#text(fill: red)[{answer_typst(p)}]"
         left += f" #v(0.8em) " if left else ""
         left += ans if key else f"#hide[{ans}]"
-    return (f"#grid(columns: 2, column-gutter: 1.5em, align: horizon, [{left}], "
-            f"[{graph(p, drawn, width=SLIDE_WIDTH, size=SLIDE_NUMBERS, every=2)}])")
+    return left, graph(p, drawn, width=SLIDE_WIDTH, size=SLIDE_NUMBERS, every=2)
+
+def slide_typst(p, key=False):
+    """On a slide, the graph sits beside the equation (slide_parts); None for a
+    step without a graph, which shows as usual. The board presenter stacks them."""
+    parts = slide_parts(p, key)
+    if parts is None:
+        return None
+    left, g = parts
+    return f"#grid(columns: 2, column-gutter: 1.5em, align: horizon, [{left}], [{g}])"
 
 def answer_typst(p):
     """The answer of Step 2 and Steps 8 to 10 is the graph alone (key_typst); the others give y = m x + b."""

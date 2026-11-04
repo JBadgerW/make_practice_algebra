@@ -8,7 +8,7 @@
       tree.py      the banks pane: rows, values, counts and settings
       sheet.py     the sheet pane: cursor, selection, and the changes made there
       render.py    the sheet laid out as the page shows it
-      files.py     :w, :pre, :open, :e
+      files.py     :w, :pre, :present, :open, :e
       commands.py  ex commands and search
       keys.py      every key, in each mode
       info.py      the info box (I)

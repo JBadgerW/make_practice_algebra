@@ -256,13 +256,23 @@ def _deck(sheet, v, start, bookmark):
             s += f"#bookmark(level: 2)[{esc(sec['title'])}]\n" if bookmark else ""
         for it in sec["items"]:
             n += 1
-            b, p = banks.get(it["bank"]), problem(it, v)
-            own = getattr(b, "slide_typst", lambda p, key=False: None)
-            if own(p) is not None:                  # the bank lays out its own slide, answer and all
-                s += f"#pagebreak()\n#slide({n}, [{own(p)}])\n"
-                s += f"#pagebreak()\n#slide({n}, [{own(p, key=True)}])\n"
-                continue
-            pr, ans = b.typst(p, gap="0.5em"), b.answer_typst(p)
-            s += f"#pagebreak()\n#slide({n}, [{pr}])\n"
-            s += f"#pagebreak()\n#slide({n}, [{_key_prompt(b, p, '0.5em')}], answer: {f'[{ans}]' if ans else 'none'})\n"
+            q, a = slide_args(it, v)
+            s += f"#pagebreak()\n#slide({n}, {q})\n#pagebreak()\n#slide({n}, {a})\n"
     return s
+
+def own_slide(it, v):
+    """Does the item's bank lay out its slide in version v (slide_typst), a graph beside its equation?"""
+    b = banks.get(it["bank"])
+    return getattr(b, "slide_typst", lambda p, key=False: None)(problem(it, v)) is not None
+
+def slide_args(it, v):
+    """The arguments of an item's question slide and answer slide in version v,
+    as Typst ("[...]" or "[...], answer: [...]"): a bank's own slide_typst when it
+    lays out its slide, answer and all (a graph that never moves); else its prompt,
+    then the key's prompt with the answer in red under it."""
+    b, p = banks.get(it["bank"]), problem(it, v)
+    if own_slide(it, v):
+        return f"[{b.slide_typst(p)}]", f"[{b.slide_typst(p, key=True)}]"
+    ans = b.answer_typst(p)
+    return (f"[{b.typst(p, gap='0.5em')}]",
+            f"[{_key_prompt(b, p, '0.5em')}], answer: {f'[{ans}]' if ans else 'none'}")

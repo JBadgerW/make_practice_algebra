@@ -613,6 +613,7 @@ through earlier commands.
 | `:new!` | Start a new sheet without asking, discarding changes |
 | `:open [sheet\|slides]` | Open the written PDF (default: the worksheet); every version is in it, each with its key after it |
 | `:pre [sheet\|key\|slides] [N]` | Print preview: compile version N (default: the one showing) as it stands to a temporary PDF and open it. Writes nothing to the out folder and doesn't count as saving. Run it again after a change and an open viewer reloads. |
+| `:present [N]` | The board presenter (see [The board presenter](#the-board-presenter)) for version N (default: the one showing), the sheet as it stands: writes `NAME.present.html` to the out folder and opens it in the browser. Doesn't count as saving. |
 | `:N` | On the sheet: problem N. On the types pane: row N. |
 | `:help` or `?` | Show the keys |
 
@@ -697,6 +698,39 @@ print it again with `python3 make_practice.py --sheet FILE`.
 
 Prompts and answers are stored as Typst math. Paste one into a Typst file
 as `$display(...)$`.
+
+### The board presenter
+
+`present.py` turns a saved sheet into a web page for working at the board,
+two students at a time:
+
+```sh
+python3 present.py lesson.sheet.json              # version 1
+python3 present.py lesson.sheet.json --version 2  # another version
+python3 present.py lesson.sheet.json --out ~/Desktop --no-open
+```
+
+It writes `lesson.present.html` next to the sheet (versions after the first
+add `_v2`, ...), then opens it. Press F11 for full screen. In the app,
+`:present` does the same for the sheet as it stands. The page is one file
+that needs nothing else, so you can copy it to the classroom computer.
+
+The screen splits in half, with problems 1 and 2 to start. Click a half to
+show its answer. Click it again and the next problem in the queue loads there.
+Both halves share one queue, so whichever student finishes first gets the
+next problem. The numbers down the left edge scroll. Click one to move the
+queue there, back or forward, even past problems already done. The halves
+keep what they show, and the next half you click past its answer loads that
+problem. On the strip, the numbers on screen are filled (blue left, orange
+right), the next one is outlined, and the ones answered are gray. Keys: `a`
+or Left clicks the left half, `l` or Right the right half, and `u` undoes a
+click. After the last problem, a half shows *Done*.
+
+Each problem is drawn as on its slides, on a page half a slide wide. Text
+wraps and shrinks to fit. A graphed problem shows its equation centered above
+the graph, with the answer between them when it shows. Every graph is the
+same size, and it doesn't move when the answer shows. The page has no answers
+until you click, but they're in the file, so don't hand it to students.
 
 ## 4. Adding problems
 
@@ -867,6 +901,7 @@ python3 tests/test_khan.py                   # every Khan type draws, checks, an
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling, and its 100 source problems
 python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
+python3 tests/test_present.py                # the board presenter: its panels compile; clicks, strip, and undo (needs node)
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)
 ```
 

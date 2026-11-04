@@ -2,7 +2,7 @@
 import copy, re, shlex, subprocess
 from pathlib import Path
 import make_practice as mp
-from sheets import sheet as sh, library, writer
+from sheets import sheet as sh, library, writer, present as presenter
 from .common import dir_label, home_path, SHEET
 
 class Files:
@@ -142,6 +142,29 @@ class Files:
             self.say(f"preview: version {v} {('warm-up' if sh.is_warmup(self.sheet) else 'worksheet') if what == 'sheet' else what} (not saved)"
                      + (f"  ·  {bad} failing answer{'s' * (bad > 1)} (✗)" if bad else "")
                      + (f"  ·  {un} unchecked" if un else "") + self.graph_warning(), bool(bad))
+
+    def present(self, args):
+        """:present [N]: the board presenter for version N (else the one showing),
+        the sheet as it stands: <name>.present.html in the out folder, opened
+        in the browser. The sheet isn't marked saved."""
+        v = self.version + 1
+        for a in args:
+            if not a.isdigit():
+                return self.say("usage: :present [version]", True)
+            v = int(a)
+        if not 1 <= v <= self.sheet["versions"]:
+            return self.say(f"E: there are {self.sheet['versions']} versions", True)
+        if not self.total():
+            return self.say("E: nothing to present: the sheet is empty", True)
+        many = self.sheet["versions"] > 1 and v > 1
+        f = Path(self.s["out"]).expanduser().resolve() / f"{self.s['name']}{f'_v{v}' * many}.present.html"
+        try:
+            f.parent.mkdir(parents=True, exist_ok=True)
+            presenter.build(self.sheet, f, v - 1)
+        except (RuntimeError, OSError) as e:
+            return self.say(f"E: {e}".splitlines()[0], True)
+        if self.open_path(f):
+            self.say(f"presenting version {v}: {dir_label(f.parent)}/{f.name} (click a half: answer, then next)")
 
     def load(self, path):
         """Open a .sheet.json (or convert an older practice .json) to edit."""

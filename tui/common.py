@@ -50,6 +50,7 @@ COMMANDS
 :w :w! :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
 :new  start a new sheet (asks to write or discard changes; :new! discards)
 :pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
+:present [N]  two problems at a time at the board, in the browser
 :decoys  a warm-up's new decoys (:pre key marks them)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps

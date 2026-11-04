@@ -64,6 +64,10 @@ python3 make_practice.py --mix adv_rationalize/all:2 --warmup --class "Advanced 
 # Build and edit a sheet interactively: add by type, then Tab to the sheet to
 # reroll, resize, edit, and move problems (press ? inside for keys)
 python3 mathsheet.py
+
+# At the board, two at a time: a saved sheet's problems in the two halves of the
+# screen; click a half for its answer, again for the next problem
+python3 present.py lesson.sheet.json
 ```
 
 The practice files go into `practice/` in the folder you run from (`--out`, or
