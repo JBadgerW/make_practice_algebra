@@ -208,7 +208,7 @@ triangle, and the y-intercept with its estimate. `i` edits the points, as
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists
-all twelve and their types); `adv_trig/all:1` is one of each type. Add
+all fifteen and their types); `adv_trig/all:1` is one of each type. Add
 `--class "Advanced Math"` for the header. Each type has several templates,
 and a problem draws its own letters. Every problem is built backward from a
 nice answer, and its check doesn't use how it was built:
@@ -218,6 +218,17 @@ nice answer, and its check doesn't use how it was built:
   prompt at random values of its letters (letters in exponents too), and
   its text must be in the key's form: positive exponents, nothing to
   rationalize, lowest terms, no fraction inside it.
+- **Adding and subtracting** (`adv_rational_add`): the answer must equal the
+  prompt exactly at random rational points, and be one fraction in lowest
+  terms, its numerator multiplied out and its denominator factored into
+  numbers, letters, and first-degree factors (in any order).
+- **Fractional equations** (`adv_fractional_equations`): the equation is
+  cleared by the least common multiple of its denominators, every root found,
+  and those that make a denominator zero dropped; the key must be the one
+  root left, in lowest terms (the key names the dropped one).
+- **Radical equations** (`adv_radical_equations`): the key's value, put into
+  the original equation, makes both sides equal exactly. The left side
+  increases with the unknown, so it is the only solution.
 - **Factoring** (`adv_factoring` types 2-4): the same, and finished: no factor
   is still a difference of squares, no factor has a common number, and (with
   number exponents) sympy can't split any factor further.
@@ -240,6 +251,9 @@ the key and checks it. Prompts are Typst math:
 | Bank | `i` takes | `A` takes |
 |---|---|---|
 | simplifying banks | `(3 x^2 y^(-1))^(-2)`, `(4 + sqrt(3))/(2 - sqrt(3))` (i is the imaginary unit in `adv_rationalize`) | `(8 x^8)/(9 y^7)`, `11 + 6 sqrt(3)` |
+| `adv_fractional_equations` | `4/7 + 3/(x + 2) = 5/3` | `x = 17/23` |
+| `adv_radical_equations` | `sqrt(s - 48) + sqrt(s) = 8`, `root(3, x - 5) - 2 = 2` | `s = 49` |
+| `adv_rational_add` | `(x - 4)/(x^2 + 5 x + 6) + (x - 1)/(x^2 - 4)` | `(2 x^2 - 4 x + 5)/((x + 2) (x + 3) (x - 2))` |
 | `adv_factoring` | `3 y^(2 n + 1) + 12 y^(3 n + 2)` | `3 y^(2 n + 1) (1 + 4 y^(n + 1))` |
 | `adv_literal` | `y = v (a/x + b/(m c)) ; c` (the equation, then the letter) | `c = (b v x)/(m x y - a m v)` |
 | `adv_poly_division` | `x^3 - 5 x^2 + 9 ; x - 4` (dividend ; divisor) | `x^2 - x - 4 - 7/(x - 4)` |

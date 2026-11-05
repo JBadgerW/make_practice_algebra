@@ -425,6 +425,31 @@ assert x.item()["problem"]["answer"] == "2" and x.item()["status"] == "checked",
 xk(f":{where.index(('adv_spheres', '2')) + 1}\n"); right = x.item()["problem"]["answer"]
 xk("A\x15$5 pi$ cubic miles\n"); assert x.item()["status"] == "failed", "no radius 1 to 10 gives 5 pi"
 xk(f"A\x15{right}\n"); assert x.item()["status"] == "checked"
+x = T.App(seed=8); xk = driver(x)
+xk(":mix adv_rational_add/all:1\n")
+assert len(sh.items(x.sheet)) == 16 and all(it["status"] == "checked" for it in sh.items(x.sheet))
+where = [(it["bank"], it["entry"]) for it in sh.items(x.sheet)]
+xk(f"\t:{where.index(('adv_rational_add', '11')) + 1}\n"); xk("cc"); xk("\x15(x - 4)/(x^2 + 5 x + 6) + (x - 1)/(x^2 - 4)\n")
+assert x.item()["problem"]["answer"] == "(2 x^2 - 4 x + 5)/((x + 2) (x + 3) (x - 2))" and x.item()["status"] == "checked", x.item()
+xk("A\x15(2 x^2 - 4 x + 5)/((x - 2) (x + 2) (x + 3))\n"); assert x.item()["status"] == "checked", "the factors in any order"
+xk("A\x15(2 x^2 - 4 x + 5)/((x^2 - 4) (x + 3))\n"); assert x.item()["status"] == "failed", "the denominator factored"
+xk("A\x15(2 x^2 - 4 x + 5)/((x + 2) (x - 2) (x - 3))\n"); assert x.item()["status"] == "failed"
+xk("cc"); xk("\x151/(x + 1) - x/(x - 2) + (x^2 + 2)/(x^2 - x - 2)\n"); assert x.item()["problem"]["answer"] == "0"
+x = T.App(seed=9); xk = driver(x)
+xk(":mix adv_fractional_equations/all:1 adv_radical_equations/all:1\n")
+assert len(sh.items(x.sheet)) == 7 and all(it["status"] == "checked" for it in sh.items(x.sheet))
+where = [(it["bank"], it["entry"]) for it in sh.items(x.sheet)]
+xk(f"\t:{where.index(('adv_fractional_equations', '3')) + 1}\n"); xk("cc"); xk("\x15(x - 6)/(x^2 - 9 x + 20) = 2/(x - 4) - x/(x - 5)\n")
+assert x.item()["problem"]["answer"] == "x = 1" and x.item()["status"] == "checked", x.item()
+xk("A\x15x = 4\n"); assert x.item()["status"] == "failed", "4 is excluded"
+xk(f":{where.index(('adv_fractional_equations', '1')) + 1}\n"); xk("cc"); xk("\x154/7 + 3/(x + 2) = 5/3\n")
+assert x.item()["problem"]["answer"] == "x = 17/23" and x.item()["status"] == "checked", x.item()
+xk("A\x15x = 34/46\n"); assert x.item()["status"] == "failed", "in lowest terms"
+xk(f":{where.index(('adv_radical_equations', '1')) + 1}\n"); xk("cc"); xk("\x15root(3, x - 5) - 2 = 2\n")
+assert x.item()["problem"]["answer"] == "x = 69" and x.item()["status"] == "checked", x.item()
+xk(f":{where.index(('adv_radical_equations', '3')) + 1}\n"); xk("cc"); xk("\x15sqrt(s - 48) + sqrt(s) = 8\n")
+assert x.item()["problem"]["answer"] == "s = 49" and x.item()["status"] == "checked", x.item()
+xk("A\x15s = 64\n"); assert x.item()["status"] == "failed"
 
 # ---- selecting with v: changes apply to every selected problem
 v = T.App(seed=3); vk = driver(v)
@@ -509,7 +534,7 @@ lib = Path(tempfile.mkdtemp(prefix="courselib_"))
     {"title": "Algebra 1", "units": ["Foundations", "Equations", "Lessons", "Additional Practice", "Tests"]}]}))
 (lib / "ints.json").write_text(_json.dumps({"format": 1, "name": "ints", "title": "Integers",
     "courses": {"Prealgebra": None, "Algebra 1": "Foundations"},
-    "types": [{"key": "add", "title": "Adding"}, {"key": "mul", "title": "Multiplying", "courses": ["Prealgebra"]}],
+    "types": [{"key": "add", "title": "Adding Integers"}, {"key": "mul", "title": "Multiplying", "courses": ["Prealgebra"]}],
     "problems": [{"id": "1", "type": "add", "prompt": "$-3 + 5$", "answer": "$2$"},
                  {"id": "2", "type": "mul", "prompt": "$-3 dot 5$", "answer": "$-15$"}]}))
 library.save_config(library=str(lib))
@@ -536,8 +561,8 @@ ck("u"); assert c.course == "Algebra 1", "u undoes a course change"
 ck(":course\n"); assert c.msg.startswith("course: Algebra 1")
 ck("gg" + "i\x15Geo\t"); assert c.buf == "Geometry"
 ck("\n"); assert c.course == "Geometry" and len(c.rows()) == 1 + len(T.SETTINGS)
-ck("/Adding\n"); assert c.err, "/ searches the course"
-ck(":course all\n/Adding\n"); assert c.rid() == ("count", ("ints", "add"))
+ck("/Adding Int\n"); assert c.err, "/ searches the course"
+ck(":course all\n/Adding Int\n"); assert c.rid() == ("count", ("ints", "add"))
 assert T.App().course is None, "all banks, as last used"
 library.save_config(course="Algebra 2"); assert T.App().course == "Algebra 2", "a new sheet starts in the last course"
 assert T.App().sheet["class_name"] == "Algebra 2", "and its class is the course"
@@ -545,7 +570,7 @@ assert T.App(sheet=sh.new_sheet("Quiz", "Period 3")).sheet["class_name"] == "Per
 
 # the sheet keeps its course; a bank that goes missing still shows and prints
 ck(":course Algebra 1\n"); c.open.add("ints")
-ck("gg/Adding\n"); ck("l"); assert E.count(c.sheet, "ints", "add") == 1
+ck("gg/Adding Int\n"); ck("l"); assert E.count(c.sheet, "ints", "add") == 1
 ck(":class Algebra 1\n:course Prealgebra\n"); assert c.sheet["class_name"] == "Algebra 1", "a sheet with problems keeps its class"
 ck(":course Algebra 1\n")
 ck(f":out {OUT}\n:name course\n:w\n"); assert not c.err, c.msg

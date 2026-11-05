@@ -206,18 +206,22 @@ def shown():
             lambda p: plain(p["answer"]),
             lambda p: 0.55 if "/" in p["prompt"] else 0.3)
 
-def edits(answer_of, check, example, example_answer, imaginary=False):
+def edits(answer_of, check, example, example_answer, imaginary=False, parse=None):
     """edit_text, from_edit, answer_edit_text, with_answer for such a bank.
     An edited prompt is solved again with answer_of(prompt) (a ValueError
     there keeps the old answer, which check() then marks); an edited answer
-    is checked against the prompt."""
+    is checked against the prompt. parse(text) reads an edit, raising if it
+    isn't Typst math (default: to_sympy, one expression; an equation bank
+    passes its own)."""
     from .check import to_sympy
+    if parse is None:
+        parse = lambda t: to_sympy(t, imaginary)
     def clean(t):
         return " ".join(t.replace("−", "-").split())
     def from_edit(t, old):
         t = clean(t)
         try:
-            to_sympy(t, imaginary)
+            parse(t)
         except Exception:
             raise ValueError(f"write it in Typst math, like {example}") from None
         try:
@@ -229,7 +233,7 @@ def edits(answer_of, check, example, example_answer, imaginary=False):
     def with_answer(p, t):
         t = clean(t)
         try:
-            to_sympy(t, imaginary)
+            parse(t)
         except Exception:
             raise ValueError(f"write the answer in Typst math, like {example_answer}") from None
         new = dict(p, answer=t)

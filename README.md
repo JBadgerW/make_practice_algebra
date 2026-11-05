@@ -355,10 +355,12 @@ sympy and confirms that the key's letters are exactly the right choices.
 
 ### Advanced Math
 
-Twelve banks, tagged *Advanced Math → Additional Practice*, ported from the
+Fifteen banks, tagged *Advanced Math → Additional Practice*. Twelve are ported from the
 old worksheet app's `AdvMath_*` sets (the 2025-26 midterm, Tests 4 and 5,
-and the lesson sets). Every problem draws its own letters, as the old sets
-did, and every answer is checked by machine: its value against the prompt,
+and the lesson sets); `adv_rational_add` follows the 50-problem practice set
+*Adding & Subtracting Rational Expressions*, one type for each kind of problem
+in it; `adv_fractional_equations` and `adv_radical_equations` follow
+Lesson 6's problem set. Every problem draws its own letters, as the old sets did, and every answer is checked by machine: its value against the prompt,
 and its form from its text.
 
 | Bank | Title | Types |
@@ -375,12 +377,22 @@ and its form from its text.
 | `adv_word` | Number, Coin, and Average Problems | 1 Digit Problems · 2 Coin Problems · 3 Averages |
 | `adv_trig` | Trig Values and Polar Form | 1 Exact Trig Values · 2 Angles Past 90° · 3 Rectangular to Polar · 4 Polar to Rectangular |
 | `adv_spheres` | Spheres | 1 Volume to Surface Area · 2 Surface Area to Volume |
+| `adv_fractional_equations` | Fractional Equations | 1 One Fraction with the Unknown Below · 2 Factored Denominators · 3 Trinomial Denominators |
+| `adv_radical_equations` | Radical Equations | 1 A Cube Root · 2 One Radical and the Root of a Number · 3 Two Radicals: √(s − k) + √s · 4 Two Radicals with a Coefficient |
+| `adv_rational_add` | Adding and Subtracting Rational Expressions | 1 Like Denominators: A Number · 2 Like Denominators: A Monomial · 3 Like Binomial Denominators: Subtracting · 4 Like Denominators with a Number Factor · 5 Like Quadratic Denominators · 6 Unlike Monomials: One Is the LCD · 7 Unlike Monomials: Both Rewritten · 8 Monomials in Two Letters · 9 A Whole Term and a Fraction · 10 A Binomial and a Trinomial · 11 Two Quadratics with a Common Factor · 12 Two Quadratics with No Common Factor · 13 A Number and Two Fractions · 14 Three Fractions, One over the LCD · 15 Opposite Denominators · 16 Three Trinomial Denominators |
 
 How the keys write answers:
 
 - **One fraction, multiplied out**, in lowest terms: `(x^3 + x y^4)/y^3`,
   `(3 + 2√2)/7`, `(9 − 2i)/5`.
 - **Positive exponents only**; no radical and no `i` in a denominator.
+- **Adding and subtracting rational expressions** keeps the denominator
+  factored: `(2x² − 4x + 5)/((x + 2)(x + 3)(x − 2))`, a repeated factor as a
+  power, `(x + 3)²(x − 3)`; a monomial denominator stays one monomial.
+- **Fractional and radical equations** give the solution in the problem's
+  letter, `x = 17/23`, `s = 49`. In fractional Types 2 and 3 one root of the
+  cleared equation makes a denominator zero, and the key names it:
+  `x = −1 (x = 1 is excluded)`.
 - **A minus sign** goes into a denominator that is a sum, `(csv)/(kvy − aks)`,
   and otherwise in front, `−(x + 1)/(2x)`.
 - **Every fraction in display style**, nested ones too (but not in
@@ -429,7 +441,7 @@ ever runs code.
 | `sheets/banks/literal/` | The literal-equation bank: `types.py`, `templates.py`, `formulas.py`, `answers.py` (solver and answer formatter), and drawing in `__init__.py` |
 | `sheets/typmath.py` | sympy → Typst math as the key writes it (one fraction, positive exponents, terms by degree), and display-style fractions (`dfrac`) |
 | `sheets/gen.py` | What the Advanced Math and Khan banks share: random helpers, letters and names, the type table, the draw-and-check loop (with answers spread evenly over a sheet where a bank asks), multiple choice, display and editing, and story templates for word problems |
-| `sheets/banks/adv_*.py` | The twelve Advanced Math banks (see *Advanced Math* above) |
+| `sheets/banks/adv_*.py` | The fifteen Advanced Math banks (see *Advanced Math* above) |
 | `sheets/banks/khan_pre/`, `khan_alg1/`, `khan_alg2/` | The Khan Academy banks, one module per lesson (`kpa_`, `ka1_`, `ka2_`), with what each course's lessons share (systems, polynomials, stories, figures, curves; see [KHAN.md](KHAN.md)) |
 | `sheets/linear.py`, `ineq.py`, `poly.py`, `radicals.py` | Shared math for those banks: one-variable equations and inequalities read and solved from their text, polynomials in standard and factored form, square roots in simplest form |
 | `sheets/graphs.py` | Coordinate-plane graphs drawn with cetz: grids, axes, lines, curves, points; every coordinate worked out in Python |
