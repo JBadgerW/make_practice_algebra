@@ -59,8 +59,10 @@ class Commands:
             self.set_width(rest)
         elif cmd == "scope":
             self.set_scope(rest)
-        elif cmd == "join":
+        elif cmd in ("j", "join"):
             self.join()
+        elif cmd in ("ja", "joinall"):
+            self.join(every=True)
         elif cmd in ("group", "gr"):
             self.group(rest)
         elif cmd == "course":

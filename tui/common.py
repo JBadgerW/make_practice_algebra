@@ -54,7 +54,7 @@ COMMANDS
 :decoys  a warm-up's new decoys (:pre key marks them)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
-:groups 9 8 3+4=Warm-up   :shuffle   :join   :rename TEXT   :N  problem N
+:groups 9 8 3+4=Warm-up   :shuffle   :join (:j)   :ja   :rename TEXT   :N  problem N
 :form :title :class :instructions :versions :name :out  :set [no]compact [no]wide
 :course NAME|all  (h l on COURSE)   :rescan   :library DIR   :warnings
 Types 1-11, A, B: the lesson's sequence. 3f: real formulas. Banks: built in, and your :library."""
