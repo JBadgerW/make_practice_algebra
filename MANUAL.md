@@ -611,7 +611,8 @@ through earlier commands.
 | `:reroll`, `:reroll section` | Reroll the sheet / the cursor's section |
 | `:space 1.5in`, `:width full` | Set work space or width (the selection, or problem, section, or sheet, by where the cursor is) |
 | `:scope bank`, `:scope type` | Rerolls draw from the whole bank or the type only (the selection, or problem, section, or sheet, by where the cursor is) |
-| `:join` | Merge the section below into the cursor's section |
+| `:join`, `:j` | Merge the section below into the cursor's section |
+| `:ja`, `:joinall` | Merge every section below into the cursor's section (it keeps its title) |
 | `:course NAME`, `:course all` | Show a course's banks, or every bank (`Tab` completes); `:course` says which |
 | `:rescan` | Read the library again (after you add or change a bank or `courses.json`) |
 | `:library DIR` | Use this library folder from now on (`Tab` completes); `:library` alone rescans |

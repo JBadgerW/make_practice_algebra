@@ -291,15 +291,19 @@ def move_section(sheet, si, d):
     secs.insert(j, secs.pop(si))
     return j
 
-def join(sheet, si):
-    """Merge the section below into si; it keeps si's title."""
+def join(sheet, si, every=False):
+    """Merge the section below into si (with every, all the sections below);
+    it keeps si's title. Returns how many sections were joined."""
     secs = sheet["sections"]
     if si + 1 >= len(secs):
         raise ValueError("no section below to join")
-    nxt = secs.pop(si + 1)
-    secs[si]["items"] += nxt["items"]
-    if nxt.get("auto") != secs[si].get("auto"):
-        secs[si]["auto"] = ""               # a mix is no longer one type's own section
+    n = len(secs) - si - 1 if every else 1
+    for _ in range(n):
+        nxt = secs.pop(si + 1)
+        secs[si]["items"] += nxt["items"]
+        if nxt.get("auto") != secs[si].get("auto"):
+            secs[si]["auto"] = ""           # a mix is no longer one type's own section
+    return n
 
 def group(sheet, positions, title=""):
     """Move the items at these positions (in reading order) into a new section

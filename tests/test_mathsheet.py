@@ -155,6 +155,9 @@ keys("j"); p = a.item()["problem"]["prompt"]; keys("3J")
 assert a.cur[0] == 1 and a.item()["problem"]["prompt"] == p, "J moves a problem, across sections"
 keys(":1\n"); keys(":join\n"); assert titles(a)[0] == "Warm-up" and len(a.sheet["sections"][0]["items"]) >= 5
 keys("u")
+nsec = len(a.sheet["sections"]); assert nsec >= 3
+keys(":ja\n"); assert len(a.sheet["sections"]) == 1 and titles(a)[0] == "Warm-up", ":ja joins every section below"
+keys("u"); assert len(a.sheet["sections"]) == nsec
 keys("zM"); assert a.folded and a.cur[1] == -1
 assert all(t[1] == -1 for t in a.targets()), "folded: only headers"
 assert "problems" in text(a)

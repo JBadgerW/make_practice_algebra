@@ -304,12 +304,14 @@ class SheetEdits:
         self.change(go)
         self.start_edit(("title", at), "")
 
-    def join(self):
+    def join(self, every=False):
+        """:join / :j: the section below into the cursor's; :ja, every one below."""
         si = self.cur[0]
         if si < 0:
             return self.say("move to a section first", True)
-        if self.change(lambda: E.join(self.sheet, si)):
-            self.say("joined (u to undo)")
+        n = len(self.sheet["sections"]) - si - 1 if every else 1
+        if self.change(lambda: E.join(self.sheet, si, every)):
+            self.say(f"{n} section{'s' * (n != 1)} joined (u to undo)")
 
     def rename(self, text, si=None):
         si = self.cur[0] if si is None else si
