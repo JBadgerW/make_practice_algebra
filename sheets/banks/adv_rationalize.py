@@ -1,5 +1,12 @@
 """Rationalizing denominators (Advanced Math), from the old app's set
-AdvMath_10_04 (a-d) and the 2025-26 midterm (square roots of negatives).
+AdvMath_10_04 (a-d), the 2025-26 midterm (square roots of negatives), and
+Lesson 10's problem set (~/Documents/adv_math/problem_sets/ps_010/
+rational_denominators.typ). Lesson 10 adds templates to Types 3 and 4: a
+conjugate product that is negative, (4 + sqrt(3))/(2 - 3 sqrt(3)) with 4 - 27
+= -23; a problem built to reduce to a whole expression, (2 + 2 sqrt(3))/(1 -
+sqrt(3)) = -4 - 2 sqrt(3); and powers of i spread out and out of order, to be
+written in standard form first, (2 - i^3 + 2 i^5)/(-2 i + 4), with like powers
+that combine, (3 i^3 + 2 - 2 i^3)/(i - 4).
 
 The key's answer is one fraction in lowest terms with no radical and no i
 in its denominator: (3 sqrt(2))/2, (3 - i)/5, -(2 + sqrt(3))/3. Powers of i
@@ -13,6 +20,7 @@ A problem: dict(type, prompt, answer, source), both in Typst math.
     prompt  "(4 + sqrt(3))/(2 - sqrt(3))"
     answer  "11 + 6 sqrt(3)"
 """
+import math
 import sympy as sp
 from .. import gen
 from ..gen import need, signed, except_
@@ -131,11 +139,59 @@ def t4_roots_of_negatives(r):                 # the 2025-26 midterm
     top = f"sqrt({-a}){term(signed(r, 1, 8))}"
     return fr(top, term(signed(r, 1, 6), "", True) + f" + {ipow(r.choice((4, 8)))} sqrt({-b})")
 
+# ------------------------------------------------------------------
+# Lesson 10's problem set
+# ------------------------------------------------------------------
+def t3_negative_conjugate(r):                  # (4 + sqrt(3))/(2 - 3 sqrt(3)): below, 4 - 27 = -23
+    c = r.choice((2, 3, 3, 5))
+    a, b = r.randint(1, 4), signed(r, 1, 3)
+    d, e = r.randint(1, 4), signed(r, 2, 3)
+    need(d * d < e * e * c)
+    return fr(term(a, "", True) + term(b, f"sqrt({c})"), term(d, "", True) + term(e, f"sqrt({c})"))
+
+def t3_reduces(r):                             # (2 + 2 sqrt(3))/(1 - sqrt(3)) = -4 - 2 sqrt(3), built backward
+    c = r.choice((2, 3, 3, 5))
+    d, e = r.randint(1, 3), signed(r, 1, 2)
+    A, B = signed(r, 1, 5), signed(r, 1, 3)    # the answer A + B sqrt(c)
+    top_n, top_r = A * d + B * e * c, A * e + B * d
+    need(0 < top_n <= 9 and top_r != 0 and abs(top_r) <= 6)
+    return fr(term(top_n, "", True) + term(top_r, f"sqrt({c})"), term(d, "", True) + term(e, f"sqrt({c})"))
+
+I_POWER = {1: 1, 3: -1, 5: 1}                  # i^k = I_POWER[k] i
+
+def standard_parts(r):
+    """(a + b i)/(c + d i) in standard form, before its i terms are disguised."""
+    a, b, c, d = r.randint(1, 5), signed(r, 1, 4), signed(r, 1, 5), signed(r, 1, 4)
+    need(a * d != b * c and math.gcd(math.gcd(a, b), math.gcd(c, d)) == 1)
+    need(a * c + b * d != 0)                   # times c - d i: a real part as well as an imaginary one
+    return a, b, c, d
+
+def power_first(r, c, d):
+    """c + d i written with the i term first, maybe as a power: -2 i + 4, 2 i^3 + 4, i - 4."""
+    k = r.choice((1, 1, 3, 5))
+    return term(d * I_POWER[k], ipow(k), True) + term(c)
+
+def t4_spread_powers(r):                       # (2 - i^3 + 2 i^5)/(-2 i + 4) = (2 + 3 i)/(4 - 2 i)
+    a, b, c, d = standard_parts(r)
+    k1, k2 = r.sample(list(I_POWER), 2)
+    c1 = signed(r, 1, 3)
+    c2 = (b - c1 * I_POWER[k1]) * I_POWER[k2]  # c1 i^k1 + c2 i^k2 = b i
+    need(c2 != 0 and abs(c2) <= 3)
+    return fr(term(a, "", True) + term(c1, ipow(k1)) + term(c2, ipow(k2)), power_first(r, c, d))
+
+def t4_like_powers(r):                         # (3 i^3 + 2 - 2 i^3)/(i - 4): the number in the middle
+    a, b, c, d = standard_parts(r)
+    k = r.choice((3, 5))
+    c1 = signed(r, 1, 4)
+    c2 = b * I_POWER[k] - c1                   # (c1 + c2) i^k = b i
+    need(c2 != 0 and abs(c2) <= 4)
+    return fr(term(c1, ipow(k), True) + term(a) + term(c2, ipow(k)), power_first(r, c, d))
+
 TEMPLATES = {
     "1": [t1_over_root, t1_over_k_root, t1_root_over_root],
     "2": [t2_over_i, t2_binomial_over_i, t2_over_power],
-    "3": [t3_number_over, t3_binomial_over, t3_root_over],
-    "4": [t4_number_over, t4_powers_of_i, t4_roots_of_negatives],
+    "3": [t3_number_over, t3_binomial_over, t3_root_over, t3_negative_conjugate, t3_reduces],
+    "4": [t4_number_over, t4_powers_of_i, t4_roots_of_negatives, t4_spread_powers, t4_like_powers],
 }
 
 def draw(entry, r, tpl):

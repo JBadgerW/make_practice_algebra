@@ -360,7 +360,8 @@ old worksheet app's `AdvMath_*` sets (the 2025-26 midterm, Tests 4 and 5,
 and the lesson sets); `adv_rational_add` follows the 50-problem practice set
 *Adding & Subtracting Rational Expressions*, one type for each kind of problem
 in it; `adv_fractional_equations` and `adv_radical_equations` follow
-Lesson 6's problem set. Every problem draws its own letters, as the old sets did, and every answer is checked by machine: its value against the prompt,
+Lesson 6's problem set; `adv_rationalize` also has Lesson 10's
+rational-denominator problems among its templates. Every problem draws its own letters, as the old sets did, and every answer is checked by machine: its value against the prompt,
 and its form from its text.
 
 | Bank | Title | Types |
