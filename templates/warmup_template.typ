@@ -15,7 +15,7 @@
   [#class-name],
   align(right)[Name #answer-blank(5cm)],
 
-  text(size: 14pt, weight: "bold", title),
+  text(size: 12pt, weight: "bold", title),
   align(right)[Date #answer-blank(2.5cm)#if version != none [ Ver: #version]],
 )
 
@@ -28,7 +28,7 @@
     qnum.update(0)
     warmup-header(class-name, title, version: version)
     if instructions != none {
-      v(0.6em)
+      // v(7em)
       instructions-block(instructions)
     }
     v(1em)
