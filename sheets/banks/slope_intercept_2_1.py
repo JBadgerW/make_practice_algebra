@@ -105,18 +105,18 @@ TYPES = [
          look="A line in slope-intercept form, y = m x + b, and a blank graph: y = 2/3 x - 4.",
          move="Plot the y-intercept (0, b). From it, rise the slope's numerator and run its denominator "
               "(a negative slope goes down as it goes right) to plot more points. Draw the line through them.",
-         space="0.25in"),
+         space="0in"),
     dict(key="3", title="Solve for y, Then Graph", instructions="Solve each equation for y, then graph it.",
          look="A linear equation that isn't solved for y, and a blank graph: 3y - 2x = -12.",
          move="Solve for y as in Step 1: y = 2/3 x - 4. Then graph it as in Step 2: plot (0, -4), "
               "rise 2 and run 3, and draw the line.",
-         space="0.25in"),
+         space="0in"),
     dict(key="4", title="Write the Equation", instructions="Write the equation of each line in the form y = mx + b.",
          look="A line drawn on a graph, and no equation.",
          move="Find where the line crosses the y-axis: that's b. From there, count the rise and the run to "
               "another point where the line crosses grid lines exactly: the slope m is rise over run "
               "(negative if the line goes down to the right). Write y = mx + b.",
-         space="0.25in"),
+         space="0in"),
     dict(key="5", title="Points to Equation, Integer b",
          instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
          look="Two points, neither on an axis: (2, 3) and (5, 9). The y-intercept comes out a whole number.",
@@ -140,7 +140,7 @@ TYPES = [
          look="Two points, (2, 4) and (-4, -5), and bare axes.",
          move="Number the axes at -10, -5, 5, 10. Plot the points by eye; draw the line to the edges. "
               "Draw the run and rise between them and label them: run 6, rise 9. Mark the y-intercept: about 1.",
-         space="0.25in"),
+         space="0in"),
     dict(key="9", title="Estimation Graphs 2",
          instructions="Sketch the line through each pair of points. Choose a scale that fits both points, mark and "
                       "number each axis at its middle and its end; plot the points and draw the line to the edges. "
@@ -148,7 +148,7 @@ TYPES = [
          look="Two points, all coordinates the same size: (450, -200) and (-700, 900).",
          move="The scale is the smallest of 1, 10, 100, 1000, 10000 that holds them: 1000. Number both axes "
               "at -1000, -500, 500, 1000, then sketch as in Estimation Graphs 1.",
-         space="0.25in"),
+         space="0in"),
     dict(key="10", title="Estimation Graphs 3",
          instructions="Sketch the line through each pair of points. Choose a scale for each axis that fits its "
                       "coordinates, mark and number each axis at its middle and its end; plot the points and draw "
@@ -157,7 +157,7 @@ TYPES = [
          look="Two points whose x's and y's are different sizes: (0.4, 650) and (-0.9, -300).",
          move="Scale each axis on its own: x to 1, y to 1000. Then sketch as in Estimation Graphs 1; "
               "the run and rise are in each axis's units: run 1.3, rise 950.",
-         space="0.25in"),
+         space="0in"),
 ]
 
 class Steps(gen.Types):
@@ -453,10 +453,12 @@ def answer_of(prompt, step=None):
 # ------------------------------------------------------------------
 GRAPHED = ("2", "3", "4") + ESTIMATE    # the steps with a graph
 DRAWN = ("4",)                          # the steps whose graph shows the line, with no equation
-SLIDE_WIDTH = 8.0                       # the graph on a slide, in cm (5.5 on the sheet)
+SHEET_WIDTH = 4.9                       # the graph on the sheet, in cm
+SHEET_GAP = "0.3em"                     # between a graph and the equation over it
+SLIDE_WIDTH = 8.0                       # the graph on a slide, in cm
 SLIDE_NUMBERS = 14                      # its axis numbers, in pt (6 on the sheet), every 2
 
-def graph(p, key=False, width=5.5, size=6, every=None):
+def graph(p, key=False, width=SHEET_WIDTH, size=6, every=None):
     """The -10 to 10 graph: blank, or on the key, the answer's line through its lattice points;
     in Step 4, the prompt's line, the same on the sheet and the key."""
     if p["type"] in ESTIMATE:
@@ -488,7 +490,7 @@ def _label_box(cx, cy, words, anchor, size, pad):
     y0 = {"north": cy - h, "north-west": cy - h, "east": cy - h / 2, "west": cy - h / 2}.get(anchor, cy)
     return x0, y0, x0 + w, y0 + h
 
-def estimate_graph(p, key=False, width=5.5, size=6):
+def estimate_graph(p, key=False, width=SHEET_WIDTH, size=6):
     """Steps 8 to 10: bare square axes, named x and y; on the key, the sketch: ticks numbered at
     S/2 and S, the points, the line to the edges, the rise-over-run triangle labeled, and the
     y-intercept marked with its estimate.
@@ -574,7 +576,7 @@ def typst(p, gap="0.3em", key=False):
         return eq
     if p["type"] in DRAWN:
         return f"#align(center)[{graph(p)}]"
-    return f"{asked(p)} #v(0.6em) #align(center)[{graph(p, key)}]"
+    return f"{asked(p)} #v({SHEET_GAP}) #align(center)[{graph(p, key)}]"
 
 def key_typst(p, gap="0.3em"):
     """The key's prompt: the line drawn on the graph."""

@@ -184,7 +184,9 @@
   },
 )
 
-#let first-page-header(class-name, worksheet-title, version: "1") = [
+// key: true for an answer key: "Answer Key" in red where the Date blank goes,
+// so the title stays one line, as on the sheet.
+#let first-page-header(class-name, worksheet-title, version: "1", key: false) = [
   #v(-0.25in)
   #grid(
     columns: (1fr, auto),
@@ -195,7 +197,7 @@
     align(right)[Name #answer-blank(7cm)],
 
     [#set text(size: 15pt, weight: "bold"); #worksheet-title],
-    align(right)[Date #answer-blank(3.5cm) Ver: #version],
+    align(right)[#if key [#text(fill: red, weight: "bold")[Answer Key] #h(1em)] else [Date #answer-blank(3.5cm)] Ver: #version],
   )
 ]
 
