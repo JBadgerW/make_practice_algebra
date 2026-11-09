@@ -223,6 +223,7 @@ python3 tests/test_typmath.py                # sympy -> Typst: every form reads 
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows; tags and titles
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling: draws, checks, edits, and the 100 source problems
 python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules
+python3 tests/test_point_slope_2_2.py       # Lesson 2-2: Point-Slope Form: every type draws, checks, shows, and edits
 python3 tests/test_adv_lesson_19.py         # Advanced Math Lesson 19: the deck's problems check; wrong and unfinished answers fail
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
