@@ -28,8 +28,10 @@ def bank(path, name, courses=None, types=(("1", None),), **extra):
 lib = L.Library(Path(tempfile.mkdtemp()) / "missing")
 assert old(lib.names()) == ["absolute", "absolute_words", "alg1_units_1_2_cumulative", "equations_1_2", "equations_1_3", "inequalities", "literal", "modeling", "modeling_1_2", "single_step", "slope_intercept_2_1", "systems", "lesson_1-4"] and lib.warnings == [], lib.warnings
 ADV = [n for n in lib.names() if n.startswith("adv_")]
-assert ADV and all(lib.get(n).COURSES == {"Advanced Math": "Additional Practice"} for n in ADV), "every Advanced Math bank is tagged"
-assert set(ADV) <= set(dict(lib.view("Advanced Math"))["Additional Practice"])
+assert ADV and all(lib.get(n).COURSES in ({"Advanced Math": "Additional Practice"}, {"Advanced Math": "Lessons"}) for n in ADV), "every Advanced Math bank is tagged"
+ADV_UNITS = dict(lib.view("Advanced Math"))
+assert set(ADV) <= set(ADV_UNITS["Additional Practice"]) | set(ADV_UNITS["Lessons"])
+assert "adv_lesson_19" in ADV_UNITS["Lessons"], "a lesson's bank, under Lessons"
 assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus",
                                                  "Khan Prealgebra", "Khan Algebra 1", "Khan Algebra 2"]
 assert lib.view("Algebra 1") == [("Lessons", ["modeling_1_2", "equations_1_2", "equations_1_3", "lesson_1-4", "inequalities", "modeling", "absolute", "absolute_words", "slope_intercept_2_1"]), ("Additional Practice", ["literal"]), ("Tests", ["alg1_units_1_2_cumulative"])], \
