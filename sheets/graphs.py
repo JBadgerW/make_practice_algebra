@@ -23,11 +23,28 @@ The window: the grid lines every `step` (x and y may differ: step=(10, 5)),
 the numbers every `label` steps, the axes through 0 (or along the edge when
 0 is outside the window), arrowheads on both ends of each axis, and the
 axis names (xlabel, ylabel) at the arrow ends.
+
+A graph made with slide_width draws at width on a sheet and at slide_width on
+a slide, everything scaled alike but its text (the numbers, the axis names,
+labels), which grows by SLIDE_TEXT only, less than the graph. SLIDE_STATE, which
+the canvas reads, says how far toward the slide size to go: 0 on a sheet (its
+default), 1 in a slide deck (its preamble, SLIDE_ON), PANEL (halfway) in the
+board presenter's half-slide panels (slide_at). A slide that holds such a graph
+also gets more room (writer.big_graph).
 """
 import math
 
 CETZ = "0.5.2"
 PREAMBLE = f'#import "@preview/cetz:{CETZ}"\n'
+SLIDE_STATE = 'state("graph-slide", 0)'          # 0 to 1: from a graph's width toward its slide_width
+SLIDE_TEXT = 1.75                                 # a slide_width graph's text on a slide, times its sheet size
+PANEL = 0.25                                      # the board presenter's half-slide panels
+
+def slide_at(t):
+    """Typst that draws every slide_width graph after it t of the way from its width to its slide_width."""
+    return f"#{SLIDE_STATE}.update({t:g})\n"
+
+SLIDE_ON = slide_at(1)
 INK = {"blue": "rgb(\"#1f5fbf\")", "red": "rgb(\"#c0392b\")", "green": "rgb(\"#1e8449\")",
        "purple": "rgb(\"#7d3c98\")", "orange": "rgb(\"#d35400\")", "black": "black", "gray": "luma(110)"}
 
@@ -87,10 +104,13 @@ def runs(points, box):
 
 class Graph:
     def __init__(self, x=(-10, 10), y=(-10, 10), width=5.0, height=None, step=1, label=None,
-                 xlabel="x", ylabel="y", grid=True, numbers=True, origin=False, size=6):
+                 xlabel="x", ylabel="y", grid=True, numbers=True, origin=False, size=6,
+                 slide_width=None):
         """width (and height) in cm; step: grid spacing, one number or (x, y); label: the numbers
         every so many grid lines (default: every one if they fit, else every 2 or 5);
-        size: the numbers' size in pt (the axis names a third larger)."""
+        size: the numbers' size in pt (the axis names a third larger);
+        slide_width: the width on a slide, in cm, when it differs, the text SLIDE_TEXT times larger
+        (see SLIDE_STATE)."""
         self.x0, self.x1 = x
         self.y0, self.y1 = y
         self.sx_step, self.sy_step = step if isinstance(step, tuple) else (step, step)
@@ -101,6 +121,7 @@ class Graph:
         self.xlabel, self.ylabel, self.grid, self.numbers, self.origin = xlabel, ylabel, grid, numbers, origin
         self.label = label
         self.size = size
+        self.slide = slide_width / width if slide_width else None
         self.cmds = []
 
     # ---- coordinates
@@ -142,22 +163,26 @@ class Graph:
         out.append(f"line({self.c(ay, lo_y)}, {self.c(ay, self.y1 + over_y)}, {arrow(self.y0 < 0)}, stroke: 0.7pt)")
         if self.xlabel:
             out.append(f"content({self.c(self.x1 + over_x, ax)}, anchor: \"west\", padding: 3pt, "
-                       f"text(size: {_num(self.size * 4 / 3)}pt)[{self._math(self.xlabel)}])")
+                       f"text(size: {self._pt(self.size * 4 / 3)})[{self._math(self.xlabel)}])")
         if self.ylabel:
             out.append(f"content({self.c(ay, self.y1 + over_y)}, anchor: \"south\", padding: 3pt, "
-                       f"text(size: {_num(self.size * 4 / 3)}pt)[{self._math(self.ylabel)}])")
+                       f"text(size: {self._pt(self.size * 4 / 3)})[{self._math(self.ylabel)}])")
         if self.numbers:
             ex, ey = self._every(self.sx_step, self.kx), self._every(self.sy_step, self.ky)
             on = lambda v, every: abs(v / every - round(v / every)) < 1e-9       # numbers on multiples: 2, 4, ...
             for gx in xs:
                 if on(gx, ex * self.sx_step) and (gx != ay or self.origin) and gx not in (self.x0, self.x1):
                     out.append(f"content({self.c(gx, ax)}, anchor: \"north\", padding: 2pt, "
-                               f"text(size: {self.size}pt)[{_minus(gx)}])")
+                               f"text(size: {self._pt(self.size)})[{_minus(gx)}])")
             for gy in ys:
                 if on(gy, ey * self.sy_step) and gy != ax and gy not in (self.y0, self.y1):
                     out.append(f"content({self.c(ay, gy)}, anchor: \"east\", padding: 2pt, "
-                               f"text(size: {self.size}pt)[{_minus(gy)}])")
+                               f"text(size: {self._pt(self.size)})[{_minus(gy)}])")
         return out
+
+    def _pt(self, n):
+        """A text size: n pt, or with a slide_width, n pt times gs (SLIDE_TEXT on a slide; see typst)."""
+        return f"{_num(n)}pt * gs" if self.slide else f"{_num(n)}pt"
 
     @staticmethod
     def _math(t):
@@ -266,9 +291,14 @@ class Graph:
 
     def label_at(self, x, y, text, anchor="south-west", color="black", size=8):
         self.cmds.append(f"content({self.c(x, y)}, anchor: \"{anchor}\", padding: 3pt, "
-                         f"text(size: {size}pt, fill: {INK.get(color, color)})[{text}])")
+                         f"text(size: {self._pt(size)}, fill: {INK.get(color, color)})[{text}])")
         return self
 
     def typst(self):
         body = "\n    ".join(self._frame() + self.cmds)
+        if self.slide:
+            return (f"#context {{ let t = {SLIDE_STATE}.get()\n"
+                    f"  let gs = 1 + t * {_num(SLIDE_TEXT - 1)}\n"
+                    f"  cetz.canvas(length: (1 + t * {_num(self.slide - 1)}) * 1cm, {{\n"
+                    f"    import cetz.draw: *\n    {body}\n  }}) }}")
         return f"#cetz.canvas(length: 1cm, {{\n    import cetz.draw: *\n    {body}\n  }})"

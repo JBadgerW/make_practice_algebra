@@ -60,7 +60,7 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
 
 def graph(p, key=False):
-    gr = Graph(x=(X0, X1), y=(-10, 10), width=6.4)
+    gr = Graph(x=(X0, X1), y=(-10, 10), width=5.7, slide_width=12.8)
     walk.draw(gr, p["f"], X0, color="blue")
     walk.draw(gr, p["g"], X0, color="red", dash="dashed")
     gr.label_at(X1, p["f"][-1], "$f$", anchor="west", color="blue", size=9)

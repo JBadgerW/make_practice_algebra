@@ -54,7 +54,7 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
 
 def graph(p, key=False):
-    g = Graph(x=(X0, X1), y=(-8, 8), width=5.2)
+    g = Graph(x=(X0, X1), y=(-8, 8), width=4.6, slide_width=10.4)
     walk.draw(g, p["ys"], X0)
     g.label_at(X1, p["ys"][-1], "$f$", anchor="west", color="blue", size=9)
     if key:

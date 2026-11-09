@@ -3,7 +3,7 @@
 import shutil, subprocess, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sheets.graphs import Graph, PREAMBLE, clip, runs
+from sheets.graphs import Graph, PREAMBLE, SLIDE_ON, clip, runs
 
 # a segment inside, crossing, and outside the box
 assert clip((0, 0), (1, 1), (-2, 2, -2, 2)) == ((0, 0), (1, 1), False, False)
@@ -21,10 +21,21 @@ src = g.typst()
 assert src.startswith("#cetz.canvas(") and src.count("circle(") == 5, src.count("circle(")   # the point, two ends each
 q = Graph(x=(0, 90), y=(0, 70), step=10, xlabel="Time (minutes)")
 assert 'start: ">"' not in q.typst().split("\n")[4], "a first-quadrant axis has no arrow back past 0"
+# slide_width: 4 cm on a sheet, 6 cm once a slide deck turns SLIDE_STATE on, its text SLIDE_TEXT larger
+s4 = Graph(x=(-5, 5), y=(-5, 5), width=4, slide_width=6).typst()
+assert s4.startswith("#context {") and "(1 + t * 0.5) * 1cm" in s4 and "6pt * gs" in s4
 
 if shutil.which("typst"):
     d = Path(tempfile.mkdtemp())
     (d / "g.typ").write_text(PREAMBLE + "\n".join(f"#box[{x.typst()}]" for x in (g, q)))
     r = subprocess.run(["typst", "compile", str(d / "g.typ")], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
+    def wide(pre):                                  # the slide_width graph's width, in pt
+        (d / "s.typ").write_text(PREAMBLE + pre + f"#context [#metadata(measure[{s4}].width.pt()) <w>]")
+        r = subprocess.run(["typst", "query", str(d / "s.typ"), "<w>", "--field", "value", "--one"],
+                           capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        return float(r.stdout)
+    sheet, slide = wide(""), wide(SLIDE_ON)
+    assert 1.45 < slide / sheet < 1.55, (sheet, slide)   # about 1.5: the grid 1.5x, its labels SLIDE_TEXT x
 print("all graph tests passed")

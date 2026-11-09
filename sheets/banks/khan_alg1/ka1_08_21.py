@@ -134,7 +134,7 @@ def typst(p, gap="0.3em", key=False):
         parts = ", ".join(f"[${math(e)} =$]" for e in p["parts"])
         return (f"The table shows some inputs and outputs of the invertible function $f$, whose domain is all real "
                 f"numbers. \\\n    #grid(columns: (auto, 1fr), column-gutter: 2em, [{table}], [#parts({parts})])")
-    g = Graph(x=(-8, 8), y=(-8, 8), width=5.2)
+    g = Graph(x=(-8, 8), y=(-8, 8), width=4.6, slide_width=10.4)
     if p["type"] == "2":
         g.polyline(p["pts"], ends="closed")
         if key:

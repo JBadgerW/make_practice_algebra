@@ -89,7 +89,7 @@ def written(iv, p):
     return f"[{iv[0]}, {iv[1]}]" if p["brackets"] else f"{iv[0]} <= {p['var']} <= {iv[1]}"
 
 def graph(p, key=False):
-    g = Graph(x=(X0, X1), y=(-8, 8), width=5.2, xlabel=p["var"])
+    g = Graph(x=(X0, X1), y=(-8, 8), width=4.6, slide_width=10.4, xlabel=p["var"])
     walk.draw(g, p["ys"], X0)
     g.label_at(X1, p["ys"][-1], f"${p['letter']}$", anchor="west", color="blue", size=9)
     if key and p["type"] == "1":

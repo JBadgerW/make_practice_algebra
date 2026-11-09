@@ -21,7 +21,7 @@ def curve(r):
     return [list(k) for k in ks]
 
 def graph(ks, marks=()):
-    g = Graph(x=(-8, 8), y=(-8, 8), width=5.2)
+    g = Graph(x=(-8, 8), y=(-8, 8), width=4.6, slide_width=10.4)
     curves.draw(g, [tuple(k) for k in ks], ends="closed")
     for x, y in marks:
         g.point(x, y, color="red")

@@ -11,7 +11,7 @@ decoys (sheets/decoys.py) for the answers that would give themselves away;
 each version gets its own front and back.
 """
 import random
-from . import banks, decoys
+from . import banks, decoys, graphs
 from .sheet import items, problem, rows
 from .typst import sheet_head, slhead, warmup_head, vars_, esc, tstr
 
@@ -183,23 +183,45 @@ def slides(sheet, v=None):
     s += slhead + vars_(sheet["title"], str(vs[0] + 1), sheet["class_name"]) + _preambles(sheet) + BOOKMARK + f"""
 // The problem (and answer) at 24pt, smaller only if that won't fit on the slide:
 // one problem per slide, never spilling onto the next. A short problem sits
-// centered; a word problem fills the width, left-aligned.
-#let slide(n, prob, answer: none) = {{
-  align(left)[#text(size: 30pt, weight: "bold")[Problem #n]]
-  v(1em)
+// centered; a word problem fills the width, left-aligned. A slide with a big
+// graph (big: true, set as a page of its own) has thin top and bottom margins,
+// a smaller title, and its text at 18pt, smaller (to 14pt) only while each point
+// less shortens the problem by 1% of the room (a word problem; the graph sets the
+// height of most); if it still won't fit, the whole problem is scaled down to fit,
+// graph and all. hidden is the answer the question slide holds unseen, so its
+// graph never moves when the answer shows.
+#let slide(n, prob, answer: none, hidden: none, big: false) = {{
+  align(left)[#text(size: if big {{ 20pt }} else {{ 30pt }}, weight: "bold")[Problem #n]]
+  v(if big {{ 0.3em }} else {{ 1em }})
   block(width: 100%, height: 1fr, layout(room => {{
     let body(s) = align(center, box(align(left, text(size: s, {{
       prob
       if answer != none {{
         v(0.8em)
         text(fill: red, answer)
+      }} else if hidden != none {{
+        v(0.8em)
+        hide(text(fill: red, hidden))
       }}
     }}))))
-    let s = 24pt
-    while s > 8pt and measure(body(s), width: room.width).height > room.height {{
-      s -= 1pt
+    let s = if big {{ 18pt }} else {{ 24pt }}
+    let tall(s) = measure(body(s), width: room.width).height
+    if big {{
+      while s > 14pt and tall(s) > room.height and tall(s) - tall(s - 1pt) > room.height / 100 {{
+        s -= 1pt
+      }}
+    }} else {{
+      while s > 8pt and tall(s) > room.height {{
+        s -= 1pt
+      }}
     }}
-    body(s)
+    if big {{
+      let h = measure(body(s), width: room.width).height
+      if h > room.height {{               // laid out wider by 1/k, so scaled by k it fills the width
+        let k = room.height / h
+        scale(k * 100%, reflow: true, origin: top + left, box(width: room.width / k, body(s)))
+      }} else {{ body(s) }}
+    }} else {{ body(s) }}
   }}))
 }}
 
@@ -257,8 +279,22 @@ def _deck(sheet, v, start, bookmark):
         for it in sec["items"]:
             n += 1
             q, a = slide_args(it, v)
-            s += f"#pagebreak()\n#slide({n}, {q})\n#pagebreak()\n#slide({n}, {a})\n"
+            if big_graph(it, v):
+                if not own_slide(it, v):
+                    ans = banks.get(it["bank"]).answer_typst(problem(it, v))
+                    q += f", hidden: [{ans}]" if ans else ""
+                s += "".join(f"#page(margin: (x: 0.75in, y: {BIG_MARGIN}))[#slide({n}, {x}, big: true)]\n" for x in (q, a))
+            else:
+                s += f"#pagebreak()\n#slide({n}, {q})\n#pagebreak()\n#slide({n}, {a})\n"
     return s
+
+BIG_MARGIN = "0.3in"        # top and bottom, on a slide with a big graph (0.75in on the others)
+
+def big_graph(it, v):
+    """Does the item's slide hold a graph drawn bigger on a slide (Graph's slide_width)?
+    Its slide gets more room: see the slide function in slides()."""
+    q, a = slide_args(it, v)
+    return graphs.SLIDE_STATE in q + a
 
 def own_slide(it, v):
     """Does the item's bank lay out its slide in version v (slide_typst), a graph beside its equation?"""

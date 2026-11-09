@@ -102,7 +102,7 @@ def var(p):
     return "x" if p["type"] == "1" else "f(x)"
 
 def graph(p):
-    g = Graph(x=(-8, 8), y=(-8, 8), width=5.2)
+    g = Graph(x=(-8, 8), y=(-8, 8), width=4.6, slide_width=10.4)
     if p["kind"] == "curve":
         curves.draw(g, [tuple(k) for k in p["graph"]], ends="closed")
     else:

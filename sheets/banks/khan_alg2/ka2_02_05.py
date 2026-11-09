@@ -68,7 +68,7 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
 
 def plane(p, key=False):
-    g = Graph(x=(-10, 10), y=(-10, 10), width=5.6, xlabel="Re", ylabel="Im")
+    g = Graph(x=(-10, 10), y=(-10, 10), width=5.0, slide_width=11.2, xlabel="Re", ylabel="Im")
     a, b = (int(v) for v in cx.parts(p["z"]))
     if p["type"] == "2":
         g.point(a, b, color="blue", label="*P*")

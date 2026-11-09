@@ -166,7 +166,7 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
 
 def graph(p):
     _, xl, yl, x0, x1, step, y1, ystep, *_ = STORIES[p["story"]]
-    g = Graph(x=(x0, x1), y=(0, y1), width=5.6, height=4.4, step=(step, ystep), xlabel=xl, ylabel=yl.replace("$", "\\$"))
+    g = Graph(x=(x0, x1), y=(0, y1), width=5.0, slide_width=11.2, height=3.9, step=(step, ystep), xlabel=xl, ylabel=yl.replace("$", "\\$"))
     g.polyline(list(zip(xs_of(p["story"]), p["ys"])), ends=None)
     for x, y in zip(xs_of(p["story"]), p["ys"]):
         g.point(x, y, color="blue")

@@ -11,7 +11,7 @@ moves the queue to any problem, back or forward, done before or not.
 """
 import base64, html as _html, json, shutil, subprocess, tempfile
 from pathlib import Path
-from . import banks, writer
+from . import banks, graphs, writer
 from .sheet import items, problem
 from .typst import slhead, vars_
 
@@ -22,7 +22,9 @@ from .typst import slhead, vars_
 # text shrinks, never the graph). Another slide the bank lays out itself
 # (fixed) keeps its own lines and is scaled down whole to fit. Either way the
 # question page holds the answer hidden, so the graph never moves.
-PANEL = """
+# A graph drawn bigger on a slide (Graph's slide_width) goes halfway from its
+# sheet size to its slide size here: the panel is half a slide (graphs.PANEL).
+PANEL = graphs.slide_at(graphs.PANEL) + """
 #set page(width: 6.667in, height: 7.5in, margin: 0.4in)
 #let slide(n, prob, answer: none, fixed: false) = {
   align(left)[#text(size: 22pt, weight: "bold")[Problem #n]]
