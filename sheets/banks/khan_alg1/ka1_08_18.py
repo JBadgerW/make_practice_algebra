@@ -146,7 +146,7 @@ def sentence(p, s):
 def graph(p):
     f, v = STORIES[p["story"]][:2]
     x1 = p["ks"][-1][0]
-    g = Graph(x=(0, x1 + 1), y=(-9, 9), width=5.2, height=4.4, xlabel=v, ylabel=f"{f}({v})")
+    g = Graph(x=(0, x1 + 1), y=(-9, 9), width=4.6, slide_width=10.4, height=3.9, xlabel=v, ylabel=f"{f}({v})")
     curves.draw(g, [tuple(k) for k in p["ks"]], ends="closed")
     return g.typst()
 

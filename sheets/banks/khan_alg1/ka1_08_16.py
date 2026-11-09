@@ -71,7 +71,7 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
 
 def graph(p):
-    g = Graph(x=(-8, 8), y=(-8, 8), width=5.2)
+    g = Graph(x=(-8, 8), y=(-8, 8), width=4.6, slide_width=10.4)
     curves.draw(g, [tuple(k) for k in p["ks"]], ends="closed")
     g.label_at(p["ks"][-1][0], p["ks"][-1][1], f"$y = {p['letter']}(x)$", anchor="south-east", color="blue", size=7)
     return g.typst()

@@ -208,7 +208,8 @@ def graph(p):
     x0, x1, y0, y1, step = p["window"][:5]
     ystep = p["window"][5] if len(p["window"]) > 5 else step
     xl, yl = AXES[p["story"]]
-    g = Graph(x=(x0, x1), y=(y0, y1), width=5.6, height=5.0, step=(step, ystep), xlabel=xl, ylabel=yl)
+    # on a slide, 9 cm, not twice: the word problem and its choices set the slide's height, and need the width
+    g = Graph(x=(x0, x1), y=(y0, y1), width=5.0, slide_width=9.0, height=4.5, step=(step, ystep), xlabel=xl, ylabel=yl)
     for eq, color, name in zip(p["lines"], ("blue", "red"), "ab"):
         a, b, c = coefficients(eq)
         if b == 0:

@@ -184,7 +184,7 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1,
                          balance=("AB", lambda k: k[2] if k[0] == NAME and len(k) == 3 else None))
 
 def graph(p):
-    g = Graph(x=(-W, W), y=(-W, W), width=5.2)
+    g = Graph(x=(-W, W), y=(-W, W), width=4.6, slide_width=10.4)
     for pc in p["pieces"]:
         k = pc["kind"]
         if k == "knots":

@@ -83,7 +83,7 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1)
 
 def graph(p):
-    g = Graph(x=(-7, 7), y=(-7, 7), width=5.2)
+    g = Graph(x=(-7, 7), y=(-7, 7), width=4.6, slide_width=10.4)
     curves.draw(g, [(float(x), y) for x, y in kn(p)], ends="closed")
     return g.typst()
 

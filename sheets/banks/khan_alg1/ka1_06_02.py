@@ -106,7 +106,7 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: 2)
 
 def graph(p, key=False):
-    g = Graph(x=(-8, 8), y=(-8, 8), width=5.2)
+    g = Graph(x=(-8, 8), y=(-8, 8), width=4.6, slide_width=10.4)
     for q, color in zip(equations(p["prompt"]), COLORS):
         a, b, c = coefficients(q)
         if b == 0:
@@ -118,9 +118,15 @@ def graph(p, key=False):
         g.point(float(x), float(y), color="red")
     return g.typst()
 
-def side(p):
+def side(p, slide=False):
+    """The system, then x = and y = blanks (Type 1) or the choices (Type 2); on a slide, the
+    choices 2 by 2 in columns as wide as they are (the board presenter measures the slide at
+    its natural width, where the choices' own grid, in 1fr columns, would collapse)."""
     if p["type"] == "1":
         return f"{system_typst(p['prompt'])} #v(1.2em) $x =$ #v(1.2em) $y =$"
+    if slide:
+        cells = ", ".join(f"[{gen.ABC[i]}. #h(0.25em) {c}]" for i, c in enumerate(p["choices"]))
+        return f"{system_typst(p['prompt'])} #v(0.6em) #grid(columns: 2, column-gutter: 1.5em, row-gutter: 0.8em, {cells})"
     return f"{system_typst(p['prompt'])} #v(0.6em) {gen.choices_typst(p['choices'])}"
 
 def typst(p, gap="0.3em", key=False):
@@ -129,6 +135,21 @@ def typst(p, gap="0.3em", key=False):
 def key_typst(p, gap="0.3em"):
     """The key's prompt: the solution marked on the graph."""
     return typst(p, gap, key=True)
+
+def _slide_parts(p, key=False):
+    """A slide in two parts, (text, graph): the system (or choices, 2 by 2) with the answer
+    under it, and the graph (drawn bigger on a slide: slide_width). The question's text holds
+    the answer too, hidden, so the two slides lay out alike: the graph never moves when the
+    answer shows."""
+    ans = f"#text(fill: red)[{answer_typst(p)}]"
+    left = f"{side(p, slide=True)} #v(0.8em) " + (ans if key else f"#hide[{ans}]")
+    return left, graph(p, key)
+
+def slide_typst(p, key=False):
+    """On a slide, the graph beside the system (_slide_parts). The board presenter shrinks it whole
+    to fit its half-slide panel: stacked, the system and choices would crowd out the graph."""
+    left, g = _slide_parts(p, key)
+    return f"#grid(columns: 2, column-gutter: 1.5em, align: horizon, [{left}], [{g}])"
 
 def answer_typst(p):
     return f"${p['answer']}$" if p["type"] == "1" else gen.choice_answer_typst(p)

@@ -88,7 +88,7 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: 1,
                          balance=("ABC", lambda k: k[2] if k[0] == NAME and len(k) == 3 else None))
 
 def graph(p):
-    g = Graph(x=(-8, 8), y=(-8, 8), width=5.2)
+    g = Graph(x=(-8, 8), y=(-8, 8), width=4.6, slide_width=10.4)
     for q, color, dash in zip(equations(p["prompt"]), ("blue", "red"), (None, "dashed")):
         a, b, c = coefficients(q)
         g.line(float(-a / b), float(c / b), color=color, dash=dash)
