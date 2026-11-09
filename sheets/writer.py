@@ -45,8 +45,8 @@ def _question(it, v, key, space=None):
 
 def _body(sheet, v, key):
     """The worksheet (or its key) after the preamble: the header, then each section."""
-    title = sheet["title"] + (" — Answer Key" if key else "")
-    s = f"#first-page-header(class-name, {tstr(title)}, version: {tstr(str(v + 1))})\n"
+    k = ", key: true" if key else ""         # "Answer Key" where the Date blank goes: the title stays one line
+    s = f"#first-page-header(class-name, {tstr(sheet['title'])}, version: {tstr(str(v + 1))}{k})\n"
     if sheet["instructions"]:
         s += f"#instructions-block({_content(sheet['instructions'])})\n"
     for sec in sheet["sections"]:

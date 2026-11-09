@@ -322,7 +322,7 @@ qk(f":out {OUT}\n:name ineq\n:w\n"); assert not q.err, q.msg
 ws, key = parts("ineq")
 assert ws.count("#let numline") == 1 and "#let numline" not in key, "the key shares the sheet's preamble"
 assert not list(Path(OUT).glob("*_key.*")), "no separate key file"
-assert "— Answer Key" in key and "— Answer Key" not in ws
+assert "key: true)" in key and "key: true)" not in ws
 assert "ink: red" in key and "ink: red" not in ws, "the key draws the graphs in red"
 assert "$1 >= x$" in key, "the key prints the teacher's answer as written"
 assert "#let numline" not in (Path(OUT) / "systems.typ").read_text(), "only sheets that need it"
