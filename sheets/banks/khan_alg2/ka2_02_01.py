@@ -93,4 +93,4 @@ def height(p):
     return 0.3
 
 def selftest(n, seed):
-    return gen.selftest(NAME, generate, KEYS, lambda k: label(TYPE[k]), n, seed)
+    return gen.selftest(NAME, generate, KEYS, lambda k: label(TYPE[k]), n, seed, reset=10)    # Type 1: only twenty
