@@ -99,3 +99,137 @@ def parallel(top, bottom, sides, below=None, height=2.0, unit="1cm"):
     for (a, b), text in (below or {}).items():
         cmds.append(f'content({_pt((at[a][0] + at[b][0]) / 2, -0.5)}, anchor: "north", [{text}])')
     return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 2: bases of solids, and two solids
+# ------------------------------------------------------------------
+def _dash(a, b):
+    return _poly([a, b], ', stroke: (thickness: 0.7pt, dash: "dashed")')
+
+def _right_angle(corner, u, v, k=0.18):
+    """A right-angle mark at corner, its sides along unit vectors u and v."""
+    (x, y), (ux, uy), (vx, vy) = corner, u, v
+    return _poly([(x + k * ux, y + k * uy), (x + k * (ux + vx), y + k * (uy + vy)), (x + k * vx, y + k * vy)],
+                 ", stroke: 0.6pt")
+
+def _label(x, y, text, anchor="center"):
+    return f'content({_pt(x, y)}, anchor: "{anchor}", padding: 2pt, [{text}])'
+
+def capped_base(w, h, right, left, labels, size=4.2, unit="1cm"):
+    """A w-by-h rectangle with a semicircle on its right side (right: True) and,
+    on its left (left: 0 none, h a semicircle on that side, d > h a semicircle
+    of diameter d standing on the bottom, the rest of its diameter a segment
+    above the rectangle). labels: dict(top, bottom, side, rise, radius) markup,
+    each optional: side labels the straight left or right side, rise the
+    segment above the rectangle, radius a drawn radius of a semicircle."""
+    span_x = w + (h / 2 if right else 0) + (left / 2 if left else 0)
+    span_y = max(h, left)
+    k = size / max(span_x, 1.4 * span_y)
+    W, H, D = w * k, h * k, left * k
+    cmds = [_poly([(0, H), (W, H)], ", stroke: 0.8pt"), _poly([(0, 0), (W, 0)], ", stroke: 0.8pt")]
+    if right:
+        cmds.append(_poly([(W + x, H / 2 + y) for x, y in _arc(H / 2, -90, 90)], ", stroke: 0.8pt"))
+        cmds.append(_dash((W, 0), (W, H)))
+    else:
+        cmds.append(_poly([(W, 0), (W, H)], ", stroke: 0.8pt"))
+        cmds += [_right_angle((W, H), (-1, 0), (0, -1)), _right_angle((W, 0), (-1, 0), (0, 1))]
+    if left:
+        cmds.append(_poly([(x, D / 2 + y) for x, y in _arc(D / 2, 90, 270)], ", stroke: 0.8pt"))
+        cmds.append(_dash((0, 0), (0, H)))
+        if left > h:
+            cmds.append(_poly([(0, H), (0, D)], ", stroke: 0.8pt"))
+            cmds.append(_right_angle((0, H), (1, 0), (0, 1)))
+    else:
+        cmds.append(_poly([(0, 0), (0, H)], ", stroke: 0.8pt"))
+        cmds += [_right_angle((0, H), (1, 0), (0, -1)), _right_angle((0, 0), (1, 0), (0, 1))]
+    if labels.get("top"):
+        cmds.append(_label(W / 2, H, labels["top"], "south"))
+    if labels.get("bottom"):
+        cmds.append(_label(W / 2, 0, labels["bottom"], "north"))
+    if labels.get("side"):
+        cmds.append(_label(W, H / 2, labels["side"], "west") if not right else _label(0, H / 2, labels["side"], "east"))
+    if labels.get("rise"):
+        cmds.append(_label(0, (H + D) / 2, labels["rise"], "west"))
+    if labels.get("radius"):
+        cx, cy, r, a = (W, H / 2, H / 2, 40) if right else (0, D / 2, D / 2, 140)
+        ex, ey = cx + r * math.cos(math.radians(a)), cy + r * math.sin(math.radians(a))
+        cmds += [f"circle({_pt(cx, cy)}, radius: 0.06, fill: black, stroke: none)",
+                 _poly([(cx, cy), (ex, ey)], ", stroke: 0.7pt"),
+                 _label((cx + ex) / 2, (cy + ey) / 2, labels["radius"], "north-west" if right else "north-east")]
+    return _canvas(cmds, unit)
+
+def prism(cells, side, length, size=4.4, unit="1cm"):
+    """A right prism whose base is made of unit squares (cells: (col, row)), drawn
+    in oblique projection, the length going back and up to the right. Every
+    edge of the front face is labeled `side`; the top-left receding edge, `length`."""
+    cs = set(cells)
+    n = max(max(c, r) for c, r in cs) + 1
+    k = size / (n + 1.2)
+    dx, dy = 0.55, 0.45                                  # the receding direction, per unit of length drawn
+    depth = 1.6 / k                                      # drawn depth, in squares
+    # The boundary edges, each with its outward direction.
+    edges = []
+    for c, r in cs:
+        for (oc, orow), seg in (((0, 1), ((c, r + 1), (c + 1, r + 1))), ((0, -1), ((c, r), (c + 1, r))),
+                                ((1, 0), ((c + 1, r), (c + 1, r + 1))), ((-1, 0), ((c, r), (c, r + 1)))):
+            if (c + oc, r + orow) not in cs:
+                edges.append(((oc, orow), seg))
+    P = lambda x, y, z=0: (k * (x + z * dx), k * (y + z * dy))
+    faces = []
+    for (oc, orow), (a, b) in edges:
+        if oc > 0 or orow > 0:                           # facing up or right: seen
+            quad = [P(*a), P(*b), P(*b, depth), P(*a, depth)]
+            faces.append((-(a[0] + b[0] + a[1] + b[1]), quad, "luma(150)" if oc else "luma(215)"))
+    cmds = [_poly(q, f", close: true, fill: {f}, stroke: 0.6pt") for _, q, f in sorted(faces, key=lambda t: t[0])]
+    for c, r in cs:
+        cmds.append(_poly([P(c, r), P(c + 1, r), P(c + 1, r + 1), P(c, r + 1)],
+                          ", close: true, fill: luma(240), stroke: none"))
+    for _, (a, b) in edges:
+        cmds.append(_poly([P(*a), P(*b)], ", stroke: 0.8pt"))
+        (ox, oy) = _
+        mx, my = P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+        cmds.append(_label(mx - 0.2 * ox, my - 0.2 * oy, side))          # inside the front face, as the book does
+    # The length, along the receding edge from the top-left corner of the topmost row.
+    top = max(r for _, r in cs)
+    c0 = min(c for c, r in cs if r == top)
+    a, b = P(c0, top + 1), P(c0, top + 1, depth)
+    cmds.append(_label((a[0] + b[0]) / 2 - 0.1, (a[1] + b[1]) / 2 + 0.1, length, "south-east"))
+    return _canvas(cmds, unit)
+
+def oblique_cylinder(radius, height, unit="1cm"):
+    """A circular cylinder leaning right: its top's radius labeled, its height marked H at the right."""
+    rx, ry, h, s = 1.2, 0.35, 2.2, 0.6
+    bottom = [(rx * math.cos(math.radians(t)), ry * math.sin(math.radians(t))) for t in range(0, 361, 6)]
+    front = [p for p in bottom if p[1] <= 0.0001]
+    back = [p for p in bottom if p[1] >= -0.0001]
+    top = [(x + s, y + h) for x, y in bottom]
+    cmds = [_poly(top, ", close: true, fill: luma(225), stroke: 0.8pt"),
+            _poly(sorted(front), ", stroke: 0.8pt"),
+            _poly(sorted(back), ', stroke: (thickness: 0.6pt, dash: "dashed")'),
+            _poly([(-rx, 0), (-rx + s, h)], ", stroke: 0.8pt"), _poly([(rx, 0), (rx + s, h)], ", stroke: 0.8pt"),
+            f"circle({_pt(s, h)}, radius: 0.05, fill: black, stroke: none)",
+            _poly([(s, h), (s + rx * 0.97, h + 0.05)], ", stroke: 0.8pt"),
+            _label(s + rx / 2, h + ry, radius, "south"),
+            _poly([(rx + s + 0.35, 0), (rx + s + 0.35, h)],
+                  ', stroke: 0.6pt, mark: (start: ">", end: ">", fill: black, scale: 0.6)'),
+            _label(rx + s + 0.35, h / 2, height, "west")]
+    return _canvas(cmds, unit)
+
+def wedge_base(leg, side, angle, size=4.2, unit="1cm"):
+    """A right triangle (legs `leg` along the bottom and `side` up the right) joined
+    along that right leg to a sector of radius `side`, its center at the top, its
+    angle measured from the leg toward the right. The arguments are (value, markup)."""
+    (a, la), (b, lb), t = leg, side, angle
+    k = size / max(a + b * math.sin(math.radians(t)), 1.6 * b)
+    A, Bv = a * k, b * k
+    apex = (A, Bv)
+    arc = [(A + Bv * math.sin(math.radians(u)), Bv - Bv * math.cos(math.radians(u))) for u in range(0, int(t) + 1, 2)]
+    cmds = [_poly([(A, Bv), (0, 0), (A, 0)], ", stroke: 0.8pt"),
+            _dash((A, 0), apex),
+            _poly(arc, ", stroke: 0.8pt"), _poly([apex, arc[-1]], ", stroke: 0.8pt"),
+            _right_angle((A, 0), (-1, 0), (0, 1)),
+            _label(A / 2, 0, la, "north"), _label(A, Bv / 3, lb, "east"),
+            _label((A + arc[-1][0]) / 2, (Bv + arc[-1][1]) / 2, lb, "south-west"),
+            _label(A + 0.5 * Bv * math.sin(math.radians(t / 2)), Bv - 0.5 * Bv * math.cos(math.radians(t / 2)),
+                   f"${t:g}°$")]
+    return _canvas(cmds, unit)
