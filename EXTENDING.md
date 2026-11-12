@@ -226,6 +226,7 @@ python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form:
 python3 tests/test_point_slope_2_2.py       # Lesson 2-2: Point-Slope Form: every type draws, checks, shows, and edits
 python3 tests/test_adv_lesson_19.py         # Advanced Math Lesson 19: the deck's problems check; wrong and unfinished answers fail
 python3 tests/test_adv_lesson_20.py         # Advanced Math Lesson 20: the deck's problems check; unrationalized and unreduced answers fail
+python3 tests/test_adv_lesson_1.py          # Advanced Math Lesson 1: every source is reachable and checks; the figures are drawn from the data
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
 python3 tests/bench_banks.py NEW_BANK        # ms a problem; a new bank should be under 100
