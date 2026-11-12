@@ -15,12 +15,12 @@ from sheets.banks import adv_lesson_2 as B
 lib = library.current()
 assert "adv_lesson_2" in dict(lib.view("Advanced Math"))["Lessons"]
 assert B.TITLE == "Lesson 2: More on Area, Cylinders and Prisms, Cones and Pyramids, Spheres"
-assert B.type_instructions("1").startswith("Round each area and volume to two decimal places")
+assert B.type_instructions("1").startswith("Round each answer to two decimal places at the end")
 assert B.type_instructions("5") == "Solve each problem. Include units."
 
 # ---- every source: the deck's answer (problems 25-28: worked here, in the deck's way), and checked
 SOURCES = [   # (id, type, prompt, answer)
-    ("ex 2.1", "1", "cylinder area: base 5 x 6, right semicircle; height 10 cm", '342.53 "cm"^2'),
+    ("ex 2.1", "1", "cylinder area: base 5 x 6, right semicircle; height 10 cm", '342.52 "cm"^2'),
     ("ex 2.2", "2", "prism area: plus, side 2, length 6 units", '184 "square units"'),
     ("ex 2.3", "4", "cone volume: base 3 x 2, right semicircle; height 6 m", '15.14 "m"^3'),
     ("ex 2.4", "5", "cone area: radius 8, slant 10 cm", '144 pi "cm"^2'),
@@ -28,9 +28,9 @@ SOURCES = [   # (id, type, prompt, answer)
     ("ex 2.6", "7", "pyramid area: side 4, slant 5 cm", '56 "cm"^2'),
     ("PS 25", "6", "cylinder height: radius 7, volume 588 pi cm", '12 "cm"'),
     ("PS 26", "6", "wedge height: legs 2 pi and 3, sector 60, volume 9 pi cm", '2 "cm"'),
-    ("PS 27", "4", "cone volume: base 5 x 6, left semicircle; height 8 m", '117.71 "m"^3'),
+    ("PS 27", "4", "cone volume: base 5 x 6, left semicircle; height 8 m", '117.70 "m"^3'),
     ("PS 28a", "3", "cylinder volume: base 11 x 10, right semicircle, left semicircle 20; height 9 cm", '2757.15 "cm"^3'),
-    ("PS 28b", "1", "cylinder area: base 11 x 10, right semicircle, left semicircle 20; height 9 cm", '1324.82 "cm"^2'),
+    ("PS 28b", "1", "cylinder area: base 11 x 10, right semicircle, left semicircle 20; height 9 cm", '1324.81 "cm"^2'),
     ("PS 28c", "4", "cone volume: base 11 x 10, right semicircle, left semicircle 20; height 9 cm", '919.05 "cm"^3'),
 ]
 TYPE_OF = {"ex 2.1": "1", "ex 2.2": "2", "ex 2.3": "4", "ex 2.4": "5", "ex 2.5": "6", "ex 2.6": "7",
@@ -69,9 +69,9 @@ assert not B.in_range(B.t1_build, dict(w=5, h=5, caps="right", d=0, height=10, u
 WRONG = [
     ("1", prompt_of["ex 2.1"], '342.5 "cm"^2'),                 # one place
     ("1", prompt_of["ex 2.1"], '298.39 "cm"^2'),                # one base only
-    ("1", prompt_of["ex 2.1"], '342.53 "cm"^3'),                # cubed
-    ("1", prompt_of["ex 2.1"], '342.53 "m"^2'),                 # the wrong unit
-    ("1", prompt_of["ex 2.1"], "342.53"),                       # no unit
+    ("1", prompt_of["ex 2.1"], '342.52 "cm"^3'),                # cubed
+    ("1", prompt_of["ex 2.1"], '342.52 "m"^2'),                 # the wrong unit
+    ("1", prompt_of["ex 2.1"], "342.52"),                       # no unit
     ("1", prompt_of["ex 2.1"], '220 + 39 pi "cm"^2'),           # exact: the key is decimal
     ("4", prompt_of["ex 2.3"], '45.42 "m"^3'),                  # the cylinder's volume
     ("4", prompt_of["PS 27"], '117.85 "m"^3'),
@@ -118,13 +118,13 @@ for k in B.KEYS:
         assert kinds == {"cone radius", "cylinder height", "wedge height"}, kinds
 
 # ---- showing: the deck's words, the figure drawn from the data
-p = dict(type="1", prompt=prompt_of["ex 2.1"], answer='342.53 "cm"^2')
+p = dict(type="1", prompt=prompt_of["ex 2.1"], answer='342.52 "cm"^2')
 t = B.typst(p)
 assert t.startswith("The base of a right cylinder 10 centimeters high is shown. Find the surface area of the "
                     "right cylinder. Dimensions are in centimeters."), t
 assert "cetz.canvas" in t and "[$3$]" in t and "[$6$]" in t, t
-assert B.answer_typst(p) == '$342.53 thin "cm"^2$'
-assert B.answer_text(p) == "342.53 cm²", B.answer_text(p)
+assert B.answer_typst(p) == '$342.52 thin "cm"^2$'
+assert B.answer_text(p) == "342.52 cm²", B.answer_text(p)
 p = dict(type="3", prompt=prompt_of["PS 28a"], answer='2757.15 "cm"^3')
 assert "[$10$]" in B.typst(p) and "[$11$]" in B.typst(p) and "[$5$]" in B.typst(p)   # as the book labels it
 p = dict(type="6", prompt=prompt_of["ex 2.5"], answer='3 "cm"')

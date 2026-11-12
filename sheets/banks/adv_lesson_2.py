@@ -3,7 +3,7 @@ pyramids; spheres. From the Saxon lesson and its deck
 (~/Documents/adv_math/problem_sets/ps_002/slides/deck_002.typ): examples
 2.1-2.6 and Problem Set 2, problems 25-28.
 
-    1  surface area, cylinder on a capped base:   5 x 6 with a semicircle, 10 high     342.53 cm^2
+    1  surface area, cylinder on a capped base:   5 x 6 with a semicircle, 10 high     342.52 cm^2
     2  surface area, prism on a base of squares:  a cross of five 2 x 2 squares, 6 long  184 square units
     3  volume, cylinder on a capped base:         11 x 10 with two semicircles, 9 high  2757.15 cm^3
     4  volume, cone on a capped base:             3 x 2 with a semicircle, 6 high       15.14 m^3
@@ -18,23 +18,22 @@ on its bottom (problem 28). Problem 28's three parts are three problems:
 28a Type 3, 28b Type 1, 28c Type 4. Spheres, in the lesson's title, have no
 example and no problem here.
 
-Answer conventions, from the deck. A capped base has pi in it, and the deck
-answers in decimals to two places, rounding each part as it goes: the base's
-area to two places (5 x 6 + pi 3^2/2 = 44.14), then the lateral area (the
-perimeter times the height: 254.25), then the total 44.14 + 44.14 + 254.25 =
-342.53 cm^2 (example 2.1; the exact 220 + 39 pi is 342.52). A cone's volume
-is a third of the rounded base times the height: (1/3)(7.57)(6) = 15.14 m^3
-(example 2.3). Without a capped base the answer is exact: 184 square units,
-144 pi cm^2, 3 cm, 56 cm^2. A unit goes after the number: 342.53 "cm"^2;
-example 2.2 is in "square units". Problems 25-28 have no answers in the deck;
-they follow the examples' forms (chosen here): 12 cm, 2 cm, 117.71 m^3 (27,
-from the rounded base 44.14), and 28a-c 2757.15 cm^3, 1324.82 cm^2, 919.05 cm^3.
+Answer conventions. A capped base has pi in it, and the answer is a decimal
+to two places, rounded once at the end (the teacher's choice): example 2.1 is
+2(5 x 6 + pi 3^2/2) + (2 x 5 + 6 + 3 pi)(10) = 220 + 39 pi = 342.52 cm^2. The
+deck rounds each part as it goes (44.14 + 44.14 + 254.25 = 342.53); check()
+accepts that too. A cone's volume is a third of the base times the height:
+(1/3)(6 + pi/2)(6) = 15.14 m^3 (example 2.3). Without a capped base the answer
+is exact: 184 square units, 144 pi cm^2, 3 cm, 56 cm^2. A unit goes after the
+number: 342.52 "cm"^2; example 2.2 is in "square units". Problems 25-28 have no
+answers in the deck; they follow the examples' forms: 12 cm, 2 cm, 117.70 m^3
+(27), and 28a-c 2757.15 cm^3, 1324.81 cm^2, 919.05 cm^3.
 
 check() works from the problem's data, not from how it was built:
   1, 3, 4  the base's area and perimeter measured on its outline (a polygon
            of thousands of points along the arcs); the answer within the
-           rounding the deck's method allows (half a hundredth per rounded
-           part, times what it's multiplied by), written to two places with
+           rounding allows, rounded once or part by part as the deck does
+           (half a hundredth per rounded part, times what it's multiplied by), written to two places with
            the unit squared (area) or cubed (volume).
   2        the base's area by its squares and its perimeter as 4 per square
            less 2 per shared side; the answer exactly.
@@ -48,7 +47,7 @@ No sources are skipped: Lesson 2 has no proofs.
 
 A problem: dict(type, prompt, answer, source). The prompt is the problem's
 data in a short form, and it is what an edit changes:
-    1  "cylinder area: base 5 x 6, right semicircle; height 10 cm"           '342.53 "cm"^2'
+    1  "cylinder area: base 5 x 6, right semicircle; height 10 cm"           '342.52 "cm"^2'
     2  "prism area: plus, side 2, length 6 units"                            '184 "square units"'
     3  "cylinder volume: base 11 x 10, right semicircle, left semicircle 20; height 9 cm"
     4  "cone volume: base 3 x 2, right semicircle; height 6 m"               '15.14 "m"^3'
@@ -75,7 +74,7 @@ INSTRUCTIONS = "Solve each problem. Include units."
 COURSES = {"Advanced Math": "Lessons"}
 PREAMBLE = fig.PREAMBLE
 
-ROUND = "Round each area and volume to two decimal places as you go. Include units."
+ROUND = "Round each answer to two decimal places at the end. Include units."
 
 TYPES = [
     dict(key="1", title="Surface Area of a Cylinder on a Capped Base",
@@ -201,7 +200,7 @@ def read_cap(prompt):
     return kind, w, h, right, left, height, unit
 
 def cap_parts(w, h, right, left):
-    """The base's area and perimeter, from the pieces (the build's way, as the deck works it)."""
+    """The base's area and perimeter, from the pieces (the build's way), unrounded."""
     area = w * h + (math.pi * (h / 2) ** 2 / 2 if right else 0) + (math.pi * (left / 2) ** 2 / 2 if left else 0)
     per = 2 * w + (math.pi * h / 2 if right else h) + (math.pi * left / 2 + (left - h) if left else h)
     return area, per
@@ -209,12 +208,11 @@ def cap_parts(w, h, right, left):
 def cap_answer(prompt):
     kind, w, h, right, left, height, unit = read_cap(prompt)
     area, per = cap_parts(w, h, right, left)
-    base = r2(area)
     if kind == "cylinder area":
-        return f"{2 * base + r2(per * height)} {unit_power(unit, 2)}"
+        return f"{r2(2 * area + per * height)} {unit_power(unit, 2)}"
     if kind == "cylinder volume":
-        return f"{r2(base * height)} {unit_power(unit, 3)}"
-    return f"{r2(base * height / 3)} {unit_power(unit, 3)}"
+        return f"{r2(area * height)} {unit_power(unit, 3)}"
+    return f"{r2(area * height / 3)} {unit_power(unit, 3)}"
 
 def outline(w, h, right, left, n=4000):
     """The base's outline as a polygon, counterclockwise from the bottom-left corner."""
