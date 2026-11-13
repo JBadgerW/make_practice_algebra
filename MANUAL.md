@@ -592,7 +592,9 @@ moves to the next (`Shift-Tab` back; past the last, you're back to what you
 typed). `:e` completes the same way, offering folders and the files it can
 open (`.sheet.json`, and an older set's `NAME_v1.json`), not the PDFs and
 Typst beside them. Names starting with a dot show only when you type the
-dot. Opening a sheet sets *out* to the sheet's folder.
+dot. `:e` (and `:w FOLDER/NAME`) start in the *out* folder: change *out* and
+`:e` looks there, so `:e` and *out* always agree. Opening a sheet sets *out*
+to the sheet's folder.
 
 **Commands.** Type `:` and the command, then press Enter. `↑` and `↓` scroll
 through earlier commands.
@@ -627,7 +629,7 @@ through earlier commands.
 | `:decoys` | A warm-up's new decoys (`:pre key` shows them) |
 | `:form warmup\|worksheet` `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
-| `:e FILE.sheet.json` | Open a sheet |
+| `:e FILE.sheet.json` | Open a sheet (a relative path starts in the out folder) |
 | `:new` | Start a new sheet. With unwritten changes it asks first: `w` writes them (asking for the name if it's still `untitled`), `d` discards them, and Esc keeps working on this one. The title, name, versions, form, and instructions go back to their defaults; the out folder, class, and course stay. `u` brings the old sheet back. |
 | `:new!` | Start a new sheet without asking, discarding changes |
 | `:open [sheet\|slides]` | Open the written PDF (default: the worksheet); every version is in it, each with its key after it |

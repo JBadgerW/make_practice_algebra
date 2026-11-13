@@ -53,7 +53,7 @@ class Files:
         False (and an error shown, nothing changed) if it can't be."""
         target = re.sub(r"(\.sheet)?\.json$", "", target.strip())
         folder, slash, name = target.rpartition("/")
-        out = (folder or "/") if slash else self.s["out"]
+        out = self.in_out(folder or "/") if slash else self.s["out"]
         if not re.fullmatch(r"[\w.-]+", name):
             return self.say("E: write as NAME or FOLDER/NAME: a name may use letters, digits, _ . - only", True) or False
         here = lambda o, n: Path(o).expanduser().resolve() / f"{n}.sheet.json"
@@ -184,9 +184,14 @@ class Files:
         if self.open_path(f):
             self.say(f"presenting version {v}: {dir_label(f.parent)}/{f.name} (click a half: answer, then next)")
 
+    def in_out(self, path):
+        """A path as :e and :w FOLDER/NAME read it: relative to the out folder."""
+        return Path(self.s["out"]).expanduser() / Path(path).expanduser()
+
     def load(self, path):
-        """Open a .sheet.json (or convert an older practice .json) to edit."""
-        p = Path(path).expanduser()
+        """Open a .sheet.json (or convert an older practice .json) to edit,
+        a relative path starting in the out folder."""
+        p = self.in_out(path)
         try:
             sheet = legacy.read_sheet(p)
         except (OSError, ValueError, KeyError, TypeError, SystemExit) as e:

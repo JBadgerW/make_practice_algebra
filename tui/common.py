@@ -178,15 +178,15 @@ def openable(name):
     """Can :e open a file by this name? A sheet, or an older set's first version."""
     return name.endswith(".sheet.json") or re.search(r"_v1\.json$", name) is not None
 
-def complete_path(text, dirs_only=False, keep=None):
+def complete_path(text, dirs_only=False, keep=None, base="."):
     """The names a partly typed path could become, as Neovim completes them:
-    ~ is home, a relative path starts in the current folder, folders end in /,
-    and hidden names show only when the part typed starts with a dot. keep(name)
-    picks the files to offer (default: every file)."""
+    ~ is home, a relative path starts in base (default: the current folder),
+    folders end in /, and hidden names show only when the part typed starts
+    with a dot. keep(name) picks the files to offer (default: every file)."""
     if text == "~":
         return ["~/"]
     head, sep, frag = text.rpartition("/")
-    folder = Path(os.path.expanduser(head + sep) if sep else ".")
+    folder = Path(base).expanduser() / os.path.expanduser(head + sep) if sep else Path(base).expanduser()
     try:
         entries = sorted(os.scandir(folder), key=lambda e: e.name)
     except OSError:

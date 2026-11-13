@@ -749,6 +749,13 @@ try:
     ck("\t"); assert c.buf == "e ~/Desktop/old_v1.json"
     ck("\t"); assert c.buf == "e ~/Desktop/untitled.sheet.json"
     ck("\x1b")
+    ck(":out ~/Desktop\n:e \t"); assert c.buf == "e Unit 1/", "a relative :e starts in out, not where mathsheet started: " + c.buf
+    assert c.comp["options"] == ["Unit 1/", "old_v1.json", "untitled.sheet.json", ""], c.comp["options"]
+    ck("\x1b:e unt\t\n"); assert not c.err and c.s["out"] == "~/Desktop" and c.total(), c.msg
+    ck(":out ~/Documents\n:w Algebra/alg\n"); assert c.s["out"] == "~/Documents/Algebra" and c.s["name"] == "alg", \
+        ":w FOLDER/NAME starts in out too: " + c.s["out"]
+    ck(":out sets\n:e \t"); assert c.buf == "e untitled.sheet.json", "a relative out still starts where mathsheet started"
+    ck("\x1b")
 finally:
     os.environ["HOME"] = saved_home; os.chdir(saved_cwd)
 

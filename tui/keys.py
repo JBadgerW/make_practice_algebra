@@ -335,7 +335,7 @@ class Keys:
     def completing(self):
         """What Tab completes in the line being typed: (start, what), or None, with
         what "dirs", "files", "courses", or "sequences". The out setting, :out, and
-        :library complete folders; :e the sheets it can open too; the course row and :course,
+        :library complete folders; :e, :w, and :saveas the sheets in the out folder; the course row and :course,
         courses; :draft, a sequence's name."""
         if self.mode == "insert" and self.editing and self.editing[0] == "row":
             return {("set", "out"): (0, "dirs"), ("course", None): (0, "courses")}.get(self.rid(self.editing[1]))
@@ -368,7 +368,8 @@ class Keys:
                 matches, labels = [m for m, _ in pairs], [l for _, l in pairs]
             else:
                 matches = complete_course(word) if what == "courses" else complete_sequence(word) \
-                    if what == "sequences" else complete_path(word, what == "dirs", openable if what == "sheets" else None)
+                    if what == "sequences" else complete_path(word, False, openable, self.s["out"]) \
+                    if what == "sheets" else complete_path(word, True)
             if not matches:
                 self.comp = None
                 return
