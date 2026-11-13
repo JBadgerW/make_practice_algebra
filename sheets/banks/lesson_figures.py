@@ -11,6 +11,8 @@ passes a bigger one), and labels take the text size around them.
                                       labels: {"left": markup, "top": ..., "right": ..., "bottom": ...}
     parallel(top, bottom, sides, below)  points on two parallel lines (name -> x), the segments
                                       `sides` (pairs of names) drawn, lengths `below` (pair -> markup)
+    mapping(domain, range_, arrows)   Lesson 21: a mapping diagram, two ovals of members and arrows
+    rule_mapping(left, right, rule)   Lesson 21: a mapping by a rule, x ∈ ℝ -> x + 2
 """
 import math
 from ..graphs import PREAMBLE, _num
@@ -232,4 +234,51 @@ def wedge_base(leg, side, angle, size=4.2, unit="1cm"):
             _label((A + arc[-1][0]) / 2, (Bv + arc[-1][1]) / 2, lb, "south-west"),
             _label(A + 0.5 * Bv * math.sin(math.radians(t / 2)), Bv - 0.5 * Bv * math.cos(math.radians(t / 2)),
                    f"${t:g}°$")]
+    return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 21: mapping diagrams
+# ------------------------------------------------------------------
+def _oval(cx, cy, rx, ry, n=60):
+    return _poly([(cx + rx * math.cos(2 * math.pi * i / n), cy + ry * math.sin(2 * math.pi * i / n))
+                  for i in range(n + 1)], ", stroke: 0.8pt")
+
+def _arrow(a, b, gap=0.22):
+    """A segment from a to b, stopped short of each label, with its arrowhead partway along."""
+    (x0, y0), (x1, y1) = a, b
+    L = math.hypot(x1 - x0, y1 - y0)
+    ux, uy = (x1 - x0) / L, (y1 - y0) / L
+    p, q = (x0 + gap * ux, y0 + gap * uy), (x1 - gap * ux, y1 - gap * uy)
+    mid = (p[0] + 0.62 * (q[0] - p[0]), p[1] + 0.62 * (q[1] - p[1]))
+    return [_poly([p, q], ", stroke: 0.8pt"),
+            _poly([(mid[0] - 0.01 * ux, mid[1] - 0.01 * uy), mid],
+                  ', stroke: 0.8pt, mark: (end: "stealth", fill: black, scale: 0.8)')]
+
+def mapping(domain, range_, arrows, names=True, unit="1cm"):
+    """A mapping diagram: the domain's members (markup) listed down a left oval, the
+    range's down a right one, an arrow for each (domain index, range index) pair;
+    names: "Domain" and "Range" under the ovals."""
+    step = 0.62
+    def column(items):
+        top = step * (len(items) - 1) / 2
+        return [top - step * i for i in range(len(items))]
+    ly, ry = column(domain), column(range_)
+    lx, rx = 0.0, 2.9
+    h = max(len(domain), len(range_), 2) * step / 2 + 0.25
+    cmds = [_oval(lx, 0, 0.55, step * len(domain) / 2 + 0.3), _oval(rx, 0, 0.5, step * len(range_) / 2 + 0.3)]
+    for x, ys, items in ((lx, ly, domain), (rx, ry, range_)):
+        for y, t in zip(ys, items):
+            cmds.append(_label(x, y, t))
+    for i, j in arrows:
+        cmds += _arrow((lx, ly[i]), (rx, ry[j]))
+    if names:
+        low = -max(step * len(domain) / 2 + 0.3, step * len(range_) / 2 + 0.3)
+        cmds += [_label(lx, low, "Domain", "north"), _label(rx, low, "Range", "north")]
+    return _canvas(cmds, unit)
+
+def rule_mapping(left, right, rule, unit="1cm"):
+    """A mapping by a rule: one oval holding `left` (x ∈ ℝ), an arrow labeled `rule`, one holding `right`."""
+    cmds = [_oval(0, 0, 0.95, 0.42), _oval(4.4, 0, 0.95, 0.42), _label(0, 0, left), _label(4.4, 0, right)]
+    cmds += _arrow((0.95, 0), (3.45, 0), gap=0.0)
+    cmds.append(_label(2.2, 0.05, rule, "south"))
     return _canvas(cmds, unit)
