@@ -18,7 +18,7 @@ from seeds derived from the item's own seed, so versions are parallel.
 Edited items, items from a fixed bank, and items with no seed (imported
 from an older file) print the same problem in every version.
 """
-import json, random
+import json, os, random, tempfile
 from pathlib import Path
 from . import banks
 
@@ -71,7 +71,7 @@ def draw_any(bank, seed, seen, keep=None):
     b = banks.get(bank)
     keep = set(bank_types(bank) if keep is None else keep)
     rng = random.Random(f"{seed}:any")
-    if getattr(b, "FIXED", False):
+    if b.FIXED:
         on = seen.setdefault(b.FAMILY, set())
         avoid = on | b.initial_seen()
         pool = [p for p in b.PROBLEMS if p["type"] in keep and b.seen_key(p) not in avoid]
@@ -92,7 +92,7 @@ def draw_any(bank, seed, seen, keep=None):
 def drawn_status(bank, p):
     """Generators check what they draw; a fixed bank's problem is checked now."""
     b = banks.get(bank)
-    return b.check(p) if getattr(b, "FIXED", False) else "checked"
+    return b.check(p) if b.FIXED else "checked"
 
 def new_item(bank, entry, seed, seen, scope="type", keep=None):
     """A freshly drawn item. seen: dict family -> no-repeat set (see seen_of).
@@ -133,13 +133,13 @@ def fill_versions(sheet, seen=None):
     seen = seen_of(sheet) if seen is None else seen
     n = sheet["versions"] - 1
     for it in items(sheet):
-        if it["edited"] or getattr(banks.get(it["bank"]), "FIXED", False):
+        if it["edited"] or banks.get(it["bank"]).FIXED:
             it["alts"] = []
         del it["alts"][n:]
     for v in range(2, n + 2):                # version-major, so the draw order never depends on n
         for it in items(sheet):
             if it["seed"] is not None and not it["edited"] and len(it["alts"]) < v - 1 \
-                    and not getattr(banks.get(it["bank"]), "FIXED", False):
+                    and not banks.get(it["bank"]).FIXED:
                 try:
                     alt = _draw(it["bank"], it["entry"], f"{it['seed']}:v{v}", seen)
                 except RuntimeError:            # nothing new left (a small pool): repeat version 1
@@ -171,7 +171,27 @@ def rows(section_items):
     return out
 
 def save(sheet, path):
-    Path(path).write_text(json.dumps(sheet, indent=1, ensure_ascii=False) + "\n")
+    """Write the sheet, whole or not at all: to a temporary file beside it, then
+    renamed into place, so a crash or a full disk never leaves half a sheet."""
+    path = Path(path)
+    text = json.dumps(sheet, indent=1, ensure_ascii=False) + "\n"
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(text)
+        if path.exists():
+            os.chmod(tmp, path.stat().st_mode & 0o777)     # keep the file's permissions
+        else:
+            umask = os.umask(0)
+            os.umask(umask)
+            os.chmod(tmp, 0o666 & ~umask)                  # as a newly written file would have
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 def load(path):
     """Read a .sheet.json; raises ValueError if it isn't one."""

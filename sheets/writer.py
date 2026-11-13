@@ -23,7 +23,7 @@ def _preambles(sheet):
     out = []
     for sec in sheet["sections"]:
         for it in sec["items"]:
-            pre = getattr(banks.get(it["bank"]), "PREAMBLE", "")
+            pre = banks.get(it["bank"]).PREAMBLE
             if pre and pre not in out:
                 out.append(pre)
     return "".join(pre + "\n" for pre in out)
@@ -33,7 +33,7 @@ BOOKMARK = "#let bookmark(t, level: 1) = place(hide(heading(level: level, outlin
 
 def _key_prompt(b, p, gap="0.3em"):
     """The prompt as the key shows it: a bank may draw on it (key_typst), as when a graph is the answer."""
-    return getattr(b, "key_typst", b.typst)(p, gap)
+    return b.key_typst(p, gap)
 
 def _question(it, v, key, space=None):
     b = banks.get(it["bank"])
@@ -299,7 +299,7 @@ def big_graph(it, v):
 def own_slide(it, v):
     """Does the item's bank lay out its slide in version v (slide_typst), a graph beside its equation?"""
     b = banks.get(it["bank"])
-    return getattr(b, "slide_typst", lambda p, key=False: None)(problem(it, v)) is not None
+    return b.slide_typst(problem(it, v)) is not None
 
 def slide_args(it, v):
     """The arguments of an item's question slide and answer slide in version v,

@@ -1,7 +1,7 @@
 """Writing, previewing, opening, and loading sheets."""
 import copy, re, shlex, subprocess
 from pathlib import Path
-import make_practice as mp
+from sheets import draft, build, legacy
 from sheets import sheet as sh, library, writer, present as presenter
 from .common import dir_label, home_path, SHEET
 
@@ -15,7 +15,7 @@ class Files:
         path = Path(out).expanduser().resolve() / f"{name}.sheet.json"
         sheet["command"] = f"python3 make_practice.py --sheet {shlex.quote(str(path))}"
         try:
-            r = mp.build(sheet, out, name)
+            r = build.build(sheet, out, name)
         except (RuntimeError, OSError) as e:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
@@ -38,7 +38,7 @@ class Files:
         While the name is still the default, ask first: the name to write under,
         filled in, so Enter confirms it and typing changes it (Esc writes nothing).
         With ! there's no asking."""
-        if self.total() and not force and self.s["name"] == mp.DEFAULTS["name"]:
+        if self.total() and not force and self.s["name"] == draft.DEFAULTS["name"]:
             return self.start_edit(("write", then), self.s["name"])
         if self.write():
             if then == "quit":
@@ -59,8 +59,8 @@ class Files:
         course stay. Undoable, like :clear."""
         keep = {k: self.sheet.get(k) for k in ("class_name", "course")}
         def go():
-            self.s.update(sheet=sh.new_sheet(mp.DEFAULTS["title"], keep["class_name"]),
-                          name=mp.DEFAULTS["name"])
+            self.s.update(sheet=sh.new_sheet(draft.DEFAULTS["title"], keep["class_name"]),
+                          name=draft.DEFAULTS["name"])
             self.sheet["course"] = keep["course"]
         self.end_visual()
         if not self.change(go):
@@ -133,7 +133,7 @@ class Files:
         if not 1 <= v <= self.sheet["versions"]:
             return self.say(f"E: there are {self.sheet['versions']} versions", True)
         try:
-            pdf = mp.preview(self.sheet, v - 1, what, self.preview_dir)
+            pdf = build.preview(self.sheet, v - 1, what, self.preview_dir)
         except (RuntimeError, OSError) as e:
             return self.say(f"E: {e}".splitlines()[0], True)
         self.preview_dir = pdf.parent           # the same file every time, so an open viewer reloads it
@@ -170,7 +170,7 @@ class Files:
         """Open a .sheet.json (or convert an older practice .json) to edit."""
         p = Path(path).expanduser()
         try:
-            sheet = mp.read_sheet(p)
+            sheet = legacy.read_sheet(p)
         except (OSError, ValueError, KeyError, TypeError, SystemExit) as e:
             return self.say(f"E: can't open {path}: {e}", True)
         name = re.sub(r"(\.sheet\.json|_v\d+\.json|\.json)$", "", p.name)

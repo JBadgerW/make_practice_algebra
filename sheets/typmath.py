@@ -10,6 +10,7 @@
     display(t)     $display(t)$, so the outermost fraction is full size
     dfrac(t)       every fraction full size, nested ones too, but not in exponents
     text(t)        Typst math for the terminal
+    pretty(t)      the same, closed up as it's written by hand: (1/3)πr²h
 
 Typst reads xy as one name, so letters are always separated by spaces, and
 to_sympy (sheets/check.py) reads every tx() back as the same expression:
@@ -34,6 +35,19 @@ def text(t):
     """Typst math for the terminal: minus signs, and <= as ≤."""
     t = t.replace("<=", "≤").replace(">=", "≥").replace(" - ", " − ")
     return re.sub(r"(^|[\s(])-", r"\1−", t)
+
+def pretty(s):
+    """Typst math -> readable terminal text: a y - b y -> ay − by, pi -> π."""
+    s = re.sub(r"\b(\d+)/(\d+) ", r"(\1/\2)", s)                     # 1/3 B h -> (1/3)B h
+    s = re.sub(r"\bsqrt\(", "√(", s)
+    s = re.sub(r"\bell\b", "ℓ", s)
+    s = re.sub(r"\bpi\b", "π", s)
+    s = re.sub(r"\^(\d)", lambda m: "⁰¹²³⁴⁵⁶⁷⁸⁹"[int(m.group(1))], s)
+    s = re.sub(r"_(\d)", lambda m: "₀₁₂₃₄₅₆₇₈₉"[int(m.group(1))], s)
+    s = re.sub(r"_([aehiklmnoprstuvx])\b",
+               lambda m: dict(zip("aehiklmnoprstuvx", "ₐₑₕᵢₖₗₘₙₒₚᵣₛₜᵤᵥₓ"))[m.group(1)], s)
+    s = re.sub(r"(?<=[\w)²³ℓπ₀-₉ₐ-ₜ]) (?=[\w(ℓπ√])", "", s)           # juxtaposition
+    return s.replace(" - ", " − ").replace("-", "−")
 
 class Printer:
     def __init__(self, order=()):

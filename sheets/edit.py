@@ -173,7 +173,7 @@ def set_bank_count(sheet, bank, n, seeds):
 def unused(sheet, bank, types):
     """How many of a fixed bank's problems of these types aren't on the sheet (None for a generator)."""
     b = banks.get(bank)
-    if not getattr(b, "FIXED", False):
+    if not b.FIXED:
         return None
     on = seen_of(sheet).get(b.FAMILY, set()) | b.initial_seen()
     return sum(1 for p in b.PROBLEMS if p["type"] in types and b.seen_key(p) not in on)

@@ -10,6 +10,7 @@ templates ("letters"), and KEYf draws from the real formulas ("formulas").
 """
 import functools, json, random, re
 from ... import ROOT
+from ...typmath import pretty
 from .types import TYPES, TYPE, KEYS, label
 from .templates import D, Redraw, need, TEMPLATES
 from .formulas import FORMULAS
@@ -162,19 +163,6 @@ def typst(problem, gap="0.3em"):
 def answer_typst(problem):
     return f"$display({problem['answer']})$"
 
-def pretty(s):
-    """Typst math -> readable terminal text: a y - b y -> ay − by, pi -> π."""
-    s = re.sub(r"\b(\d+)/(\d+) ", r"(\1/\2)", s)                     # 1/3 B h -> (1/3)B h
-    s = re.sub(r"\bsqrt\(", "√(", s)
-    s = re.sub(r"\bell\b", "ℓ", s)
-    s = re.sub(r"\bpi\b", "π", s)
-    s = re.sub(r"\^(\d)", lambda m: "⁰¹²³⁴⁵⁶⁷⁸⁹"[int(m.group(1))], s)
-    s = re.sub(r"_(\d)", lambda m: "₀₁₂₃₄₅₆₇₈₉"[int(m.group(1))], s)
-    s = re.sub(r"_([aehiklmnoprstuvx])\b",
-               lambda m: dict(zip("aehiklmnoprstuvx", "ₐₑₕᵢₖₗₘₙₒₚᵣₛₜᵤᵥₓ"))[m.group(1)], s)
-    s = re.sub(r"(?<=[\w)²³ℓπ₀-₉ₐ-ₜ]) (?=[\w(ℓπ√])", "", s)           # juxtaposition
-    return s.replace(" - ", " − ").replace("-", "−")
-
 def text(problem):
     """As the worksheet shows it: the equation, then the unknown."""
     return f"{pretty(problem['prompt'])};  {pretty(problem['target'])}"
@@ -185,6 +173,9 @@ def answer_text(problem):
 # ------------------------------------------------------------------
 # Hand editing. The text is Typst math, as stored: "R = s - 6 ; s".
 # ------------------------------------------------------------------
+def edit_hint(problem):
+    return "equation ; unknown"
+
 def edit_text(problem):
     return f"{problem['prompt']} ; {problem['target']}"
 

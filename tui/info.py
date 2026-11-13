@@ -39,10 +39,10 @@ class Info:
         b, p = banks.get(it["bank"]), sh.problem(it, self.version)
         e = b.ENTRY.get(it["entry"])
         src = p.get("source", "")
-        what = "written problems" if getattr(b, "FIXED", False) else "draws new problems"
+        what = "written problems" if b.FIXED else "draws new problems"
         rows = [("Bank", b.TITLE, ""),
                 ("", f"{it['bank']}, {what}" + (f"; the bank's #{src.split('#')[1]}" if "#" in src else "")
-                 + (" (missing from the library: :rescan once it's back)" if getattr(b, "MISSING", False) else ""), "")]
+                 + (" (missing from the library: :rescan once it's back)" if b.MISSING else ""), "")]
         if e:
             rows.append(("Type", f"{banks.label(b, it['entry'])}  {e['title']}"
                          + (" (real formulas)" if e.get("kind") == "formulas" else ""), ""))
@@ -63,7 +63,7 @@ class Info:
         status = {"checked": "checked", "unchecked": "can't be checked by machine",
                   "failed": "FAILS its check"}.get(it["status"], it["status"])
         rows.append(("Answer", f"{b.answer_text(p)}  ({status})", "A"))
-        fixed = getattr(b, "FIXED", False) or it["edited"] or it["seed"] is None
+        fixed = b.FIXED or it["edited"] or it["seed"] is None
         n = self.sheet["versions"]
         rows.append(("Versions", "one" if n == 1 else
                      f"the same in all {n} ({'edited' if it['edited'] else 'written'})" if fixed else
@@ -92,14 +92,14 @@ class Info:
 
     def info_bank(self, name, its):
         b, lib = banks.get(name), library.current()
-        fixed = getattr(b, "FIXED", False)
+        fixed = b.FIXED
         shown = sh.bank_types(name, self.course)              # what l here draws from
         every = library.types(b)
         mine = [it for it in its if it["bank"] == name]
         whole = sum(map(sh.from_bank, mine))
         rows = [("Title", b.TITLE, ""),
                 ("Id", name + "  (permanent: sheets and sequences use it)"
-                 + (f"; formerly {', '.join(b.FORMERLY)}" if getattr(b, "FORMERLY", None) else ""), ""),
+                 + (f"; formerly {', '.join(b.FORMERLY)}" if b.FORMERLY else ""), ""),
                 ("Kind", (f"{len(b.PROBLEMS)} written problem{'s' * (len(b.PROBLEMS) != 1)}"
                           + (f", checked as {b.fam.TITLE}" if b.fam else "; their answers can't be checked by machine (?)"))
                  if fixed else "draws new problems, each checked", ""),
@@ -140,7 +140,7 @@ class Info:
     def info_type(self, name, entry, its):
         b = banks.get(name)
         e, typ = b.ENTRY[entry], b.type_of(entry)
-        fixed = getattr(b, "FIXED", False)
+        fixed = b.FIXED
         rows = [("Bank", f"{b.TITLE}  ({name})", ""),
                 ("Type", f"{banks.label(b, entry)}  {e['title']}"
                  + (" (real formulas)" if e.get("kind") == "formulas" else ""), ""),
@@ -176,12 +176,12 @@ class Info:
         return f"Problem {name}#{pid}", rows, "l add · h remove · L at cursor · Esc"
 
     def bank_file(self, b):
-        if getattr(b, "MISSING", False):
+        if b.MISSING:
             return "none: it's missing from the library"
-        src = getattr(b, "SOURCE", None)
+        src = b.SOURCE
         if src:
             return src if src.startswith("library/") else f"{src} in your library ({dir_label(library.current().folder)})"
-        return os.path.relpath(b.__file__, ROOT) + " (a generator)"
+        return os.path.relpath(b.module.__file__, ROOT) + " (a generator)"
 
     def info_items(self, its):
         """Rows summing up several problems."""

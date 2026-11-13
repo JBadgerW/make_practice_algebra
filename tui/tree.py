@@ -1,6 +1,6 @@
 """The banks pane: its rows, what each shows, and the changes made from it (counts, settings, the course)."""
 import re
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh, edit as E, banks, library
 from .common import dir_label, SETTINGS
 
@@ -33,7 +33,7 @@ class Tree:
                     if e["type"] not in keep:
                         continue
                     out.append(("count", (name, e["key"])))
-                    if getattr(b, "FIXED", False) and (everything or (name, e["key"]) in self.open_types):
+                    if b.FIXED and (everything or (name, e["key"]) in self.open_types):
                         out += [("problem", (name, p["id"])) for p in b.PROBLEMS if p["type"] == e["key"]]
         return out + [("set", k) for k in SETTINGS]
 
@@ -41,7 +41,7 @@ class Tree:
         """A step's pinned examples that the library has, as (bank, id)."""
         lib = library.current()
         return [] if st["missing"] else \
-            [(b, pid) for b, pid in st["examples"] if lib.has(b) and pid in getattr(lib.get(b), "PROBLEM", {})]
+            [(b, pid) for b, pid in st["examples"] if lib.has(b) and pid in lib.get(b).PROBLEM]
 
     def step(self, key):
         """The step a ("step", (sequence, n)) row is."""
@@ -125,7 +125,7 @@ class Tree:
         elif kind in ("count", "problem"):
             bank = key[0]
             b = banks.get(bank)
-            if not getattr(b, "FIXED", False):
+            if not b.FIXED:
                 return self.say("o lists the problems of a fixed bank's type; this bank draws new ones", True)
             typ = key[1] if kind == "count" else b.PROBLEM[key[1]]["type"]
             self.open_types ^= {(bank, typ)}
@@ -205,7 +205,7 @@ class Tree:
         old, here = self.course, self.rid()
         def go():
             self.sheet["course"] = new
-            if new and not self.total() and self.sheet["class_name"] in (mp.DEFAULTS["class_name"], old):
+            if new and not self.total() and self.sheet["class_name"] in (draft.DEFAULTS["class_name"], old):
                 self.sheet["class_name"] = new
         self.change(go)
         try:

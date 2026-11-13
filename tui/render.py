@@ -1,6 +1,6 @@
 """The sheet as the pane shows it, laid out like the page (with the page-break estimate)."""
 import textwrap
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh, edit as E, banks
 from .common import FRAC_IN, HEADER_IN, LINE_IN, PAGE_IN, PLAIN_IN, SHEET, TITLE_IN
 
@@ -48,9 +48,7 @@ class Render:
             emit((0, f"{'─' * 6} page {page} (about here) {'─' * max(0, width - 30)}", "page", None))
         def prompt_h(it):
             b, p = banks.get(it["bank"]), sh.problem(it, v)
-            if hasattr(b, "height"):
-                return b.height(p)
-            return FRAC_IN if "/" in p["prompt"] else PLAIN_IN
+            return b.height(p)
         def fits(h):                                  # the last gap may hang off the page
             return used + h - (FRAC_IN - PLAIN_IN) - 0.05 <= PAGE_IN
 
@@ -89,7 +87,7 @@ class Render:
                     n += 1
                     x0, tgt = k * (colw + 3), (si, index[id(it)])
                     b, p = banks.get(it["bank"]), sh.problem(it, v)
-                    mark = "!" if getattr(b, "MISSING", False) else {"failed": "✗", "unchecked": "?"}.get(it["status"], "")
+                    mark = "!" if b.MISSING else {"failed": "✗", "unchecked": "?"}.get(it["status"], "")
                     num = f"{mark}{n}."
                     body = [w for part in b.text(p).split("\n")
                             for w in textwrap.wrap(part, max(8, colw - len(num) - 1)) or [""]]
@@ -122,6 +120,6 @@ class Render:
         if not it:
             return f"section {si + 1}"
         n = E.positions(self.sheet).index(self.cur) + 1
-        src = it["entry"] if it["bank"] == mp.BANK else f"{it['bank']}:{it['entry']}"
+        src = it["entry"] if it["bank"] == draft.BANK else f"{it['bank']}:{it['entry']}"
         src += f" (rerolls from all of {it['bank']})" if sh.from_bank(it) else ""
         return f"#{n} {src} {it['width']} {it['space']}" + ("" if it["status"] == "checked" else f" {it['status']}")

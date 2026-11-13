@@ -56,7 +56,7 @@ def stacked(it, v):
     """The question and answer bodies of a graphed problem whose bank gives its
     slide in parts: the text centered above the graph. None for any other."""
     b = banks.get(it["bank"])
-    parts = getattr(b, "slide_parts", lambda p, key=False: None)
+    parts = b.slide_parts
     p = problem(it, v)
     if parts(p) is None:
         return None

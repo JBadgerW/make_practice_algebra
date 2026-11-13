@@ -24,10 +24,17 @@
     text(p), answer_text(p)       plain text for the terminal
     edit_text(p), from_edit(text, p), answer_edit_text(p), with_answer(p, text)
                                   hand editing; the last two return (problem, status)
+    edit_hint(p)                  optional: what to type when editing the problem, shown in
+                                  the prompt ("equation ; unknown")
 
     COURSES                       optional: the courses it belongs to (see sheets/library.py);
                                   a type may carry its own "courses"
     FORMERLY                      optional: names the bank used to have (NAME is permanent)
+
+The app sees every bank as one object with all of this (sheets/bank.py): the
+optional parts a bank leaves out have their defaults there, so nothing asks a
+bank whether it has something. initial_seen, type_of, special, and hint have
+defaults too (nothing excluded, the entry itself, no, none).
 
 Generator banks are modules in this package, found automatically. Fixed
 banks are JSON files: the built-in ones in the project's library/ folder, and
@@ -61,9 +68,8 @@ def get(name):
 
 def instructions(b, typ):
     """The instructions for a section of one type of bank b."""
-    f = getattr(b, "type_instructions", None)
-    return f(typ) if f else b.INSTRUCTIONS
+    return b.type_instructions(typ)
 
 def problems(name):
     """A fixed bank's problems (empty for a generator)."""
-    return getattr(get(name), "PROBLEMS", [])
+    return list(get(name).PROBLEMS)

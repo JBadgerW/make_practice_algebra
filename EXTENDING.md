@@ -40,9 +40,14 @@ their classroom. Ease of building comes second.
    data), the templates (`D`, `need`, `t*_*`, `TEMPLATES`), `FORMULAS`,
    `solve`/`fmt`/`poly_tx`/`terms` (the answer formatter), `make` (solve +
    check), and `draw`.
-4. `make_practice.py`, read top to bottom:
-   - `draw_versions`, `build`: the API;
-   - `worksheet`, `slides`: Typst output.
+4. `make_practice.py` is only the command now. Read what it points to:
+   - `sheets/draft.py`: a sheet from a recipe (`--mix`, `--groups`, `--draft`).
+     It is the one module that knows literal is the default bank (a bare
+     `3:6` is literal's);
+   - `sheets/build.py`: writing, compiling, previews;
+   - `sheets/writer.py`: the Typst for worksheets, keys, warm-ups, slides;
+   - `sheets/bank.py`: the bank interface's defaults (see section 9);
+   - `sheets/legacy.py`, `sheets/cli.py`: older practice files; the flags.
 5. `mathsheet.py` starts the app, which lives in `tui/` (its `__init__.py`
    maps the files). `App` (`tui/app.py`) holds all the state, and has no
    curses in it; its methods come from one mixin per part (`tree.py` the banks
@@ -365,6 +370,16 @@ banks pane shows); a bank file does this with a type `"id"` apart from its
   `tests/test_typmath.py` proves every form reads back through `to_sympy`.
   `check.same_value` compares values; `check.simplest_form` reads the form
   (positive exponents, rationalized, lowest terms) from the text as written.
+- **A new optional part of the bank interface goes in `sheets/bank.py`,** as
+  a default on `Bank`. The library wraps every generator module in a
+  `GeneratorBank` (the module's own names first, then the defaults), so the
+  app calls `b.height(p)` or reads `b.FIXED` without asking whether the bank
+  has it. A module missing a required name is left out and listed in
+  `:warnings`. A new bank needn't define `FIXED`, `initial_seen`, `type_of`,
+  `special`, or `hint` unless it has something to say.
+- **A bank's bug must not cost the teacher the sheet.** `App.change()` undoes
+  the change on any error, shows it, and appends the traceback to
+  `~/.config/mathsheet/errors.log`. Read that log when a key "did nothing".
 - **Check the form, not only the value.** The right value with a negative
   exponent, an unreduced fraction, or an unfinished factorization is a
   wrong key. Read the form from the text (`to_sympy(..., evaluate=False)`),

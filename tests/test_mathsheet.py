@@ -1114,5 +1114,60 @@ kk(":mix 1:10"); T.handle(slow_scr, k, "\n", 10, ahead)
 assert k.total() == 10 and ahead == ["j", "k"], "keys typed while it works run after it"
 tui.screen.BUSY_AFTER, sh.progress = 0.15, None
 
+# ---- a bank's bug never costs the sheet: the change is undone, said, and logged
+from sheets import banks as B
+from tui.common import error_log
+c = T.App(seed=4); cc = driver(c); c.ex("course all")
+cc(":mix ka1_02_03/1:2\n"); before, n_undo = prompts(c), len(c.undo)
+lit = B.get("ka1_02_03").module
+real_check = lit.check
+lit.check = lambda p: "failed"                  # the check disagrees with every draw: generate asserts
+try:
+    c.open.add("ka1_02_03"); c.row = c.rows().index(("count", ("ka1_02_03", "1"))); cc("l")
+    assert c.err and "AssertionError" in c.msg and "nothing changed" in c.msg, c.msg
+    assert prompts(c) == before and len(c.undo) == n_undo, "the sheet is as it was, and there's nothing to undo"
+    assert "AssertionError" in error_log().read_text() and "errors.log" in c.msg, "the traceback is in the log"
+    c.focus = "preview"; c.cur = (0, 0); cc("r")
+    assert c.err and prompts(c) == before, "a reroll that hits the bug changes nothing either"
+finally:
+    lit.check = real_check
+c.focus = "left"; cc("l"); assert not c.err and c.total() == 3, "and the session carries on"
+def boom(ch, page=10):
+    raise KeyError("a bug outside a change")
+real_key, c.key = c.key, boom
+quiet = FakeScreen([])
+T.handle(quiet, c, "j", 10, [])                 # the loop's own net: no exception reaches run()
+assert c.err and "KeyError" in c.msg and c.mode == "normal" and c.total() == 3, c.msg
+c.key = real_key
+
+# ---- a broken generator is reported and left out, not found by a key later
+import types as _types
+from sheets import bank as BK
+whole = B.get("literal")
+assert BK.missing(whole.module) == [] and not whole.FIXED and not whole.MISSING and whole.PREAMBLE == ""
+assert whole.initial_seen == whole.module.initial_seen, "the module's own names come first"
+half = _types.SimpleNamespace(NAME="half", TITLE="Half", generate=lambda *a: None)
+assert "check" in BK.missing(half) and "typst" in BK.missing(half)
+g = BK.GeneratorBank(half)
+assert g.special("1") is False and g.hint("1") is None and g.type_of("3") == "3" and g.initial_seen() == set()
+assert g.height(dict(prompt="x/2")) == BK.FRAC_IN and g.slide_typst({}) is None
+try:
+    g.nothing_like_this
+    assert False, "an unknown name is still an AttributeError"
+except AttributeError:
+    pass
+
+# ---- a sheet file is written whole or not at all
+import json, os as _os
+f = Path(OUT) / "atomic.sheet.json"
+sh.save(c.sheet, f); good = f.read_text()
+assert sh.load(f)["sections"] == json.loads(good)["sections"] and oct(f.stat().st_mode & 0o777) != "0o600"
+try:
+    sh.save(dict(c.sheet, bad=object()), f)     # can't be written as JSON
+    assert False
+except TypeError:
+    pass
+assert f.read_text() == good and [x.name for x in Path(OUT).glob(".atomic*")] == [], "the old file stands; no litter"
+
 print("all key tests passed")
 

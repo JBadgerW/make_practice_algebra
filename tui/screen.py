@@ -1,7 +1,7 @@
 """Drawing with curses, and run: the loop."""
 import curses, re, textwrap, threading
 from sheets import sheet as sh, banks, library
-from sheets.banks.literal import pretty
+from sheets.typmath import pretty
 from .common import COURSE_HINT, HELP, INFO_KEYS_W, INFO_LABEL, info_lines, prose, SETTING_HINTS, SETTINGS, SHEET_MIN
 
 # Drawing
@@ -159,13 +159,13 @@ class Screen:
                 val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
             elif kind == "bank":
                 b = banks.get(key)
-                size = f" ({len(b.PROBLEMS)})" if getattr(b, "FIXED", False) else ""
+                size = f" ({len(b.PROBLEMS)})" if b.FIXED else ""
                 text = f"{'▾' if key in app.open else '▸'} {b.TITLE}{size}"
                 n = app.value(rows[i])
                 val, attr_v, attr_t = (str(n) if n else "·"), (st["count"] if n else st["dim"]), curses.A_BOLD
             elif kind == "count":
                 b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
-                if getattr(b, "FIXED", False):
+                if b.FIXED:
                     arrow = "▾" if key in app.open_types else "▸"
                     text = f"  {arrow}{banks.label(b, key[1]):>3}  {e['title']} ({e['count']})"
                 elif e.get("kind") == "formulas":
@@ -221,7 +221,7 @@ class Screen:
             b = banks.get(key)
             hint = (f"{b.TITLE}: written problems. l here adds one from any type (20l: twenty), in a section of "
                     f"its own; o opens it; l on a type adds one of it; l on a problem adds that one."
-                    if getattr(b, "FIXED", False) else
+                    if b.FIXED else
                     f"{b.TITLE}: draws new problems. l here adds one of any type (20l: twenty), in a section of "
                     f"its own; o opens it; l on a type adds one of it.")
         elif kind == "count":
@@ -349,6 +349,9 @@ def handle(screen, app, ch, page, typeahead):
     def go():
         try:
             app.key(ch, page=page)
+        except Exception as e:          # a bug outside a change: say so and carry on (the sheet stands)
+            app.mode, app.pending, app.count = "normal", "", ""
+            app.unexpected(e, ":w saves the sheet as it stands")
         except BaseException as e:      # re-raised here, as if the key ran in this thread
             failed.append(e)
     t = threading.Thread(target=go, daemon=True)

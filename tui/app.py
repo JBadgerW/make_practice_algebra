@@ -1,9 +1,9 @@
 """App: the state, the caches keyed by revision, change() and undo; the rest of its
 methods come from one mixin per part (see tui/__init__.py)."""
 import copy, random
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh, banks, library
-from .common import SHEET, start_out
+from .common import SHEET, log_error, start_out
 from .tree import Tree
 from .sheet import SheetEdits
 from .render import Render
@@ -18,12 +18,12 @@ from .info import Info
 class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info):
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
-        self.s = dict(sheet=sheet or sh.new_sheet(mp.DEFAULTS["title"], None),
+        self.s = dict(sheet=sheet or sh.new_sheet(draft.DEFAULTS["title"], None),
                       out=out or start_out(),
-                      name=name or mp.DEFAULTS["name"])
+                      name=name or draft.DEFAULTS["name"])
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         if not self.sheet.get("class_name"):                                # no --class: the course's
-            self.sheet["class_name"] = self.course or mp.DEFAULTS["class_name"]
+            self.sheet["class_name"] = self.course or draft.DEFAULTS["class_name"]
         self.undo, self.redo = [], []
         self.rev = 0                    # bumped whenever self.s may have changed: what the caches key on
         self._memo = (None, {})         # (rev, library) -> values derived from the sheet (see memo)
@@ -92,7 +92,9 @@ class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info):
 
     def change(self, fn):
         """Run fn, which edits self.s; undoable. A ValueError or RuntimeError
-        undoes it and becomes the message. Returns True if it worked."""
+        undoes it and becomes the message; so does any other error (a bank's
+        bug), which is also recorded in the error log: a broken bank must never
+        cost the teacher the sheet. Returns True if it worked."""
         before, layout = self.snapshot(), self.layout()
         self.rev += 1
         self._changing += 1
@@ -108,6 +110,10 @@ class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info):
                 raise
             self.say("cancelled: nothing changed")
             return False
+        except Exception as e:
+            self.s = before
+            self.unexpected(e, "nothing changed")
+            return False
         finally:
             self._changing -= 1
         if self.anchor is not None and self.layout() != layout:
@@ -117,6 +123,13 @@ class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info):
             self.redo.clear()
         self.clamp()
         return True
+
+    def unexpected(self, e, what=""):
+        """An error nothing was ready for (a bug, most likely a bank's): say so,
+        and record its traceback in the error log, instead of ending the session."""
+        log = log_error(e)
+        text = " ".join(f"{type(e).__name__}: {e}".split())
+        self.say(f"E: {text[:200]}" + (f"  ·  {what}" if what else "") + (f"  ·  details in {log}" if log else ""), True)
 
     def progress(self):
         """Called before each problem is drawn (sheet.progress): counts them for the

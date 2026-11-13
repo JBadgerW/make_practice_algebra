@@ -1,9 +1,10 @@
 """What every part of the app shares: imports, constants, and small helpers."""
-import os, re, textwrap
+import os, re, textwrap, time, traceback
 from pathlib import Path
-import make_practice as mp
+from sheets import draft
 from sheets import library
-from sheets.banks.literal import pretty
+from sheets.bank import FRAC_IN, PLAIN_IN  # noqa: F401
+from sheets.typmath import pretty
 
 # ------------------------------------------------------------------
 # Rows in the left pane: ("course", None) on top; ("seq", name) and its
@@ -65,7 +66,7 @@ SHEET_MIN = 60                         # a sheet pane narrower than this takes r
 # (inches): the page body, the header, an instructions line, a section title,
 # and a problem's own line (plain, or with a stacked fraction), each with the
 # gap that follows it.
-PAGE_IN, HEADER_IN, LINE_IN, TITLE_IN, PLAIN_IN, FRAC_IN = 9.5, 0.62, 0.25, 0.30, 0.30, 0.38
+PAGE_IN, HEADER_IN, LINE_IN, TITLE_IN = 9.5, 0.62, 0.25, 0.30
 
 
 # ------------------------------------------------------------------
@@ -84,7 +85,24 @@ def start_out():
     unless that's your home folder; then the folder written to last, else practice."""
     if Path.cwd() != Path.home().resolve():
         return home_path(Path.cwd())
-    return library.config().get("out") or mp.DEFAULTS["out"]
+    return library.config().get("out") or draft.DEFAULTS["out"]
+
+def error_log():
+    """Where unexpected errors are recorded: errors.log, beside the config file."""
+    return library.config_path().parent / "errors.log"
+
+def log_error(e):
+    """Append an unexpected error's traceback to the error log. Returns the log's
+    path as you'd type it, or None if it couldn't be written."""
+    path = error_log()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a") as f:
+            f.write(f"---- {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                    + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "\n")
+    except OSError:
+        return None
+    return home_path(path)
 
 INFO_LABEL, INFO_KEYS_W = 10, 6         # the info box's columns: label, then the keys at the right
 

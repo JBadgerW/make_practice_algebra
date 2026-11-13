@@ -37,10 +37,11 @@ another. Fixed problems are the same in every version.
 """
 import json, re
 from pathlib import Path
+from ..bank import Bank
 
 FORMAT = 1
 
-class FixedBank:
+class FixedBank(Bank):
     FIXED = True
 
     def __init__(self, path, families):
@@ -99,12 +100,9 @@ class FixedBank:
                     return k
         return None
 
-    def type_of(self, entry):
-        return entry
-
     def _family_type(self, typ):
         """Is typ one of the family's own types (so the family's names and hints apply)?"""
-        return self.fam is not None and typ in getattr(self.fam, "TYPE", {})
+        return self.fam is not None and typ in type_table(self.fam)
 
     def hint(self, typ):
         """(label, title, look, move), or None when the type has no hints."""
@@ -127,9 +125,6 @@ class FixedBank:
         return self.fam
 
     # -- drawing -------------------------------------------------------
-    def initial_seen(self):
-        return set()
-
     def seen_key(self, p):
         f = self.fam_of(p)
         return f.seen_key(p) if f else ("fixed", p.get("id"), p.get("prompt"))
@@ -171,6 +166,10 @@ class FixedBank:
         f = self.fam_of(p)
         return f.answer_text(p) if f else p.get("answer_text") or plain(p["answer"])
 
+    def edit_hint(self, p):
+        f = self.fam_of(p)
+        return f.edit_hint(p) if f else ""
+
     def edit_text(self, p):
         f = self.fam_of(p)
         return f.edit_text(p) if f else p["prompt"]
@@ -198,6 +197,14 @@ class FixedBank:
         new = dict(p, answer=text.strip())
         new.pop("answer_text", None)
         return new, "unchecked"
+
+def type_table(fam):
+    """A family's own types by key ({} if it keeps no TYPE table)."""
+    try:
+        t = fam.TYPE
+    except AttributeError:
+        return {}
+    return t if isinstance(t, dict) else {}
 
 def plain(typst):
     """Typst markup -> rough terminal text."""

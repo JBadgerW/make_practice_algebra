@@ -33,6 +33,7 @@ from pathlib import Path
 FORMAT = 1
 
 class Sequence:
+    WARNINGS = ()           # what the library should report about it (as a bank's)
     SEQUENCE = True
 
     def __init__(self, d, path):
@@ -90,7 +91,7 @@ class Sequence:
             st["examples"] = [(lib.canonical(eb), pid) for eb, pid in st["examples"]]
             for eb, pid in st["examples"]:
                 x = lib.get(eb) if lib.has(eb) else None
-                if x is None or pid not in getattr(x, "PROBLEM", {}):
+                if x is None or pid not in x.PROBLEM:
                     absent.append(f"{eb}#{pid}")
                 elif x.FAMILY != b.FAMILY or x.PROBLEM[pid]["type"] != st["type"]:
                     out.append(f"{where}: example {eb}#{pid} is {x.heading(x.PROBLEM[pid]['type'])}, "

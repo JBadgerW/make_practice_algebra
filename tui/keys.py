@@ -1,6 +1,6 @@
 """Keys: normal mode on either pane, the info box, and typing a line (insert, :, /) with Tab completion."""
 import curses, re
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh, banks
 from .common import complete_course, complete_path, complete_sequence, openable, SHEET
 
@@ -307,8 +307,12 @@ class Keys:
         if kind == "new":
             return "unsaved changes: w writes them first, d discards them (Enter; Esc cancels): "
         if kind == "write":
-            return f"name is still {mp.DEFAULTS['name']} (Enter writes, or retype; Esc cancels): "
-        return {"problem": "problem (equation ; unknown): ", "answer": "answer: "}[kind]
+            return f"name is still {draft.DEFAULTS['name']} (Enter writes, or retype; Esc cancels): "
+        if kind == "problem":
+            it = self.item(ref)
+            hint = banks.get(it["bank"]).edit_hint(it["problem"]) if it else ""
+            return f"problem ({hint}): " if hint else "problem: "
+        return "answer: "
 
     def completing(self):
         """What Tab completes in the line being typed: (start, what), or None, with

@@ -1,6 +1,6 @@
 """The sheet pane: the cursor, selecting, and every change made on the sheet."""
 import copy, re
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh, edit as E, banks
 from .common import SHEET
 
@@ -349,46 +349,46 @@ class SheetEdits:
     def draft_steps(self, tokens):
         """:draft SEQ STEPS [xN] [review STEPS|none] [pinned]: a new sheet from a sequence."""
         try:
-            plan = mp.parse_draft(tokens)
+            plan = draft.parse_draft(tokens)
         except ValueError as e:
             return self.say(f"E: {e}", True)
         def go():
-            new = mp.draft_sequence(plan, self.sheet["versions"], self.rng.randrange(2**31))
+            new = draft.draft_sequence(plan, self.sheet["versions"], self.rng.randrange(2**31))
             self.sheet["sections"] = new["sections"]
             defaults = [banks.get(n) for n in banks.names()]
             if self.sheet["instructions"] in ["", *[b.INSTRUCTIONS for b in defaults]]:   # empty, or a bank's default
                 self.sheet["instructions"] = new["instructions"]
-            if self.sheet["title"] in [mp.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults] \
+            if self.sheet["title"] in [draft.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults] \
                     or re.search(r": Steps? [\d–,]+$", self.sheet["title"]):           # still a drafted title
                 self.sheet["title"] = new["title"]
         if self.change(go):
             self.cur = SHEET
             self.clamp()
             r = plan["review"]
-            self.say(f"drafted {self.total()} problems: step{'s' * (len(plan['new']) > 1)} {mp.steps_text(plan['new'])}"
-                     + (f", review of {mp.steps_text(r)}" if r else ", no review") + " (u to undo)")
+            self.say(f"drafted {self.total()} problems: step{'s' * (len(plan['new']) > 1)} {draft.steps_text(plan['new'])}"
+                     + (f", review of {draft.steps_text(r)}" if r else ", no review") + " (u to undo)")
 
     def regroup(self, tokens):
         try:
-            groups = mp.parse_groups(tokens)
+            groups = draft.parse_groups(tokens)
         except ValueError as e:
             return self.say(f"E: {e}", True)
-        self.change(lambda: mp.regroup(self.sheet, groups, self.rng))
+        self.change(lambda: draft.regroup(self.sheet, groups, self.rng))
         self.cur = SHEET
         self.go(1)
 
     def redraft(self, tokens):
         try:
-            mix = mp.parse_mix(tokens)
+            mix = draft.parse_mix(tokens)
         except ValueError as e:
             return self.say(f"E: {e}", True)
         def go():
-            new = mp.draft(mix, self.sheet["versions"], self.rng.randrange(2**31))
+            new = draft.draft(mix, self.sheet["versions"], self.rng.randrange(2**31))
             self.sheet["sections"] = new["sections"]
             defaults = [banks.get(n) for n in banks.names()]
             if self.sheet["instructions"] in ["", *[b.INSTRUCTIONS for b in defaults]]:   # empty, or a bank's default
                 self.sheet["instructions"] = new["instructions"]
-            if self.sheet["title"] in [mp.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults]:
+            if self.sheet["title"] in [draft.DEFAULTS["title"]] + [f"{b.TITLE} Practice" for b in defaults]:
                 self.sheet["title"] = new["title"]
         if self.change(go):
             self.cur = SHEET

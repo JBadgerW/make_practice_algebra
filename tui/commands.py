@@ -1,6 +1,6 @@
 """Ex commands (:w, :mix, :set, ...) and / search."""
 import shlex
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh, banks, library
 from .common import SETTINGS, SHEET
 
@@ -40,7 +40,7 @@ class Commands:
         elif cmd == "shuffle" and self.anchor is not None:
             self.shuffle()
         elif cmd == "shuffle":
-            self.change(lambda: mp.shuffle_all(self.sheet, self.rng))
+            self.change(lambda: draft.shuffle_all(self.sheet, self.rng))
             self.cur = SHEET
             self.go(1)
         elif cmd == "reroll":
@@ -172,7 +172,7 @@ class Commands:
             return f"{key} {banks.get(key).TITLE}"
         if kind == "count":
             b, e = banks.get(key[0]), banks.get(key[0]).ENTRY[key[1]]
-            hint = b.hint(b.type_of(key[1])) if hasattr(b, "hint") else None
+            hint = b.hint(b.type_of(key[1]))
             return f"{banks.label(b, key[1])} {e['title']} {hint[0] if hint else ''}"
         if kind == "problem":
             b = banks.get(key[0])

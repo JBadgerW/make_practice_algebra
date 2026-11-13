@@ -14,6 +14,7 @@ os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp(prefix="config_")    # never th
     '{"library": "%s"}' % tempfile.mkdtemp(prefix="emptylib_"))
 import mathsheet as T, tui.screen
 from sheets import library
+from sheets.bank import GeneratorBank
 
 BUDGET_MS = 15          # a frame, cursor moving, every bank open
 BUDGET_OPEN_MS = 150    # the one frame that rebuilds the tree after zR, with 1000 banks
@@ -106,7 +107,7 @@ lib = library.current()
 units = lib.course("Algebra 1")["units"]
 for i in range(1000):
     b = FakeBank(i, units)
-    lib.generators[b.NAME] = b
+    lib.generators[b.NAME] = GeneratorBank(b)
 lib._memo.clear()
 a = T.App(seed=3)
 a.ex("course Algebra 1")

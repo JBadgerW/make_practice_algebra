@@ -18,12 +18,12 @@ it shows.
 Press ? inside for the full key list.
 """
 import curses, os, random, sys
-import make_practice as mp
+from sheets import draft
 from sheets import sheet as sh
 from tui.app import App
 from tui.screen import run
 # The app lives in tui/ (see tui/__init__.py). These are here too, for the tests:
-from sheets.banks.literal import pretty  # noqa: F401
+from sheets.typmath import pretty  # noqa: F401
 from tui.common import SETTINGS, SHEET, complete_path, dir_label, home_path  # noqa: F401
 from tui.screen import Screen, cursor, handle, left_width  # noqa: F401
 
@@ -34,29 +34,29 @@ def parse_args(argv):
     ap.add_argument("--mix", nargs="+", default=[], metavar="ENTRY:COUNT")
     ap.add_argument("--draft", nargs="+", default=[], metavar="TOKEN",
                     help="start from a sequence: SEQ STEPS [xN] [review STEPS|none] [pinned]")
-    ap.add_argument("--versions", type=int, default=mp.DEFAULTS["versions"])
+    ap.add_argument("--versions", type=int, default=draft.DEFAULTS["versions"])
     ap.add_argument("--seed", type=int)
     ap.add_argument("--shuffle", action="store_true")
     ap.add_argument("--groups", nargs="+", default=[], metavar="GROUP")
-    ap.add_argument("--title", default=mp.DEFAULTS["title"])
+    ap.add_argument("--title", default=draft.DEFAULTS["title"])
     ap.add_argument("--out", help="default: the current folder; started from ~, the folder written to last, else practice")
-    ap.add_argument("--name", default=mp.DEFAULTS["name"])
+    ap.add_argument("--name", default=draft.DEFAULTS["name"])
     ap.add_argument("--class", dest="class_name", metavar="NAME", help="default: the course, else Algebra 1")
     return ap.parse_args(argv)
 
 def main():
     a = parse_args(sys.argv[1:])
     try:
-        mix, groups = mp.parse_mix(a.mix), mp.parse_groups(a.groups)
+        mix, groups = draft.parse_mix(a.mix), draft.parse_groups(a.groups)
     except ValueError as e:
         sys.exit(str(e))
     seed = a.seed if a.seed is not None else random.randrange(10**6)
     try:
-        plan = mp.parse_draft(a.draft) if a.draft else None
+        plan = draft.parse_draft(a.draft) if a.draft else None
     except ValueError as e:
         sys.exit(str(e))
-    sheet = mp.draft_sequence(plan, a.versions, seed, a.title, a.class_name) if plan else \
-        mp.draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name) if mix else \
+    sheet = draft.draft_sequence(plan, a.versions, seed, a.title, a.class_name) if plan else \
+        draft.draft(mix, a.versions, seed, a.shuffle, groups, a.title, a.class_name) if mix else \
         sh.new_sheet(a.title, a.class_name, versions=a.versions)
     app = App(seed, sheet, a.out, a.name)
     if a.file:

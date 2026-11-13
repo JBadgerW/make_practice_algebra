@@ -40,7 +40,7 @@ that names a course or unit courses.json lacks is reported, not fatal.
 """
 import difflib, importlib, json, os, pkgutil, re
 from pathlib import Path
-from . import ROOT
+from . import ROOT, bank as bank_
 
 FORMAT = 1
 BUILTIN = ROOT / "library"
@@ -93,7 +93,10 @@ def _tags(value):
 def type_table(b):
     """A bank's types by key, as declared (where a type's own "courses" live)."""
     for attr in ("types", "TYPE"):                  # a bank file's, or a generator's
-        t = getattr(b, attr, None)
+        try:
+            t = getattr(b, attr)
+        except AttributeError:
+            continue
         if isinstance(t, dict):
             return t
     return {}
@@ -112,7 +115,7 @@ def bank_tags(b, typ=None):
         own = type_table(b).get(typ, {}).get("courses")
         if own is not None:
             return _tags(own)
-    return _tags(getattr(b, "COURSES", None))
+    return _tags(b.COURSES)
 
 def suggest(name, choices):
     """The choice a mistyped name most likely means, or None. Case and Roman
@@ -191,7 +194,9 @@ class Library:
 
     def _find_generators(self):
         """Every module in sheets/banks/ that is a bank, and every bank module one
-        level into a package that isn't a bank itself (khan_alg1/: one per lesson)."""
+        level into a package that isn't a bank itself (khan_alg1/: one per lesson).
+        Each is kept as a GeneratorBank (sheets/bank.py); one that lacks a
+        required part of the interface is reported and left out."""
         from . import banks as pkg
         def find(path, prefix, where, deeper):
             for m in pkgutil.iter_modules(path):
@@ -203,7 +208,11 @@ class Library:
                     self.warn(f"{where}{m.name}: {type(e).__name__}: {e}")
                     continue
                 if hasattr(mod, "NAME") and hasattr(mod, "generate"):
-                    self.generators[mod.NAME] = mod
+                    lacks = bank_.missing(mod)
+                    if lacks:
+                        self.warn(f"{where}{m.name}: not a whole bank: it needs {', '.join(lacks)}")
+                        continue
+                    self.generators[mod.NAME] = bank_.GeneratorBank(mod)
                 elif deeper and m.ispkg:
                     find(mod.__path__, mod.__name__, f"{where}{m.name}/", False)
         find(pkg.__path__, pkg.__name__, "sheets/banks/", True)
@@ -274,15 +283,15 @@ class Library:
             if is_builtin:
                 builtin.add(name)
             home[name] = x
-            for msg in getattr(x, "WARNINGS", []):
+            for msg in x.WARNINGS:
                 self.warn(f"{label}: {msg}")
 
     def _read_aliases(self):
         """The names banks used to have ("formerly"), each to the bank's name now."""
         for name in self.names():
             b = self.get(name)
-            where = getattr(b, "SOURCE", f"the {name} generator")
-            for old in getattr(b, "FORMERLY", None) or []:
+            where = b.SOURCE or f"the {name} generator"
+            for old in b.FORMERLY or []:
                 if self.has(old) or old in self.sequences:
                     self.warn(f"{where}: formerly {old!r}, but a bank or sequence has that name now")
                 elif old in self.aliases:
@@ -311,8 +320,8 @@ class Library:
             check(q.COURSES, q.SOURCE)
         for name in self.names():
             b = self.get(name)
-            where = getattr(b, "SOURCE", f"the {name} generator")
-            check(getattr(b, "COURSES", None), where)
+            where = b.SOURCE or f"the {name} generator"
+            check(b.COURSES, where)
             for typ, t in type_table(b).items():
                 if isinstance(t, dict) and t.get("courses") is not None:
                     check(t["courses"], f"{where}, type {typ}")
