@@ -11,11 +11,12 @@ from .files import Files
 from .commands import Commands
 from .keys import Keys
 from .info import Info
+from .find import Find
 
 # ------------------------------------------------------------------
 # State and editing (no curses here, so it can be driven by tests)
 # ------------------------------------------------------------------
-class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info):
+class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info, Find):
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
         self.s = dict(sheet=sheet or sh.new_sheet(draft.DEFAULTS["title"], None),
@@ -38,7 +39,8 @@ class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info):
         self.answers = self.compact = self.folded = False
         self.wide = False               # the sheet fills the screen while it has focus
         self.pv_top = 0
-        self.mode = "normal"            # normal, insert, command, search, help, info
+        self.mode = "normal"            # normal, insert, command, search, help, info, find
+        self.find = dict(q="", i=0, key=None, rows=[])     # the finder: its query, the row lit, and the rows that fit
         self.resume_info = False        # back to the info box when an edit started from it ends
         self.buf, self.editing = "", None
         self.count, self.pending = "", ""

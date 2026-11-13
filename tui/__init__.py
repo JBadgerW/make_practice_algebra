@@ -12,6 +12,7 @@
       commands.py  ex commands and search
       keys.py      every key, in each mode
       info.py      the info box (I)
+      find.py      the finder (f): banks and types by a few letters
     screen.py    Screen (curses drawing), and run, the loop; a long key runs in
                  a worker thread (handle)
 """

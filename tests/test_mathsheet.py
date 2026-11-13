@@ -1265,5 +1265,43 @@ f4 = T.App(seed=2, out=OUT); fk = driver(f4)
 fk(":add lesson_1-4/any:30\n"); n = f4.total(); fk(":scale 2\n")
 assert f4.err and f4.total() == n, (f4.msg, "fifty problems can't become sixty")
 
+# ---- the finder (f, ^P, :find): banks and types by a few letters, best first
+from tui import find as FD
+assert FD.span("sysel", "systems: elimination") == 11 and FD.span("xyz", "systems") is None and FD.span("abc", "a-b-c abc") == 3
+assert FD.fit(["frac", "eq"], "equations with fractions") > FD.fit(["frac"], "simplifying refractions") > 0
+assert FD.fit(["zebra"], "equations", "") is None and FD.fit(["denominator"], "type 3", "clear the denominator") > 0
+assert FD.fit(["ab"], "a b") is None, "letters in order need three or more"
+assert FD.starts("sysel", FD.words_of("systems of equations with elimination")) and not FD.starts("sysel", FD.words_of("justify the steps"))
+assert FD.fit(["frac"], "fractions") > FD.fit(["sysel"], "systems with elimination") > FD.fit(["fctr"], "factor") > 0
+h = T.App(seed=3, out=OUT); hk = driver(h); h.ex("course all")
+hk("f"); assert h.mode == "find" and len(h.find_rows()) > 300 - 1, "an empty query lists everything (to the limit)"
+hk("parenth")
+rows = h.find_rows()
+assert rows and all("parenth" in text.lower() for _, text, _ in rows[:3]) and rows[0][0][0] == "bank", rows[:3]
+hk("\x17"); assert h.find["q"] == ""
+hk("minus paren")                                              # words in any order, each must fit
+rid, text, inside = h.find_at()
+assert rid == ("count", ("ka1_02_03", "3")) and "A Minus Sign Before Parentheses" in text and inside, (rid, text)
+hk("\t\t"); assert h.mode == "find" and E.count(h.sheet, "ka1_02_03", "3") == 2 and h.find_count(rid) == 2, h.msg
+hk("\x18"); assert E.count(h.sheet, "ka1_02_03", "3") == 1 and "removed one" in h.msg
+hk("\x0e"); assert h.find["i"] == 1; hk("\x10\x10"); assert h.find["i"] == 0
+hk("\n")
+assert h.mode == "normal" and h.focus == "left" and h.rid() == rid and "ka1_02_03" in h.open, "Enter: there, its bank open"
+hk("u"); assert h.total() == 2, "each add was a change of its own"
+hk("\x10"); assert h.mode == "find" and h.find["q"] == "", "^P opens it too, empty"
+hk("sysel"); assert any("elimination" in text.lower() for _, text, _ in h.find_rows()[:5]), h.find_rows()[:5]
+hk("\x7f" * 5); assert h.mode == "find"; hk("\x7f"); assert h.mode == "normal", "Backspace on an empty query closes it"
+hk(":find zzzqqq\n"); assert h.mode == "find" and h.find_rows() == []
+hk("\n"); assert h.mode == "find" and h.err; hk("\t"); hk("\x1b"); assert h.mode == "normal"
+h.focus = "preview"; hk("f"); assert h.mode == "find", "from the sheet too"; hk("\x1b")
+# a bank of another course: listed after, dimmed, added from but not gone to
+c1 = next(c["title"] for c in FD.library.current().courses if c["title"].startswith("Khan Algebra 1"))
+h.ex(f"course {c1}"); n = h.total()
+hk("f"); hk("systems of three")
+rid, text, inside = h.find_at(); assert rid[0] in ("bank", "count") and not inside, (rid, inside)
+hk("\n"); assert h.mode == "find" and h.err and "not in" in h.msg
+hk("\t"); assert h.total() == n + 1; hk("\x1b")
+hk("f"); hk("parenth"); assert h.find_at()[2], "the course's own come first"; hk("\x1b")
+
 print("all key tests passed")
 

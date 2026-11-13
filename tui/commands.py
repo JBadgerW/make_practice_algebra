@@ -36,6 +36,8 @@ class Commands:
             self.redraft(rest.split())
         elif cmd in ("add", "a"):
             self.add_mix(rest.split())
+        elif cmd in ("find", "fin", "f"):
+            self.find_open(rest)
         elif cmd == "scale":
             self.scale(rest)
         elif cmd == "draft":

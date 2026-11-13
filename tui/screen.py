@@ -242,7 +242,7 @@ class Screen:
         st = self.st
         look = "visual" if app.mode == "normal" and app.anchor is not None else app.mode
         mode = {"normal": "NORMAL", "insert": "INSERT", "command": "COMMAND",
-                "search": "SEARCH", "help": "HELP", "info": "INFO", "visual": "VISUAL"}[look]
+                "search": "SEARCH", "help": "HELP", "info": "INFO", "visual": "VISUAL", "find": "FIND"}[look]
         self.put(h - 2, 0, " " * (w - 1), curses.A_REVERSE)
         self.put(h - 2, 0, f" {mode} ", st[look if look in st else "normal"])
         un, bad = app.statuses()
@@ -262,6 +262,7 @@ class Screen:
             self.help(h, w)
         if app.mode == "info":
             self.info_box(app, h, w)
+        self.find_at = self.find_box(app, h, w) if app.mode == "find" else None
         self.cmdline(app, h, w)
 
     def info_box(self, app, h, w):
@@ -283,6 +284,40 @@ class Screen:
             if keys:
                 self.put(y0 + y, x0 + bw - 2 - len(keys), keys, curses.A_REVERSE | curses.A_BOLD)
         self.put(y0 + bh - 2, x0 + bw - 2 - min(len(foot), bw - 4), foot, curses.A_REVERSE, bw - 4)
+
+    def find_box(self, app, h, w):
+        """The finder: the query on top, the rows that fit under it (the lit one
+        is where Enter goes), each with how many of its problems are on the
+        sheet. Returns where the typing cursor belongs."""
+        rows, i = app.find_rows(), app.find["i"]
+        bw = min(w - 2, 96)
+        room = max(3, min(h - 8, 18))                     # rows of results
+        bh = room + 4
+        y0, x0 = max(0, (h - 2 - bh) // 2), max(0, (w - bw) // 2)
+        R = curses.A_REVERSE
+        for y in range(bh):
+            self.put(y0 + y, x0, " " * bw, R)
+        n = len(rows)
+        count = f"{n}{'+' if n >= 300 else ''} fit" + (f" · {app.course}" if app.course else "")
+        self.put(y0, x0 + 2, " FIND ", R | curses.A_BOLD)
+        self.put(y0, x0 + bw - 2 - len(count), count, R)
+        q = app.find["q"]
+        self.put(y0 + 1, x0 + 2, "> " + q[-(bw - 8):], R | curses.A_BOLD, bw - 4)
+        top = max(0, min(i - room // 2, n - room))
+        for y, (rid, text, inside) in enumerate(rows[top:top + room], 2):
+            k = app.find_count(rid)
+            val = str(k) if k else "·"
+            lit = top + y - 2 == i
+            attr = (self.st["search"] if lit else R) | (0 if inside else curses.A_DIM)
+            line = ("  " if rid[0] == "count" else "") + text + ("" if inside else "  (another course)")
+            self.put(y0 + y, x0 + 1, " " * (bw - 2), attr)
+            self.put(y0 + y, x0 + 1, " " + line, attr, bw - 7)
+            self.put(y0 + y, x0 + bw - 2 - len(val), val, attr | (curses.A_BOLD if k else 0))
+        if not rows:
+            self.put(y0 + 2, x0 + 2, "nothing fits" if q.strip() else "no banks", R)
+        foot = "Enter go to it · Tab add one · ^X remove one · ↑ ↓ · Esc"
+        self.put(y0 + bh - 1, x0 + bw - 2 - min(len(foot), bw - 4), foot, R, bw - 4)
+        return y0 + 1, min(x0 + 4 + len(q), x0 + bw - 3)
 
     def wildmenu(self, app, h, w):
         """Over the status line while Tab cycles: the matches, the current one lit."""
@@ -335,6 +370,12 @@ class Screen:
         else:
             cursor(0)
             self.put(h - 1, 0, app.msg, st["err"] if app.err else 0)
+            if app.mode == "find" and getattr(self, "find_at", None):   # typing goes in the finder's box
+                cursor(1)
+                try:
+                    self.scr.move(*self.find_at)
+                except curses.error:
+                    pass
 
 BUSY_AFTER = 0.15                      # seconds a key may take before the status line says it's working
 

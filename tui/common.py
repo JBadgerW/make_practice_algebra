@@ -44,7 +44,7 @@ za zs    answers / compact          ✗ an answer fails its check
 gt gT    next / previous version    ? an answer can't be checked
 ^W o     sheet full width / split   v  gv       select (Esc ends); reselect
 I        what's here, in a box      + - W r     change all selected
-                                    d y :group  cut, copy, new section
+f ^P     find a bank or type        d y :group  cut, copy, new section
                                     gs          shuffle selection / section
                                     :scope bank|type  reroll from bank / type
 COMMANDS

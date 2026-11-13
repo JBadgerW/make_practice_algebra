@@ -33,6 +33,8 @@ class Keys:
             return
         if self.mode == "info":
             return self.key_info(ch)
+        if self.mode == "find":
+            return self.key_find(ch, page)
         c = chr(ch) if 0 <= ch < 0x110000 else ""
         self.msg, self.err = "", False
         sheet = self.focus == "preview"
@@ -167,6 +169,8 @@ class Keys:
             self.search(self.search_q, -1)
         elif c == "?":
             self.mode = "help"
+        elif c in ("f", "\x10"):
+            self.find_open()
         elif c == "I":
             if sheet or self.act()[0] in ("bank", "count", "problem", "seq"):
                 self.mode = "info"
