@@ -5,6 +5,7 @@ in place; those that can fail raise ValueError or RuntimeError with a message
 for the teacher, and leave the sheet as it was.
 """
 import copy, re
+from fractions import Fraction
 from . import banks
 from .sheet import (new_item, fixed_item, new_section, items, seen_of, fill_versions, drawn_status, _draw,
                     draw_any, bank_types, from_bank)
@@ -184,6 +185,66 @@ def set_scope(it, scope):
         it["scope"] = "bank"
     else:
         it.pop("scope", None)
+
+# ------------------------------------------------------------------
+# Scaling
+# ------------------------------------------------------------------
+SCALE_MAX = 500                         # problems on a scaled sheet: more is surely a typo
+
+def factor(text):
+    """'2', '0.5', '3/2', '1 1/2' -> a positive Fraction; raises ValueError."""
+    try:
+        f = sum(Fraction(part) for part in str(text).split())
+    except (ValueError, ZeroDivisionError):
+        f = None
+    if not f or f <= 0:
+        raise ValueError(f"{str(text).strip()!r} isn't a scale: use a number above 0, like 2, 0.5, or 3/2")
+    return f
+
+def scaled(n, f):
+    """n problems scaled by f: rounded (a half goes up), and never fewer than one."""
+    return max(1, int(n * f + Fraction(1, 2)))
+
+def kind_of(it):
+    """What a problem is one of, for scaling: its bank's type, or (drawn from the whole bank) its bank."""
+    return (it["bank"], "*" if from_bank(it) else it["entry"])
+
+def scale(sheet, f, seeds):
+    """Make the sheet f times as long: in each section, each kind of problem
+    (a type, or a whole bank's draws) goes from n problems to n * f, rounded,
+    and never to none, so the sheet keeps its sections and its mix. New
+    problems are drawn like the kind's last one there (its width and work
+    space) and follow it; the ones removed are the kind's last, those edited by
+    hand kept as long as possible. Returns (added, removed). Raises ValueError
+    for a sheet that would be too long, RuntimeError (changing nothing) if a
+    bank runs out of problems."""
+    plan = []                                           # (section, kind, how many more or fewer)
+    for sec in sheet["sections"]:
+        have = {}
+        for it in sec["items"]:
+            have[kind_of(it)] = have.get(kind_of(it), 0) + 1
+        plan += [(sec, k, scaled(n, f) - n) for k, n in have.items()]
+    total = len(items(sheet)) + sum(d for _, _, d in plan)
+    if total > SCALE_MAX:
+        raise ValueError(f"that would make {total} problems (at most {SCALE_MAX})")
+    before = copy.deepcopy(sheet["sections"])
+    added = removed = 0
+    try:
+        for sec, k, d in plan:
+            mine = [it for it in sec["items"] if kind_of(it) == k]
+            if d < 0:
+                go = ([it for it in reversed(mine) if not it["edited"]] + [it for it in reversed(mine) if it["edited"]])[:-d]
+                sec["items"] = [it for it in sec["items"] if not any(it is g for g in go)]
+                removed += len(go)
+            for _ in range(d):
+                at = max(i for i, it in enumerate(sec["items"]) if kind_of(it) == k) + 1
+                sec["items"].insert(at, fresh_copy(sheet, mine[-1], next(seeds)))
+                added += 1
+        fill_versions(sheet)
+    except RuntimeError:
+        sheet["sections"] = before
+        raise
+    return added, removed
 
 # ------------------------------------------------------------------
 # Rerolling

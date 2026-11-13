@@ -254,7 +254,7 @@ class Screen:
                 + (f"  ·  {len(app.selection())} selected" if app.anchor is not None else ""))
         self.put(h - 2, len(mode) + 2, info, curses.A_REVERSE)
         right = (f"{app.count}{app.pending.replace(chr(23), '^W')}  "
-                 + (f"{app.where()}  sheet {where}" if app.focus == "preview" else "types") + " ")
+                 + (f"{app.where()}  sheet {where}" if app.focus == "preview" else "banks") + " ")
         self.put(h - 2, w - len(right) - 1, right, curses.A_REVERSE)
         if app.comp:
             self.wildmenu(app, h, w)
@@ -286,8 +286,8 @@ class Screen:
 
     def wildmenu(self, app, h, w):
         """Over the status line while Tab cycles: the matches, the current one lit."""
-        names = [m.rstrip("/").rsplit("/", 1)[-1] + ("/" if m.endswith("/") else "")
-                 for m in app.comp["options"][:-1]]
+        names = app.comp.get("labels") or [m.rstrip("/").rsplit("/", 1)[-1] + ("/" if m.endswith("/") else "")
+                                           for m in app.comp["options"][:-1]]
         i, x = app.comp["i"], 1
         first = 0                                        # scroll so the current one shows
         while i < len(names) and sum(len(n) + 2 for n in names[first:i + 1]) > w - 6:

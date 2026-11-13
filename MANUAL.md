@@ -601,9 +601,12 @@ through earlier commands.
 |---|---|
 | `:w` | Write the sheet and every version's worksheet (key appended) and slides. If *name* is still `untitled`, it asks first: the name is filled in, so Enter writes under it and typing changes it; Esc writes nothing. |
 | `:w!` | Write without asking about the name |
+| `:w NAME` `:saveas NAME` | Write under a new name: the *name* setting changes, then the sheet is written. `FOLDER/NAME` sets *out* too. A name that would write over another sheet's file is refused; `:w! NAME` writes over it. `Tab` completes paths. |
 | `:wq` `:x` `ZZ` | Write, then quit |
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |
 | `:q!` `ZQ` | Quit and discard |
+| `:add systems/4:3 ka1_02_03/any:5` | Add to this sheet, with `:mix`'s entries (no count means one). A type's problems join its own section; `BANK/any` go in the bank's. `Tab` completes a bank by the start of its name, or by a word of its title when no name starts that way, then its types; the menu shows each one's title. One change: `u` undoes it, `.` repeats it. |
+| `:scale 2` `:scale 0.5` `:scale 3/2` | Make the sheet that many times as long. In each section, each kind of problem (a type, or a whole bank's draws) goes from *n* problems to *n* × the scale, rounded (a half goes up), and never to none: `:scale 0.5` turns 6, 3, 1 into 3, 2, 1. Sections, order, widths, and work space stay; new problems follow the last of their kind, drawn new; the ones removed are the last of their kind, hand-edited ones kept as long as possible. One change: `u` undoes it, `.` repeats it. |
 | `:mix 3:6 3f:2 A:1` | Draft a new sheet (`all:N`, `allf:N` work). The title and settings stay. |
 | `:draft SEQ 5-6 [x6] [review 1-4\|none] [pinned]` | Draft a new sheet from a sequence's steps, with review (see *Drafting from a sequence*) |
 | `:groups 9 8 3+4=Warm-up 1` | Sort the problems already on the sheet into sections by type, as with `--groups`. `:groups` alone: one section per type, in sequence order. |

@@ -53,6 +53,9 @@ COMMANDS
 :pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
 :present [N]  two problems at a time at the board, in the browser
 :decoys  a warm-up's new decoys (:pre key marks them)
+:w NAME  :saveas NAME  write under a new name (FOLDER/NAME: there; Tab completes)
+:add systems/4:3 BANK/any:5  add to this sheet (Tab completes banks and types)
+:scale 2  :scale 0.5  :scale 3/2  the sheet that many times as long (each kind keeps one)
 :mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
 :draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
 :groups 9 8 3+4=Warm-up   :shuffle   :join (:j)   :ja   :rename TEXT   :N  problem N
@@ -147,6 +150,29 @@ def complete_course(text):
 def complete_sequence(text):
     """The sequence names that start with text."""
     return [n for n in sorted(library.current().sequences) if n.startswith(text.strip())]
+
+def complete_entry(text, course=None):
+    """What a partly typed :add or :mix entry could become: [(text, label)].
+    Before the slash, the banks whose name starts with it, or if none does,
+    those whose title has it in it (the course's banks first), each ending in /; after it,
+    the bank's entries, then any and all. The label says what each is."""
+    lib = library.current()
+    bank, slash, frag = text.partition("/")
+    if not slash:
+        t = bank.lower()
+        names = lib.names()
+        shown = {n for _, ns in lib.view(course) for n in ns} if course else set()
+        found = [n for n in names if n.lower().startswith(t)] or \
+            [n for n in names if t and t in lib.get(n).TITLE.lower()]      # by title only when no name starts so
+        order = sorted(found, key=lambda n: n not in shown)
+        return [(f"{n}/", f"{n}: {lib.get(n).TITLE}") for n in order]
+    if not lib.has(bank):
+        return []
+    b = lib.get(bank)
+    out = [(f"{bank}/{e['key']}", f"{e.get('label') or e['key']}: {e['title']}") for e in b.ENTRIES
+           if e["key"].lower().startswith(frag.lower()) or (e.get("label") or "").lower().startswith(frag.lower())]
+    return out + [(f"{bank}/{w}", f"{w}: {what}") for w, what in (("any", "any type, in one section"), ("all", "every type"))
+                  if w.startswith(frag.lower())]
 
 def openable(name):
     """Can :e open a file by this name? A sheet, or an older set's first version."""

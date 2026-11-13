@@ -36,8 +36,8 @@ class Render:
             emit((0, l, "ital", SHEET))
         if not sheet["sections"]:
             emit()
-            emit((0, "No problems yet. On the types pane, l adds one;", "dim", None))
-            emit((0, ":mix all:2 drafts two of every type.", "dim", None))
+            emit((0, "No problems yet. On the banks pane, o opens a bank and l adds", "dim", None))
+            emit((0, "a problem; or :add BANK/TYPE:COUNT (Tab completes the names).", "dim", None))
             return lines, spans
 
         used, page, n = HEADER_IN + LINE_IN * len(textwrap.wrap(sheet["instructions"], 90)), 1, 0
@@ -74,7 +74,7 @@ class Render:
             if self.folded:
                 continue
             if not rows:
-                emit((2, "(empty: p pastes here, or L on the types pane)", "dim", H))
+                emit((2, "(empty: p pastes here, or L on the banks pane)", "dim", H))
             index = {id(it): ii for ii, it in enumerate(sec["items"])}
             for ri, row in enumerate(rows):
                 row_h = max(map(prompt_h, row)) + max(E.inches(it["space"]) for it in row)

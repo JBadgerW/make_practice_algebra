@@ -19,8 +19,12 @@ class Commands:
         rest = rest.strip()
         bang = cmd.endswith("!")
         cmd = cmd.rstrip("!")
-        if cmd in ("w", "write", "wq", "x", "xit"):
-            self.write_cmd(then=None if cmd in ("w", "write") else "quit", force=bang)
+        if cmd in ("w", "write", "wq", "x", "xit", "sav", "saveas"):
+            if cmd in ("sav", "saveas") and not rest:
+                return self.say("usage: :saveas NAME  (or FOLDER/NAME)", True)
+            if rest and not self.write_as(rest, bang):
+                return
+            self.write_cmd(then="quit" if cmd in ("wq", "x", "xit") else None, force=bang or bool(rest))
         elif cmd in ("q", "quit", "qa", "qall"):
             if self.dirty() and self.total() and not bang:
                 self.say("E37: No write since last change (add ! to override)", True)
@@ -30,6 +34,10 @@ class Commands:
             self.new_cmd(force=bang)
         elif cmd == "mix":
             self.redraft(rest.split())
+        elif cmd in ("add", "a"):
+            self.add_mix(rest.split())
+        elif cmd == "scale":
+            self.scale(rest)
         elif cmd == "draft":
             self.draft_steps(rest.split())
         elif cmd == "groups":

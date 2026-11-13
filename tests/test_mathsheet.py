@@ -1169,5 +1169,101 @@ except TypeError:
     pass
 assert f.read_text() == good and [x.name for x in Path(OUT).glob(".atomic*")] == [], "the old file stands; no litter"
 
+# ---- :add puts more on this sheet (where :mix starts a new one); no count means one
+d = T.App(seed=6, out=OUT); dk = driver(d)
+dk(":add ka1_02_03/1:2 3\n")
+assert d.total() == 3 and "3 problems added" in d.msg and not d.err, d.msg
+assert sorted((it["bank"], it["entry"]) for it in sh.items(d.sheet)) == [("ka1_02_03", "1")] * 2 + [("literal", "3")]
+dk(":add ka1_02_03/any:4 ka1_02_03/1\n")
+assert d.total() == 8 and E.count_from_bank(d.sheet, "ka1_02_03") == 4 \
+    and sum(it["bank"] == "ka1_02_03" and it["entry"] == "1" and not sh.from_bank(it) for it in sh.items(d.sheet)) == 3
+assert len(d.sheet["sections"]) == 3, "a type's problems join its section; any go in the bank's own"
+dk("u"); assert d.total() == 3, ":add is one change"
+dk("."); assert d.total() == 8, "and repeats"
+dk(":add nope/1\n"); assert d.err and "no bank 'nope'" in d.msg and d.total() == 8, d.msg
+dk(":add\n"); assert d.err and "usage" in d.msg
+
+# ---- Tab in :add and :mix: a bank by its name or a word of its title, then its entries
+dk(":add systems\t"); assert d.buf == "add systems/" and d.comp is None, (d.buf, "the one match, at once")
+dk("\t"); assert d.buf == "add systems/1" and d.comp["labels"][0].startswith("1: "), d.comp
+assert d.comp["options"][-3:-1] == ["systems/any", "systems/all"], d.comp["options"]
+dk("\x1b")
+from tui.common import complete_entry
+found = complete_entry("parenthes")
+assert found and all("parenthes" in l.lower() and m.endswith("/") for m, l in found), "by a word of the title, when no name starts so"
+assert [m for m, _ in complete_entry("ka1_02_03")] == ["ka1_02_03/"] and complete_entry("nope/") == []
+dk(":add 3:2 parenthes\t"); assert d.buf == "add 3:2 " + found[0][0], (d.buf, "only the last word completes")
+dk("\x1b")
+
+# ---- after a prefix key, the message line lists what can follow
+dk("g"); assert "gt gT version" in d.msg and d.pending == "g"
+dk("t"); assert d.pending == ""
+d.focus = "preview"; dk("z"); assert "zM fold to sections" in d.msg; dk("a"); dk("za"); d.focus = "left"
+
+# ---- :w NAME and :saveas: the name (and folder) change, and another sheet's file is never written over
+dk(":w quiz_a\n")
+assert d.s["name"] == "quiz_a" and (Path(OUT) / "quiz_a.sheet.json").exists() and not d.err, d.msg
+dk(":saveas quiz_b.sheet.json\n"); assert d.s["name"] == "quiz_b" and (Path(OUT) / "quiz_b.pdf").exists() or not shutil.which("typst")
+assert (Path(OUT) / "quiz_b.sheet.json").exists()
+dk(":w quiz_a\n"); assert d.err and "E13" in d.msg and d.s["name"] == "quiz_b", d.msg
+dk(":w! quiz_a\n"); assert not d.err and d.s["name"] == "quiz_a", d.msg
+dk(":w\n"); assert not d.err, "its own file is written over without asking"
+sub_dir = Path(OUT) / "unit3"
+dk(f":w {sub_dir}/quiz_c\n")
+assert (sub_dir / "quiz_c.sheet.json").exists() and d.s["name"] == "quiz_c" and Path(d.s["out"]).expanduser().resolve() == sub_dir.resolve(), d.s["out"]
+dk(":w bad name\n"); assert d.err and d.s["name"] == "quiz_c"
+dk(":saveas\n"); assert d.err and "usage" in d.msg
+dk(f":w {OUT}/quiz_\t"); assert d.comp and d.buf.endswith(".sheet.json"), (d.buf, "Tab completes a sheet's path"); dk("\x1b")
+
+# ---- :scale makes the sheet longer or shorter, kind by kind in each section, never to none
+from fractions import Fraction as Fr
+assert [E.scaled(n, Fr(1, 2)) for n in (6, 3, 1, 2)] == [3, 2, 1, 1] and E.scaled(3, Fr(3, 2)) == 5
+assert E.factor("3/2") == E.factor("1.5") == E.factor("1 1/2") == Fr(3, 2) and E.factor(" 2 ") == 2
+for bad in ("0", "-1", "x", "1/0", ""):
+    try:
+        E.factor(bad); assert False, bad
+    except ValueError:
+        pass
+g = T.App(seed=8, out=OUT); gk = driver(g)
+gk(":add ka1_02_03/1:6 ka1_02_03/2:3 systems/1 ka1_02_03/any:4\n")
+def kinds(app):
+    return [sorted((k, sum(E.kind_of(it) == k for it in sec["items"])) for k in {E.kind_of(it) for it in sec["items"]})
+            for sec in app.sheet["sections"]]
+K = "ka1_02_03"
+assert kinds(g) == [[((K, "1"), 6)], [((K, "2"), 3)], [(("systems", "1"), 1)], [((K, "*"), 4)]], kinds(g)
+first_three = prompts(g)[:3]
+g.focus = "preview"; g.cur = (0, 0); gk("W+")                 # the kind's first: full width, more space
+gk(":scale 0.5\n")
+assert kinds(g) == [[((K, "1"), 3)], [((K, "2"), 2)], [(("systems", "1"), 1)], [((K, "*"), 2)]], kinds(g)
+assert prompts(g)[:3] == first_three and "14 problems, now 8 (6 removed" in g.msg, g.msg
+gk(":scale 2\n")
+assert kinds(g) == [[((K, "1"), 6)], [((K, "2"), 4)], [(("systems", "1"), 2)], [((K, "*"), 4)]], kinds(g)
+assert len(set(prompts(g))) == g.total() == 16, "new problems, none repeated"
+last = g.sheet["sections"][0]["items"]
+assert last[0]["width"] == "full" and last[-1]["width"] == last[2]["width"] == "half", "new ones are like the kind's last"
+assert all(sh.from_bank(it) for it in g.sheet["sections"][3]["items"]), "a whole bank's draws stay so"
+gk("u"); assert g.total() == 8; gk("."); assert g.total() == 16, "one change, and it repeats"
+gk(":scale 3/2\n"); assert g.total() == 9 + 6 + 3 + 6, kinds(g)
+gk(":scale 0.01\n"); assert g.total() == 4 and "now 4" in g.msg, "at least one of every kind"
+gk(":scale 0.5\n"); assert g.total() == 4 and "still 4" in g.msg, g.msg
+gk(":versions 2\n:scale 3\n")
+assert g.total() == 12 and all(len(it["alts"]) == 1 for it in sh.items(g.sheet)), "every version filled"
+n = g.total(); gk(":scale 100\n"); assert g.err and "at most" in g.msg and g.total() == n, g.msg
+gk(":scale two\n"); assert g.err and "isn't a scale" in g.msg
+gk(":scale\n"); assert g.err and "usage" in g.msg
+# hand-edited problems go last; a mixed section keeps its mix
+e = T.App(seed=9, out=OUT); ek = driver(e)
+ek(":add ka1_02_03/1:4\n"); e.focus = "preview"; e.cur = (0, 3)
+e.change(lambda: sh.items(e.sheet)[3].update(edited=True, alts=[]))      # as a hand edit leaves it
+ek(":scale 1/2\n"); its = sh.items(e.sheet)
+assert len(its) == 2 and its[1]["edited"], "the edited one stays; unedited ones went first"
+ek(":add ka1_02_03/2:2 ka1_02_03/3:1\n:ja\n"); e.cur = (0, -1)
+assert len(e.sheet["sections"]) == 1 and e.total() == 5
+ek(":scale 2\n"); assert kinds(e) == [[((K, "1"), 4), ((K, "2"), 4), ((K, "3"), 2)]], kinds(e)
+# a fixed bank that runs out: nothing changes
+f4 = T.App(seed=2, out=OUT); fk = driver(f4)
+fk(":add lesson_1-4/any:30\n"); n = f4.total(); fk(":scale 2\n")
+assert f4.err and f4.total() == n, (f4.msg, "fifty problems can't become sixty")
+
 print("all key tests passed")
 

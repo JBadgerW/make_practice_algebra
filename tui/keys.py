@@ -2,7 +2,20 @@
 import curses, re
 from sheets import draft
 from sheets import sheet as sh, banks
-from .common import complete_course, complete_path, complete_sequence, openable, SHEET
+from .common import complete_course, complete_entry, complete_path, complete_sequence, openable, SHEET
+
+# After a prefix key, the message line lists what can follow it: (on the sheet, on the banks pane).
+FOLLOWS = {
+    "g": ("gg top (5gg: problem 5) · gt gT version · gs shuffle · gv reselect", "gg top · gt gT version"),
+    "z": ("za answers · zs compact · zM fold to sections · zR unfold", "za answers · zs compact · zM close all banks · zR open all"),
+    "d": ("dd cut the problem, or the section on its header (3dd: three)", "dd remove all of this type"),
+    "y": ("yy copy: p pastes new problems like it", ""),
+    "c": ("cc retype · cS section title · cI section instructions", "cc retype the count or setting"),
+    "Z": ("ZZ write and quit · ZQ quit without writing",) * 2,
+    "]": ("]] next section",) * 2,
+    "[": ("[[ previous section",) * 2,
+    "\x17": ("^W w other pane · h banks · l sheet · o sheet full width / split",) * 2,
+}
 
 class Keys:
     # -- keys ------------------------------------------------------------
@@ -101,6 +114,7 @@ class Keys:
             self.pending = c
             if had_count:
                 self.count = str(n)
+            self.say(FOLLOWS[c][0 if sheet else 1])
         elif c == "j" or ch == curses.KEY_DOWN:
             self.go(n) if sheet else self.move_row(n)
         elif c == "k" or ch == curses.KEY_UP:
@@ -222,7 +236,7 @@ class Keys:
         elif c in ("o", "O"):
             self.new_section(c == "o")
         elif c in ("L", "D"):
-            self.say(f"{c} works on the types pane (Tab back to it)", True)
+            self.say(f"{c} works on the banks pane (Tab back to it)", True)
         else:
             return False
         return True
@@ -322,9 +336,13 @@ class Keys:
         if self.mode == "insert" and self.editing and self.editing[0] == "row":
             return {("set", "out"): (0, "dirs"), ("course", None): (0, "courses")}.get(self.rid(self.editing[1]))
         if self.mode == "command":
-            m = re.match(r"\s*(?:(out|e|edit|library|lib|course)\s+|set\s+out=)", self.buf)
+            m = re.match(r"\s*(?:(out|e|edit|library|lib|course|w|write|sav|saveas)!?\s+|set\s+out=)", self.buf)
             if m:
-                return m.end(), {"e": "sheets", "edit": "sheets", "course": "courses"}.get(m.group(1), "dirs")
+                return m.end(), {"e": "sheets", "edit": "sheets", "course": "courses", "w": "sheets", "write": "sheets",
+                                 "sav": "sheets", "saveas": "sheets"}.get(m.group(1), "dirs")
+            m = re.match(r"\s*(?:add|a|mix)\s+(?:.*\s)?(?=\S*$)", self.buf)     # the entry being typed, the last word
+            if m:
+                return m.end(), "entries"
             m = re.match(r"\s*draft\s+(?=\S*$)", self.buf)            # the sequence's name, the first word
             if m:
                 return m.end(), "sequences"
@@ -340,15 +358,21 @@ class Keys:
                 return
             start, what = where
             word = self.buf[start:]
-            matches = complete_course(word) if what == "courses" else complete_sequence(word) \
-                if what == "sequences" else complete_path(word, what == "dirs", openable if what == "sheets" else None)
+            labels = None
+            if what == "entries":               # a bank's name, then its entry: the menu shows what each is
+                pairs = complete_entry(word, self.course)
+                matches, labels = [m for m, _ in pairs], [l for _, l in pairs]
+            else:
+                matches = complete_course(word) if what == "courses" else complete_sequence(word) \
+                    if what == "sequences" else complete_path(word, what == "dirs", openable if what == "sheets" else None)
             if not matches:
                 self.comp = None
                 return
             if len(matches) == 1:               # done: the next Tab looks inside it
                 self.buf, self.comp = self.buf[:start] + matches[0], None
                 return
-            c = self.comp = dict(start=start, options=matches + [word], i=-1 if step > 0 else len(matches))
+            c = self.comp = dict(start=start, options=matches + [word], i=-1 if step > 0 else len(matches),
+                                 labels=labels)
         c["i"] = (c["i"] + step) % len(c["options"])
         self.buf = c["buf"] = self.buf[:c["start"]] + c["options"][c["i"]]
 

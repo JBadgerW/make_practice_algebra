@@ -155,7 +155,7 @@ class Tree:
             return ("seq", key[0])
         return None
 
-    # -- the types pane --------------------------------------------------
+    # -- the banks pane --------------------------------------------------
     def bump(self, n, row=None):
         kind, key = self.act(row)
         if kind == "missing":

@@ -46,6 +46,24 @@ class Files:
             elif then == "new":
                 self.new_sheet()
 
+    def write_as(self, target, force=False):
+        """:w NAME, :saveas NAME: the sheet goes by this name from now on (as the
+        name setting; FOLDER/NAME sets out too), ready to be written under it.
+        Without !, a name that would write over another sheet's file is refused.
+        False (and an error shown, nothing changed) if it can't be."""
+        target = re.sub(r"(\.sheet)?\.json$", "", target.strip())
+        folder, slash, name = target.rpartition("/")
+        out = (folder or "/") if slash else self.s["out"]
+        if not re.fullmatch(r"[\w.-]+", name):
+            return self.say("E: write as NAME or FOLDER/NAME: a name may use letters, digits, _ . - only", True) or False
+        here = lambda o, n: Path(o).expanduser().resolve() / f"{n}.sheet.json"
+        new = here(out, name)
+        if new != here(self.s["out"], self.s["name"]) and new.exists() and not force:
+            return self.say(f"E13: {dir_label(new.parent)}/{new.name} exists (add ! to write over it)", True) or False
+        if (out, name) != (self.s["out"], self.s["name"]):
+            self.change(lambda: self.s.update(out=dir_label(out) if slash else out, name=name))
+        return True
+
     def new_cmd(self, force=False):
         """:new: start a new sheet. With unsaved changes, ask first: write them
         (then start), discard them, or Esc to keep working. :new! doesn't ask."""

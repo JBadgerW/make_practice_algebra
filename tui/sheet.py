@@ -377,6 +377,52 @@ class SheetEdits:
         self.cur = SHEET
         self.go(1)
 
+    def add_mix(self, tokens):
+        """:add ENTRY[:COUNT] ...: add to this sheet (where :mix starts a new one).
+        Entries are :mix's (3:6, systems/4:3, ka1_02_03/any:5); no count means one.
+        A type's problems join its own section; BANK/any go in the bank's."""
+        if not tokens:
+            return self.say("usage: :add BANK/TYPE:COUNT ...  (Tab completes; BANK/any: any of its types)", True)
+        try:
+            mix = draft.parse_mix([t if ":" in t else f"{t}:1" for t in tokens])
+        except ValueError as e:
+            return self.say(f"E: {e}", True)
+        before = self.total()
+        def go():
+            for k, n in mix.items():
+                bank, entry = draft.split_key(k)
+                if entry == "*":
+                    E.add_from_bank(self.sheet, bank, n, self.seeds())
+                else:
+                    E.set_count(self.sheet, bank, entry, E.count(self.sheet, bank, entry) + n, self.seeds())
+        if self.change(go):
+            n = self.total() - before
+            self.say(f"{n} problem{'s' * (n != 1)} added (u to undo)")
+        self.last_change = lambda: self.add_mix(tokens)
+
+    def scale(self, text):
+        """:scale F: the sheet F times as long (2, 0.5, 3/2), section by section and
+        kind by kind, with at least one of every kind left."""
+        if not text.strip():
+            return self.say("usage: :scale 2  (or 0.5, 3/2: every kind of problem keeps at least one)", True)
+        try:
+            f = E.factor(text)
+        except ValueError as e:
+            return self.say(f"E: {e}", True)
+        if not self.total():
+            return self.say("E: nothing to scale: the sheet is empty", True)
+        before, did = self.total(), None
+        def go():
+            nonlocal did
+            did = E.scale(self.sheet, f, self.seeds())
+        self.end_visual()
+        if self.change(go):
+            added, removed = did
+            how = " and ".join(x for x in (f"{added} added" if added else "", f"{removed} removed" if removed else "") if x)
+            self.say(f"scaled by {f}: {before} problems, now {self.total()} ({how}; u to undo)" if how else
+                     f"scaled by {f}: still {before} problems (every kind keeps at least one, and counts round)")
+        self.last_change = lambda: self.scale(text)
+
     def redraft(self, tokens):
         try:
             mix = draft.parse_mix(tokens)
