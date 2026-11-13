@@ -36,4 +36,14 @@ shapes = Counter(shape(a) for a in answers[:4] + [d for _, d in fake])
 assert min(shapes.values()) == 2, "every answer with a decoy now shares its shape"
 assert not {d for _, d in fake} & set(answers)
 
+# ---- a decoy is written as the key writes: no coefficient of 1, number fractions in lowest terms
+from sheets.decoys import unwritten
+assert unwritten("$y = 1 x - 7$") == 1 and unwritten("$y = -1(x - 4)$") == 1 and unwritten("$y = 4/2 x + 3/1$") == 2
+assert unwritten("$y = x - 7$") == unwritten("$x/1 + y/7 = 1$") == unwritten("$y = 21 x + 11$") == 0
+r = random.Random(4)
+for a in ("$display(y = 4 x - 7)$", "$display(y = -display(4/5) x - display(8/5))$", "$display(2 x - 3 y = 12)$"):
+    for _ in range(300):
+        d = decoy(a, r)
+        assert d and unwritten(d) == 0, (a, d)
+
 print("all decoy tests passed")

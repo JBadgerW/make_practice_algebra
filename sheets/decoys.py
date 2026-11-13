@@ -11,7 +11,7 @@ reversed, 0). Numbers in exponents, subscripts, and under a root stay, so the
 decoy looks as simplified as the answer. An answer with no number to change
 ("no solution", V = m/D) can't have a decoy: it is stuck.
 """
-import random, re
+import math, random, re
 
 NUM = re.compile(r"\d+(?:\.\d+)?")
 GUARDED = re.compile(r"(?:sqrt|root|\^|_)\(")
@@ -64,9 +64,21 @@ def _new_number(text, rng):
     s = str(m).rjust(len(frac) + 1, "0") if frac else str(m)
     return f"{s[:-len(frac)]}.{s[-len(frac):]}" if frac else s
 
+COEFFICIENT_ONE = re.compile(r"(?<![\d.])1 ?[A-Za-z(]")     # 1 x, 1(x - 4): a 1 the key leaves off
+FRACTION = re.compile(r"(?<![\d.])(\d+)/(\d+)(?![\d.])")
+
+def unwritten(t):
+    """How many things t writes as the key never would: a coefficient of 1, a number
+    fraction not in lowest terms (4/2, 3/1)."""
+    bad = len(COEFFICIENT_ONE.findall(t))
+    for a, b in FRACTION.findall(t):
+        bad += int(b) == 1 or math.gcd(int(a), int(b)) != 1
+    return bad
+
 def decoy(ans, rng, avoid=()):
-    """A look-alike of ans with at least one of its numbers changed, not in avoid;
-    None if it has no number to change (or every try lands in avoid)."""
+    """A look-alike of ans with at least one of its numbers changed, not in avoid,
+    and written no worse than ans (no new coefficient of 1, no new fraction out of
+    lowest terms); None if it has no number to change (or every try fails)."""
     nums = numbers(ans)
     if not nums:
         return None
@@ -77,7 +89,7 @@ def decoy(ans, rng, avoid=()):
             out += ans[last:m.start()] + _new_number(m.group(), rng)
             last = m.end()
         out += ans[last:]
-        if out != ans and out not in avoid:
+        if out != ans and out not in avoid and unwritten(out) <= unwritten(ans):
             return out
     return None
 
