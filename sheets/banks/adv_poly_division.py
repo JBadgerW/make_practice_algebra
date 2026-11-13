@@ -87,7 +87,8 @@ def t_leading(degree, missing=False):            # AdvMath_00_04: divisor f x + 
 
 def t_missing_dividend(r):                       # Test 5, no. 5: x^3 - 5 x^2 + 9 divided by x - 4
     b, rem = signed(r, 1, 6), signed(r, 1, 12)
-    q = quotient(r, 2)
+    c1 = r.choice([c for c in range(-8, 9) if c and abs(b * c) <= 8])
+    q = r.randint(1, 4) * X ** 2 + c1 * X - b * c1             # built so the x term cancels: c0 + b c1 = 0
     dividend = sp.expand((X + b) * q + rem)
     need(sp.Poly(dividend, X).coeff_monomial(X) == 0)        # the dividend has no x term
     return build(r, q, 1, b, rem)

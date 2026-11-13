@@ -73,6 +73,8 @@ def y_at(pc, x):
         return F(pc["a"]) * (x - pc["h"]) ** 2 + pc["k"]
     if k == "seg":
         (x0, y0), (x1, y1) = pc["p"], pc["q"]
+        if x0 == x1:                                             # a segment that is one point
+            return F(y0)
         return F(y0) + F(y1 - y0, x1 - x0) * (x - x0)
     if k == "knots":
         for kx, ky in pc["ks"]:
@@ -93,6 +95,8 @@ def is_function(pieces):
     for pc in pieces:
         if pc["kind"] in ("circle", "sideways") or pc["kind"] == "vseg" and pc["y0"] != pc["y1"]:
             return False
+        if pc["kind"] == "seg" and pc["p"][0] == pc["q"][0] and pc["p"][1] != pc["q"][1]:
+            return False                                         # a segment drawn straight up: two y's at one x
         if pc["kind"] == "pts":
             pts += [tuple(q) for q in pc["pts"]]
         else:
