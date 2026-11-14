@@ -74,6 +74,7 @@ class Screen:
             self.put(0, 0, f"Make the terminal at least 72x14 (now {w}x{h}).  :q! quits.")
             return self.cmdline(app, h, w)
         body = h - 3                                   # title, status, command lines
+        self.tree_where = ""                           # how far down the banks pane is, for the status line
         on_sheet = app.focus == "preview"
         LEFT_W = left_width(app, w)
         tab = lambda on: st["normal"] if on else st["dim"]      # the focused pane's label stands out
@@ -116,10 +117,11 @@ class Screen:
         nset = len(SETTINGS)
         view = library.current().view(app.course, sequences=True)
         units = app.course is not None and any(u for u, _ in view)
+        HEAD = lambda text: ("\x00" + text.upper(), None)        # a heading: capitals over a rule, a blank line above
         lines, i = [(None, 0), ("", None)], 1                    # the course row, then the banks by unit
         for unit, names in view:
             if units:
-                lines.append((unit or "Other", None))
+                lines += ([] if lines[-1] == ("", None) else [("", None)]) + [HEAD(unit or "Other")]
             for _ in names:
                 lines.append((None, i))
                 i += 1
@@ -128,14 +130,28 @@ class Screen:
                     i += 1
         if not view:
             lines.append(("(no banks in this course yet)", None))
-        lines += [("", None), ("SETTINGS", None)] + [(None, i) for i in range(len(rows) - nset, len(rows))]
+        lines += [("", None), HEAD("Settings")] + [(None, i) for i in range(len(rows) - nset, len(rows))]
         app.row = min(app.row, len(rows) - 1)
         cur = next(j for j, (_, i) in enumerate(lines) if i == app.row)
-        top = max(0, min(cur - body // 2, len(lines) - body))
+        # Under the tree, the hint for the row under the cursor: a few lines kept
+        # for it in a tall terminal, and whatever a short tree leaves free.
+        keep = min(6, body // 5) if body >= 22 else 0
+        tree_h = body - (keep + 1 if keep else 0)
+        free = body - min(len(lines), tree_h) - 1
+        hint_h = min(free, 8) if free >= 3 else 0
+        if hint_h:
+            tree_h = min(tree_h, body - hint_h - 1)
+        top = max(0, min(cur - tree_h // 2, len(lines) - tree_h))
+        self.tree_where = "" if len(lines) <= tree_h else "Top" if top == 0 else \
+            "Bot" if top >= len(lines) - tree_h else f"{100 * top // (len(lines) - tree_h)}%"
         room = LEFT_W - 3
-        for y, (hdr, i) in enumerate(lines[top:top + body], 1):
+        for y, (hdr, i) in enumerate(lines[top:top + tree_h], 1):
+            if hdr is not None and hdr.startswith("\x00"):
+                self.put(y, 1, hdr[1:], curses.A_BOLD, LEFT_W - 2)
+                self.put(y, 1 + len(hdr), "─" * (LEFT_W - 2 - len(hdr)), st["dim"])
+                continue
             if hdr is not None:
-                self.put(y, 1, hdr, st["dim"] | curses.A_BOLD)
+                self.put(y, 1, hdr, st["dim"])
                 continue
             kind, key = rows[i]
             attr_t = 0
@@ -151,12 +167,12 @@ class Screen:
                 text = f"  {arrow}{stp['n']:>3}  {stp['title']}" + (" (missing)" if stp["missing"] else "")
                 n = app.value(rows[i])
                 val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
-                attr_t = st["err"] if stp["missing"] else 0
+                attr_t = st["err"] if stp["missing"] else curses.A_BOLD if n else 0
             elif kind == "example":
                 b = banks.get(key[2])
                 on = app.value(rows[i])
                 text = f"       {key[3]:>3}. {b.text(b.problem(key[3]))}"
-                val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
+                val, attr_v, attr_t = ("●" if on else "·"), (st["count"] if on else st["dim"]), (curses.A_BOLD if on else 0)
             elif kind == "bank":
                 b = banks.get(key)
                 size = f" ({len(b.PROBLEMS)})" if b.FIXED else ""
@@ -174,12 +190,12 @@ class Screen:
                     text = f"   {banks.label(b, key[1]):>3}  {e['title']}"
                 n = app.value(rows[i])
                 val, attr_v = (str(n) if n else "·"), (st["count"] if n else st["dim"])
-                attr_t = st["special"] if b.special(b.type_of(key[1])) else 0
+                attr_t = st["special"] if b.special(b.type_of(key[1])) else curses.A_BOLD if n else 0
             elif kind == "problem":
                 b = banks.get(key[0])
                 on = app.value(rows[i])
                 text = f"       {key[1]:>3}. {b.text(b.problem(key[1]))}"
-                val, attr_v = ("●" if on else "·"), (st["count"] if on else st["dim"])
+                val, attr_v, attr_t = ("●" if on else "·"), (st["count"] if on else st["dim"]), (curses.A_BOLD if on else 0)
             else:
                 text, val = f" {key}", str(app.value(rows[i])) or "(none)"
                 attr_v = st["count"]
@@ -188,13 +204,13 @@ class Screen:
             text = text if len(text) <= space else text[:space - 1] + "…"
             row = text.ljust(space + 1) + val + " "
             if i == app.row:
-                self.put(y, 1, row, curses.A_REVERSE | (curses.A_BOLD if app.focus == "left" else 0))
+                self.put(y, 1, row, curses.A_REVERSE | curses.A_BOLD if app.focus == "left" else curses.A_UNDERLINE)
             else:
                 self.put(y, 1, text, attr_t)
                 self.put(y, 1 + space + 1, val, attr_v)
-        free = body - min(len(lines), body) - 1
-        if free >= 3:
-            self.hint(app, rows[app.row], len(lines) + 2, free, LEFT_W)
+        if hint_h:
+            self.put(body - hint_h, 1, "─" * (LEFT_W - 2), st["dim"])
+            self.hint(app, rows[app.row], body - hint_h + 1, hint_h, LEFT_W)
 
     def hint(self, app, rid, y0, free, LEFT_W):
         """Under the tree, if there's room: what the row under the cursor is."""
@@ -235,7 +251,11 @@ class Screen:
         else:
             hint = SETTING_HINTS[key]
         hint = re.sub(r"\$([^$]*)\$", lambda m: pretty(m.group(1)), hint)
-        for y, line in enumerate(textwrap.wrap(hint, LEFT_W - 3)[:free], y0):
+        wrapped = textwrap.wrap(hint, LEFT_W - 3)
+        if len(wrapped) > free:                           # cut short: I shows it all
+            wrapped = wrapped[:free]
+            wrapped[-1] = wrapped[-1][:LEFT_W - 4].rstrip() + "…"
+        for y, line in enumerate(wrapped, y0):
             self.put(y, 1, line, self.st["dim"])
 
     def status(self, app, h, w, where):
@@ -255,7 +275,7 @@ class Screen:
             f"{len(app.selection())} selected" if app.anchor is not None else "") if x)
         x0 = len(mode) + 3
         keys = f"{app.count}{app.pending.replace(chr(23), '^W')}"       # a count or prefix being typed
-        pane = f"sheet {where}".rstrip() if app.focus == "preview" else "banks"
+        pane = f"sheet {where}".rstrip() if app.focus == "preview" else f"banks {self.tree_where}".rstrip()
         end = (f"{keys}   " if keys else "") + pane + " "
         room = w - 1 - x0 - len(info) - len(end) - 5   # the cursor, at the right: it gives way to the rest
         here = app.where(room) if app.focus == "preview" else ""

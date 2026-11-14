@@ -308,8 +308,13 @@ It takes the same drafting options as `make_practice.py` (`--mix`,
 row on top; see *Courses and the library* below), as a tree under their
 units: each bank, its types with how many of each are on the sheet (`·`
 means none), and, for a fixed bank, the problems of a type you open (`●`
-marks one on the sheet). Then the settings, and a hint for the row under the
-cursor. On the right is **the sheet**, laid out like the page:
+marks one on the sheet). A type, step, or problem that has problems on the
+sheet shows in bold. Then the settings. At the foot of the pane, under a
+rule, is a hint for the row under the cursor (in a terminal of 25 lines or
+more, or wherever the tree leaves room; a long hint is cut short with `…`).
+When the tree is longer than the pane, the status line says how far down it
+is (`banks 40%`). The cursor is a solid bar in the pane you are in and an
+underline in the other. On the right is **the sheet**, laid out like the page:
 the header, the instructions in italics, bold section titles, problems in
 one or two columns with their work space as blank lines, and a dashed line
 where a new page probably starts. `Tab` moves between the panes, and the
