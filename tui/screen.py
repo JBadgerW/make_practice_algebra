@@ -272,58 +272,65 @@ class Screen:
         self.find_at = self.find_box(app, h, w) if app.mode == "find" else None
         self.cmdline(app, h, w)
 
+    def frame(self, y0, x0, bh, bw, title, corner="", foot="", end=""):
+        """A pop-up's box, the same for all of them: reverse video, its title in
+        bold at the top left with `corner` across from it, and on the last line
+        the keys (`foot`) with `end` across from them. The body starts two lines down."""
+        R, B = curses.A_REVERSE, curses.A_REVERSE | curses.A_BOLD
+        for y in range(bh):
+            self.put(y0 + y, x0, " " * bw, R)
+        self.put(y0, x0 + 2, title, B, bw - 6 - len(corner))
+        self.put(y0, x0 + bw - 2 - len(corner), corner, R)
+        self.put(y0 + bh - 1, x0 + 2, foot, R, bw - 6 - len(end))
+        self.put(y0 + bh - 1, x0 + bw - 2 - len(end), end, B)
+
     def info_box(self, app, h, w):
         """I: what the cursor is on, each line with the keys that change it."""
+        R, B = curses.A_REVERSE, curses.A_REVERSE | curses.A_BOLD
         title, rows, foot = app.info()
-        lines = info_lines(rows, min(w - 2, 76))
         bw = min(w - 2, 76)
-        room = max(1, h - 5)                              # the status lines stay visible
+        lines = info_lines(rows, bw)
+        room = max(1, h - 7)                              # the title and status lines stay visible
         if len(lines) > room:
             lines = lines[:room - 1] + [("", "…", "")]
         bh = len(lines) + 4
-        y0, x0 = max(0, (h - 2 - bh) // 2), max(0, (w - bw) // 2)
-        for y in range(bh):
-            self.put(y0 + y, x0, " " * bw, curses.A_REVERSE)
-        self.put(y0, x0 + 2, f" {title} ", curses.A_REVERSE | curses.A_BOLD, bw - 4)
-        for y, (label, text, keys) in enumerate(lines, 1):
-            self.put(y0 + y, x0 + 2, label, curses.A_REVERSE | curses.A_BOLD, INFO_LABEL)
-            self.put(y0 + y, x0 + 2 + INFO_LABEL, text, curses.A_REVERSE, bw - 4 - INFO_LABEL - INFO_KEYS_W)
+        y0, x0 = max(1, (h - 2 - bh) // 2), max(0, (w - bw) // 2)
+        self.frame(y0, x0, bh, bw, title, "keys" if any(k for _, _, k in lines) else "", foot)
+        for y, (label, text, keys) in enumerate(lines, 2):
+            self.put(y0 + y, x0 + 2, label, B, INFO_LABEL)
+            self.put(y0 + y, x0 + 2 + INFO_LABEL, text, R, bw - 4 - INFO_LABEL - INFO_KEYS_W)
             if keys:
-                self.put(y0 + y, x0 + bw - 2 - len(keys), keys, curses.A_REVERSE | curses.A_BOLD)
-        self.put(y0 + bh - 2, x0 + bw - 2 - min(len(foot), bw - 4), foot, curses.A_REVERSE, bw - 4)
+                self.put(y0 + y, x0 + bw - 2 - len(keys), keys, B)
 
     def find_box(self, app, h, w):
         """The finder: the query on top, the rows that fit under it (the lit one
-        is where Enter goes), each with how many of its problems are on the
-        sheet. Returns where the typing cursor belongs."""
+        is where Enter goes; banks in bold, their types under them), each with how
+        many of its problems are on the sheet. Returns where the typing cursor belongs."""
+        R, B = curses.A_REVERSE, curses.A_REVERSE | curses.A_BOLD
         rows, i = app.find_rows(), app.find["i"]
         bw = min(w - 2, 96)
-        room = max(3, min(h - 8, 18))                     # rows of results
-        bh = room + 4
-        y0, x0 = max(0, (h - 2 - bh) // 2), max(0, (w - bw) // 2)
-        R = curses.A_REVERSE
-        for y in range(bh):
-            self.put(y0 + y, x0, " " * bw, R)
+        room = max(3, min(h - 9, 18))                     # rows of results
+        bh = room + 5
+        y0, x0 = max(1, (h - 2 - bh) // 2), max(0, (w - bw) // 2)
         n = len(rows)
         count = f"{n}{'+' if n >= 300 else ''} fit" + (f" · {app.course}" if app.course else "")
-        self.put(y0, x0 + 2, " FIND ", R | curses.A_BOLD)
-        self.put(y0, x0 + bw - 2 - len(count), count, R)
+        self.frame(y0, x0, bh, bw, "FIND", count, "Enter go to it · Tab add one · ^X remove one · ↑ ↓ · Esc",
+                   f"{i + 1} of {n}" if n > room else "")
         q = app.find["q"]
-        self.put(y0 + 1, x0 + 2, "> " + q[-(bw - 8):], R | curses.A_BOLD, bw - 4)
+        self.put(y0 + 1, x0 + 2, "> " + q[-(bw - 8):], B, bw - 4)
+        self.put(y0 + 2, x0 + 2, "─" * (bw - 4), R)
         top = max(0, min(i - room // 2, n - room))
-        for y, (rid, text, inside) in enumerate(rows[top:top + room], 2):
+        for y, (rid, text, inside) in enumerate(rows[top:top + room], 3):
             k = app.find_count(rid)
             val = str(k) if k else "·"
-            lit = top + y - 2 == i
+            lit = top + y - 3 == i
             attr = (self.st["search"] if lit else R) | (0 if inside else curses.A_DIM)
-            line = ("  " if rid[0] == "count" else "") + text + ("" if inside else "  (another course)")
+            line = ("  " + text if rid[0] == "count" else text) + ("" if inside else "  (another course)")
             self.put(y0 + y, x0 + 1, " " * (bw - 2), attr)
-            self.put(y0 + y, x0 + 1, " " + line, attr, bw - 7)
+            self.put(y0 + y, x0 + 2, line, attr | (0 if rid[0] == "count" else curses.A_BOLD), bw - 8)
             self.put(y0 + y, x0 + bw - 2 - len(val), val, attr | (curses.A_BOLD if k else 0))
         if not rows:
-            self.put(y0 + 2, x0 + 2, "nothing fits" if q.strip() else "no banks", R)
-        foot = "Enter go to it · Tab add one · ^X remove one · ↑ ↓ · Esc"
-        self.put(y0 + bh - 1, x0 + bw - 2 - min(len(foot), bw - 4), foot, R, bw - 4)
+            self.put(y0 + 3, x0 + 2, "nothing fits" if q.strip() else "no banks", R)
         return y0 + 1, min(x0 + 4 + len(q), x0 + bw - 3)
 
     def wildmenu(self, app, h, w):
@@ -356,12 +363,11 @@ class Screen:
         lines, starts = help_lines(bw - 4)
         app.help_w, app.help_room = bw - 4, room
         top = app.help_top = max(0, min(app.help_top, len(lines) - room))
-        for y in range(bh):
-            self.put(y0 + y, x0, " " * bw, R)
         k = help_section(starts, top + 1)
-        self.put(y0, x0 + 2, " HELP ", B)
-        sect = f"{HELP[k][0]} · {k + 1} of {len(HELP)}"
-        self.put(y0, x0 + bw - 2 - len(sect), sect, R)
+        where = "All" if len(lines) <= room else "Top" if top == 0 else "Bot" if top >= len(lines) - room else \
+            f"{100 * top // (len(lines) - room)}%"
+        self.frame(y0, x0, bh, bw, "HELP", f"{HELP[k][0]} · {k + 1} of {len(HELP)}",
+                   "j k scroll · ]] [[ section · 1-9 jump · / search · Esc", where)
         for y, (kind, keys, text) in enumerate(lines[top:top + room], 2):
             lit = top + y - 2 == app.help_hit
             a, b = (self.st["search"], self.st["search"] | curses.A_BOLD) if lit else (R, B)
@@ -377,11 +383,6 @@ class Screen:
             elif kind == "row":
                 self.put(y0 + y, x0 + 2, keys, b, HELP_KEYS_W)
                 self.put(y0 + y, x0 + 2 + HELP_KEYS_W, text, a, bw - 4 - HELP_KEYS_W)
-        where = "All" if len(lines) <= room else "Top" if top == 0 else "Bot" if top >= len(lines) - room else \
-            f"{100 * top // (len(lines) - room)}%"
-        foot = "j k scroll · ]] [[ section · 1-9 jump · / search · Esc"
-        self.put(y0 + bh - 1, x0 + bw - 2 - len(where), where, B)
-        self.put(y0 + bh - 1, x0 + 2, foot, R, bw - 9)
 
     def busy(self, text):
         """While a long key runs: only the message line changes (the rest of the
