@@ -1,6 +1,5 @@
 """The sheet as the pane shows it, laid out like the page (with the page-break estimate)."""
 import textwrap
-from sheets import draft
 from sheets import sheet as sh, edit as E, banks
 from .common import FRAC_IN, HEADER_IN, LINE_IN, PAGE_IN, PLAIN_IN, SHEET, TITLE_IN
 
@@ -111,15 +110,31 @@ class Render:
                   + (f" · {un} unchecked" if un else ""), "dim", None))
         return lines, spans
 
-    def where(self):
-        """A short description of what the sheet cursor is on, for the status line."""
+    def where(self, room=200):
+        """What the sheet cursor is on, for the status line, in at most `room`
+        columns: the problem's number, its bank and type by their titles, its
+        width and work space, and what's unusual about it (rerolls from the whole
+        any type; fails its check). The names give way first: the type's title goes,
+        then the bank's is cut short, then both go, and then all but the number."""
         si, ii = self.cur
         if si < 0:
             return "sheet header"
         it = self.item()
         if not it:
-            return f"section {si + 1}"
+            sec = self.sheet["sections"][si]
+            k = len(sec["items"])
+            full = f"section {si + 1} of {len(self.sheet['sections'])} · {k} problem{'s' * (k != 1)}"
+            return full if len(full) <= room else f"section {si + 1}"
         n = E.positions(self.sheet).index(self.cur) + 1
-        src = it["entry"] if it["bank"] == draft.BANK else f"{it['bank']}:{it['entry']}"
-        src += f" (rerolls from all of {it['bank']})" if sh.from_bank(it) else ""
-        return f"#{n} {src} {it['width']} {it['space']}" + ("" if it["status"] == "checked" else f" {it['status']}")
+        b = banks.get(it["bank"])
+        e = b.ENTRY.get(it["entry"])
+        label = banks.label(b, it["entry"]) if e else it["entry"]
+        tail = (f"{it['width']} · {it['space']}" + (" · rerolls any type" if sh.from_bank(it) else "")
+                + ("" if it["status"] == "checked" else f" · {it['status']}"))
+        for name in ([f"{b.TITLE} › {label}  {e['title']}"] if e else []) + [f"{b.TITLE} › {label}"]:
+            if len(f"#{n} · {name} · {tail}") <= room:
+                return f"#{n} · {name} · {tail}"
+        cut = room - len(f"#{n} · … › {label} · {tail}")       # the bank's title, cut short
+        if cut >= 8:
+            return f"#{n} · {b.TITLE[:cut]}… › {label} · {tail}"
+        return next((x for x in (f"#{n} · {tail}", f"#{n} · {it['width']} · {it['space']}") if len(x) <= room), f"#{n}")

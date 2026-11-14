@@ -247,14 +247,21 @@ class Screen:
         self.put(h - 2, 0, f" {mode} ", st[look if look in st else "normal"])
         un, bad = app.statuses()
         v = app.sheet["versions"]
-        info = (f" {app.total()} problem{'s' * (app.total() != 1)} × {v} version{'s' * (v != 1)}"
-                + (f"  ·  {bad} failing" if bad else "") + (f"  ·  {un} unchecked" if un else "")
-                + (f"  ·  {len(app.missing())} bank{'s' * (len(app.missing()) > 1)} missing (!)" if app.missing() else "")
-                + ("  ·  [+]" if app.dirty() else "")
-                + (f"  ·  {len(app.selection())} selected" if app.anchor is not None else ""))
-        self.put(h - 2, len(mode) + 2, info, curses.A_REVERSE)
-        right = (f"{app.count}{app.pending.replace(chr(23), '^W')}  "
-                 + (f"{app.where()}  sheet {where}" if app.focus == "preview" else "banks") + " ")
+        info = " · ".join(x for x in (                 # the sheet, at the left
+            f"{app.total()} problem{'s' * (app.total() != 1)}" + (f" × {v} versions" if v > 1 else ""),
+            f"{bad} failing" if bad else "", f"{un} unchecked" if un else "",
+            f"{len(app.missing())} bank{'s' * (len(app.missing()) > 1)} missing (!)" if app.missing() else "",
+            "[+]" if app.dirty() else "",
+            f"{len(app.selection())} selected" if app.anchor is not None else "") if x)
+        x0 = len(mode) + 3
+        keys = f"{app.count}{app.pending.replace(chr(23), '^W')}"       # a count or prefix being typed
+        pane = f"sheet {where}".rstrip() if app.focus == "preview" else "banks"
+        end = (f"{keys}   " if keys else "") + pane + " "
+        room = w - 1 - x0 - len(info) - len(end) - 5   # the cursor, at the right: it gives way to the rest
+        here = app.where(room) if app.focus == "preview" else ""
+        here = here if len(here) <= room else ""
+        right = (f"{here}   " if here else "") + end
+        self.put(h - 2, x0, info, curses.A_REVERSE, w - 1 - x0 - len(right) - 2)
         self.put(h - 2, w - len(right) - 1, right, curses.A_REVERSE)
         if app.comp:
             self.wildmenu(app, h, w)

@@ -887,8 +887,9 @@ before = prompts(g)
 gk("r"); assert prompts(g) != before and E.count_from_bank(g.sheet, L4) == 15, "r on the bank rerolls them all, from the bank"
 gk("o"); g.row = g.rows().index(("count", (L4, "4"))); gk("2l")
 assert titles(g) == [lesson.TITLE, mp.L.heading("4")] and not sh.from_bank(g.sheet["sections"][1]["items"][-1])
-gk("\tgg]]j"); assert g.cur == (0, 0) and "rerolls from all of lesson_1-4" in g.where(), g.where()
-gk(":scope type\n"); assert not sh.from_bank(g.item()) and "all of" not in g.where() and not g.err
+gk("\tgg]]j"); assert g.cur == (0, 0) and "rerolls any type" in g.where() and lesson.TITLE in g.where(), g.where()
+assert all(len(g.where(r)) <= r for r in range(12, 120)) and g.where(40).startswith("#1 · ") and "…" in g.where(60), "it fits the room it gets"
+gk(":scope type\n"); assert not sh.from_bank(g.item()) and "rerolls" not in g.where() and not g.err
 gk(":scope bank\n"); assert sh.from_bank(g.item())
 gk(":scope sideways\n"); assert g.err and "usage" in g.msg
 

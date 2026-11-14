@@ -323,8 +323,12 @@ sheet, and comes back to full width when you Tab to it. `:w` writes exactly what
 
 The status line shows the totals, how many answers fail their check or
 can't be checked, `[+]` when there are unwritten changes, and, on the sheet,
-what the cursor is on (`#5 3f half 1in`: problem 5, entry 3f, half width,
-1in of work space).
+what the cursor is on (`#5 · Literal Equations › 3f  Real formulas · half · 1in`:
+problem 5, its bank and type, half width, 1in of work space; then `rerolls any
+type` if it rerolls from its whole bank, and `failed` or `unchecked` if its
+answer isn't checked). In a narrow terminal the names are cut short or left
+out; `I` shows them in full. On a section's header it shows which section and
+how many problems it has.
 
 ### The banks pane
 
