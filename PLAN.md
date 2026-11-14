@@ -274,3 +274,30 @@ and `:w` still use the same data and the same functions.
       while it stays open. A `∗` mark was tried and dropped for `I`.
    4. `--mix BANK/any:N` (or `BANK/*:N`) and `:mix` likewise; `--groups`
       keeps the bank's section.
+
+## The look of the app: ideas to come back to
+
+Done in November 2026: help as a scrollable box in sections; the status
+line by titles; one frame for the help, `I`, and find boxes; the banks pane's
+headings, bold rows, and hint at its foot. The rule for all of it: keep the
+app's full contrast (reverse-video boxes and status line, no gray surfaces)
+and make things clearer by how they are arranged.
+
+**Tried and dropped: the sheet as a page.** The sheet pane was drawn at most
+84 columns wide (about a printed line), centered in a wider pane between two
+dim lines for the page's edges, with `:set nopage` to turn it off. It was
+taken out before it was committed: on a wide terminal it left a third of the
+pane empty for little gain. Worth another look only in a form that doesn't
+give up room:
+
+- a cap only on how far apart two half-width problems sit, with full-width
+  problems still using the whole pane;
+- a mark for the page's right edge (a tick in the top line, say) with nothing
+  moved;
+- the top line (`Version 1/1 · answers off (za) · …`) out of the sheet and
+  into the title line, since it isn't part of the printed page;
+- faint guides in the work space, so an empty stretch reads as room to work
+  and not as a gap.
+
+Not to come back to: softer colors or gray backgrounds for the boxes and the
+status line.
