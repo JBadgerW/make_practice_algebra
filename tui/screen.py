@@ -2,7 +2,7 @@
 import curses, re, textwrap, threading
 from sheets import sheet as sh, banks, library
 from sheets.typmath import pretty
-from .common import COURSE_HINT, HELP, INFO_KEYS_W, INFO_LABEL, info_lines, prose, SETTING_HINTS, SETTINGS, SHEET_MIN
+from .common import COURSE_HINT, HELP, HELP_KEYS_W, help_lines, help_section, INFO_KEYS_W, INFO_LABEL, info_lines, prose, SETTING_HINTS, SETTINGS, SHEET_MIN
 
 # Drawing
 # ------------------------------------------------------------------
@@ -258,8 +258,8 @@ class Screen:
         self.put(h - 2, w - len(right) - 1, right, curses.A_REVERSE)
         if app.comp:
             self.wildmenu(app, h, w)
-        if app.mode == "help":
-            self.help(h, w)
+        if app.mode == "help" or app.help_search:
+            self.help(app, h, w)
         if app.mode == "info":
             self.info_box(app, h, w)
         self.find_at = self.find_box(app, h, w) if app.mode == "find" else None
@@ -337,15 +337,44 @@ class Screen:
             self.put(h - 2, x, n, self.st["search"] if k == i else curses.A_REVERSE)
             x += len(n) + 2
 
-    def help(self, h, w):
-        lines = HELP.splitlines()
-        bw = min(w - 2, max(map(len, lines)) + 4)
-        bh = min(h - 2, len(lines) + 2)
-        y0, x0 = max(0, (h - bh) // 2), max(0, (w - bw) // 2)
+    def help(self, app, h, w):
+        """The help box: one section after another, scrolled by app.help_top. The
+        corner says which section is on top; the foot, the keys and how far down."""
+        R, B = curses.A_REVERSE, curses.A_REVERSE | curses.A_BOLD
+        bw = min(w - 2, 78)
+        bh = max(5, h - 4)                                # the title and status lines stay visible
+        y0, x0 = 1, max(0, (w - bw) // 2)
+        gap = 1 if bh >= 14 else 0                        # a line above the foot, when there's room
+        room = max(1, bh - 3 - gap)
+        lines, starts = help_lines(bw - 4)
+        app.help_w, app.help_room = bw - 4, room
+        top = app.help_top = max(0, min(app.help_top, len(lines) - room))
         for y in range(bh):
-            self.put(y0 + y, x0, " " * bw, curses.A_REVERSE)
-        for y, line in enumerate(lines[:bh - 2], 1):
-            self.put(y0 + y, x0 + 2, line, curses.A_REVERSE, bw - 4)
+            self.put(y0 + y, x0, " " * bw, R)
+        k = help_section(starts, top + 1)
+        self.put(y0, x0 + 2, " HELP ", B)
+        sect = f"{HELP[k][0]} · {k + 1} of {len(HELP)}"
+        self.put(y0, x0 + bw - 2 - len(sect), sect, R)
+        for y, (kind, keys, text) in enumerate(lines[top:top + room], 2):
+            lit = top + y - 2 == app.help_hit
+            a, b = (self.st["search"], self.st["search"] | curses.A_BOLD) if lit else (R, B)
+            if lit:
+                self.put(y0 + y, x0 + 1, " " * (bw - 2), a)
+            if kind == "head":
+                self.put(y0 + y, x0 + 2, text, b, bw - 4)
+                self.put(y0 + y, x0 + 3 + len(text), "─" * (bw - 5 - len(text)), a)
+            elif kind == "long":
+                self.put(y0 + y, x0 + 2, keys, b, bw - 4)
+            elif kind == "note":
+                self.put(y0 + y, x0 + 2, text, a, bw - 4)
+            elif kind == "row":
+                self.put(y0 + y, x0 + 2, keys, b, HELP_KEYS_W)
+                self.put(y0 + y, x0 + 2 + HELP_KEYS_W, text, a, bw - 4 - HELP_KEYS_W)
+        where = "All" if len(lines) <= room else "Top" if top == 0 else "Bot" if top >= len(lines) - room else \
+            f"{100 * top // (len(lines) - room)}%"
+        foot = "j k scroll · ]] [[ section · 1-9 jump · / search · Esc"
+        self.put(y0 + bh - 1, x0 + bw - 2 - len(where), where, B)
+        self.put(y0 + bh - 1, x0 + 2, foot, R, bw - 9)
 
     def busy(self, text):
         """While a long key runs: only the message line changes (the rest of the

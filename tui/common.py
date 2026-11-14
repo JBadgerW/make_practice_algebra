@@ -1,5 +1,5 @@
 """What every part of the app shares: imports, constants, and small helpers."""
-import os, re, textwrap, time, traceback
+import functools, os, re, textwrap, time, traceback
 from pathlib import Path
 from sheets import draft
 from sheets import library
@@ -26,42 +26,136 @@ SETTING_HINTS = {
     "out": "Folder to write into: ~ is your home folder, and a relative path starts in the folder you ran mathsheet from. i to edit; Tab completes folder names.",
 }
 
-HELP = """\
-BANKS PANE                          THE SHEET (Tab to it; ^W o widens it)
-j k gg G  move   /text n N  search  j k  h l    next/prev; left/right
-l + ^A  add to the type's section   ]] [[       next / previous section
-  on a bank: any type (20l)         gg G  5G    top, bottom; problem 5
-L  add at the sheet cursor (3L)
-h - ^X  remove the last one         r 3r R      reroll it / 3 / section
-x dd  remove all   D  clear sheet   W           half / full width
-i a cc  type a count or a setting   + -         work space ±0.25in
-r  reroll all of this type          i  A        edit problem / answer
-o O  open one / open or close all   dd yy p P   cut, copy (redraws), paste
-EVERYWHERE                          J K         move problem or section
-u ^R .   undo, redo, repeat         o O  cS cI  new section; title, instr.
-Tab ^W w switch panes               zM zR       fold to sections / unfold
-za zs    answers / compact          ✗ an answer fails its check
-gt gT    next / previous version    ? an answer can't be checked
-^W o     sheet full width / split   v  gv       select (Esc ends); reselect
-I        what's here, in a box      + - W r     change all selected
-f ^P     find a bank or type        d y :group  cut, copy, new section
-                                    gs          shuffle selection / section
-                                    :scope bank|type  reroll from bank / type
-COMMANDS
-:w :w! :wq :x ZZ :q :q! ZQ   :e FILE.sheet.json   :open [sheet|slides]
-:new  start a new sheet (asks to write or discard changes; :new! discards)
-:pre [sheet|key|slides] [N]  preview the sheet as it stands (writes nothing)
-:present [N]  two problems at a time at the board, in the browser
-:decoys  a warm-up's new decoys (:pre key marks them)
-:w NAME  :saveas NAME  write under a new name (FOLDER/NAME: there; Tab completes)
-:add systems/4:3 BANK/any:5  add to this sheet (Tab completes banks and types)
-:scale 2  :scale 0.5  :scale 3/2  the sheet that many times as long (each kind keeps one)
-:mix 3:6 3f:2  new sheet   :reroll [section]   :space 1.5in   :width full
-:draft SEQ 5-6 [x6] [review 1-4|none] [pinned]   a sheet from a sequence's steps
-:groups 9 8 3+4=Warm-up   :shuffle   :join (:j)   :ja   :rename TEXT   :N  problem N
-:form :title :class :instructions :versions :name :out  :set [no]compact [no]wide
-:course NAME|all  (h l on COURSE)   :rescan   :library DIR   :warnings
-Types 1-11, A, B: the lesson's sequence. 3f: real formulas. Banks: built in, and your :library."""
+# The help pop-up (? or :help): sections of (keys, what they do), in the order shown.
+# A new key or command goes in the section it belongs to; a section's title is
+# also what :help TOPIC looks for.
+HELP = [
+    ("Banks pane", [
+        ("j k  gg G", "move"),
+        ("/text  n N", "search every bank, opening what it finds; next, previous"),
+        ("o  O", "open or close this one; open or close all"),
+        ("l  +  ^A", "add a problem to the type's section; on a bank, one of any type (20l: twenty)"),
+        ("L", "add at the sheet cursor (3L: three)"),
+        ("h  -  ^X", "remove the last one"),
+        ("x  dd", "remove all of this row's problems"),
+        ("D", "clear the sheet"),
+        ("r", "reroll all of this type"),
+        ("i  a  cc", "type a count or a setting"),
+        (":5", "row 5"),
+    ]),
+    ("The sheet: problems", [
+        ("Tab", "to the sheet, and back to the banks"),
+        ("j k  h l", "next, previous; left, right"),
+        ("gg  G  5G  :5", "top, bottom; problem 5"),
+        ("/text  n N", "search the problems; next, previous"),
+        ("r  3r  R", "reroll it; three of them; the section"),
+        ("W", "half or full width"),
+        ("+  -", "work space ±0.25in"),
+        ("i  A", "edit the problem; edit its answer"),
+        ("dd  yy  p  P", "cut, copy (the copy redraws), paste"),
+        ("J  K", "move the problem or section down, up"),
+        (":space 1.5in", "set the work space"),
+        (":width full", "set the width: half or full"),
+        (":scope bank|type", "rerolls draw from the whole bank, or from the type only"),
+        (":reroll [section]", "reroll the sheet, or the cursor's section"),
+        ("", ":space, :width, and :scope change the selection, or the problem, section, "
+             "or sheet the cursor is on."),
+    ]),
+    ("The sheet: sections and selecting", [
+        ("]]  [[", "next, previous section"),
+        ("o  O", "new section below, above"),
+        ("cS  cI", "change the section's title; its instructions"),
+        (":rename TEXT", "retitle the cursor's section"),
+        (":join  :j", "merge the section below into this one"),
+        (":ja", "merge every section below into this one"),
+        ("zM  zR", "fold to section titles; unfold"),
+        ("v  gv", "select (Esc ends); select the same again"),
+        ("+  -  W  r", "change everything selected"),
+        ("d  y", "cut, copy the selection"),
+        ("gs", "shuffle the selection, or the section"),
+        (":group TITLE", "move the selection into a new section"),
+        (":groups 9 8 3+4=Warm-up", "sort the sheet's problems into sections by type"),
+        (":shuffle", "every problem in one shuffled section"),
+    ]),
+    ("Views", [
+        ("Tab  ^W w", "switch panes"),
+        ("^W o", "the sheet at full width; split again"),
+        ("za", "show or hide the answers"),
+        ("zs", "compact: show or hide the work space"),
+        ("gt  gT", "next, previous version"),
+        (":set [no]compact [no]wide [no]answers", "the same, by name (compact! flips it)"),
+    ]),
+    ("Everywhere", [
+        ("u  ^R  .", "undo, redo, repeat"),
+        ("I", "what's here, in a box, with the keys that change it"),
+        ("f  ^P  :find", "find a bank or type by a few letters"),
+        ("?  :help TOPIC", "this help; at a section (:help files)"),
+    ]),
+    ("Marks on the sheet", [
+        ("✗", "the answer fails its check"),
+        ("?", "the answer can't be checked"),
+        ("!", "the problem's bank is missing"),
+    ]),
+    ("Files and printing", [
+        (":w  :w!", "write the sheet, its worksheets, keys, and slides (! doesn't ask about the name)"),
+        (":w NAME  :saveas NAME", "write under a new name (FOLDER/NAME: there; Tab completes)"),
+        (":wq  :x  ZZ", "write, then quit"),
+        (":q  :q!  ZQ", "quit (! and ZQ discard changes)"),
+        (":e FILE.sheet.json", "open a sheet"),
+        (":new", "start a new sheet (asks to write or discard changes; :new! discards)"),
+        (":pre [sheet|key|slides] [N]", "preview the sheet as it stands (writes nothing)"),
+        (":open [sheet|slides]", "open the written PDF"),
+        (":present [N]", "two problems at a time at the board, in the browser"),
+        (":decoys", "a warm-up's new decoys (:pre key marks them)"),
+    ]),
+    ("Building a sheet", [
+        (":add systems/4:3 BANK/any:5", "add to this sheet (Tab completes banks and types)"),
+        (":mix 3:6 3f:2", "a new sheet from these types and counts"),
+        (":draft SEQ 5-6 [x6] [review 1-4|none] [pinned]", "a new sheet from a sequence's steps"),
+        (":scale 2  :scale 0.5  :scale 3/2", "the sheet that many times as long (each kind keeps one)"),
+        (":form  :versions  :title  :class  :instructions  :name  :out",
+         "set a setting, as on the banks pane (:title Unit 2 Review)"),
+        (":set KEY=VALUE", "the same (:set versions=3)"),
+    ]),
+    ("Courses and the library", [
+        (":course NAME|all", "show a course's banks, or every bank (h l on COURSE)"),
+        (":rescan", "read the library again"),
+        (":library DIR", "use this library folder from now on"),
+        (":warnings", "everything wrong in the library"),
+        ("", "Types 1-11, A, B: the lesson's sequence. 3f: real formulas. "
+             "Banks: built in, and your :library."),
+    ]),
+]
+HELP_KEYS_W = 22                       # the help box's key column; longer keys get a line of their own
+
+@functools.lru_cache(maxsize=8)
+def help_lines(width):
+    """The help for a box `width` columns wide inside: (lines, starts). Each line
+    is (kind, keys, text): "head" (a section's title), "row" (keys and what they
+    do; no keys on a wrapped line), "long" (keys too wide for their column, alone
+    on the line), "note" (text from the left edge), or "blank". starts[k] is the
+    line of section k's title."""
+    lines, starts = [], []
+    room = max(20, width - HELP_KEYS_W)
+    for title, rows in HELP:
+        if lines:
+            lines.append(("blank", "", ""))
+        starts.append(len(lines))
+        lines.append(("head", "", title.upper()))
+        for keys, text in rows:
+            if not keys:
+                lines += [("note", "", l) for l in textwrap.wrap(text, max(20, width))]
+                continue
+            if len(keys) > HELP_KEYS_W - 2:
+                lines.append(("long", keys, ""))
+                keys = ""
+            for i, l in enumerate(textwrap.wrap(text, room)):
+                lines.append(("row", keys if i == 0 else "", l))
+    return lines, starts
+
+def help_section(starts, top):
+    """Which section the line `top` is in."""
+    return max(0, sum(s <= top for s in starts) - 1)
 
 SHEET = (-1, -1)                       # the sheet cursor on the header (title, instructions)
 SHEET_MIN = 60                         # a sheet pane narrower than this takes room from the banks while it has focus

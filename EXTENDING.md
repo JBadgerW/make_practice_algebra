@@ -211,8 +211,8 @@ samples. Expect to adjust.
 shared Typst code. Compile them and look at the PDFs (render pages to PNG
 and view them). A generator module in `sheets/banks/` appears in the banks
 pane on its own; tag it with its courses (section 8a) so it shows in the
-right ones, and check `:warnings` is empty. Make the help text and hints
-family-aware where they need to be. Add tests alongside
+right ones, and check `:warnings` is empty. Make the help text (the `HELP`
+sections in `tui/common.py`) and hints family-aware where they need to be. Add tests alongside
 `tests/test_mathsheet.py`. → **Checkpoint:** a sample set of each output.
 
 **Phase 5: Tests and mixed sets** (when asked): parallel versions, points,

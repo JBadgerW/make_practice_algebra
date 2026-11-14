@@ -39,6 +39,10 @@ class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info, Find):
         self.answers = self.compact = self.folded = False
         self.wide = False               # the sheet fills the screen while it has focus
         self.pv_top = 0
+        self.help_top = 0               # the help box: its first line showing,
+        self.help_w, self.help_room = 74, 10    # its size as last drawn (so keys and drawing agree on lines),
+        self.help_q, self.help_hit = "", None   # the text last searched for in it, and the line found
+        self.help_search = False        # typing a / search that began in the help box
         self.mode = "normal"            # normal, insert, command, search, help, info, find
         self.find = dict(q="", i=0, key=None, rows=[])     # the finder: its query, the row lit, and the rows that fit
         self.resume_info = False        # back to the info box when an edit started from it ends

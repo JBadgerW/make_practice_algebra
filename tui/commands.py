@@ -109,7 +109,7 @@ class Commands:
         elif cmd == "decoys":
             self.redraw_decoys()
         elif cmd in ("h", "help"):
-            self.mode = "help"
+            self.open_help(rest)
         else:
             self.say(f"E492: Not an editor command: {line}", True)
 

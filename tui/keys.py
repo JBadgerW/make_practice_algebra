@@ -2,7 +2,8 @@
 import curses, re
 from sheets import draft
 from sheets import sheet as sh, banks
-from .common import complete_course, complete_entry, complete_path, complete_sequence, openable, SHEET
+from .common import (complete_course, complete_entry, complete_path, complete_sequence, HELP, help_lines,
+                     help_section, openable, SHEET)
 
 # After a prefix key, the message line lists what can follow it: (on the sheet, on the banks pane).
 FOLLOWS = {
@@ -24,10 +25,11 @@ class Keys:
         if isinstance(ch, str):
             ch = ord(ch)
         if self.mode == "help":
-            self.mode = "normal"
-            return
+            return self.key_help(ch)
         if self.mode in ("insert", "command", "search"):
             self.key_line(ch)
+            if self.help_search and self.mode == "normal":      # a search typed in the help box: back to it
+                self.mode, self.help_search = "help", False
             if self.mode == "normal" and self.resume_info:
                 self.mode, self.resume_info = "info", False
             return
@@ -168,7 +170,7 @@ class Keys:
         elif c == "N":
             self.search(self.search_q, -1)
         elif c == "?":
-            self.mode = "help"
+            self.open_help()
         elif c in ("f", "\x10"):
             self.find_open()
         elif c == "I":
@@ -381,6 +383,88 @@ class Keys:
         c["i"] = (c["i"] + step) % len(c["options"])
         self.buf = c["buf"] = self.buf[:c["start"]] + c["options"][c["i"]]
 
+    # -- the help box ----------------------------------------------------
+    def open_help(self, topic=""):
+        """? and :help: the help box, at the top from the banks pane and at the
+        sheet's keys from the sheet; :help TOPIC, at the section named so."""
+        lines, starts = help_lines(self.help_w)
+        titles = [t.lower() for t, _ in HELP]
+        if topic:
+            t = topic.lower()
+            k = next((i for i, x in enumerate(titles) if x.startswith(t)),
+                     next((i for i, x in enumerate(titles) if t in x), None))
+            if k is None:
+                return self.say(f"E149: Sorry, no help for {topic} (? shows every section)", True)
+        else:
+            k = next(i for i, x in enumerate(titles) if x.startswith("the sheet")) if self.focus == "preview" else 0
+        self.mode, self.pending, self.count = "help", "", ""
+        self.help_top, self.help_hit = starts[k], None
+
+    def help_find(self, step=1):
+        """The next (or previous) help line with the searched text, brought into view."""
+        lines, _ = help_lines(self.help_w)
+        q = self.help_q.lower()
+        if not q:
+            return self.say("nothing searched for yet: /text", True)
+        i = self.help_hit if self.help_hit is not None else (self.help_top - 1 if step > 0 else self.help_top)
+        for k in range(1, len(lines) + 1):
+            j = (i + step * k) % len(lines)
+            if q in f"{lines[j][1]} {lines[j][2]}".lower():
+                self.help_hit = j
+                if not self.help_top <= j < self.help_top + self.help_room:
+                    self.help_top = max(0, j - self.help_room // 3)
+                return self.say(f"/{self.help_q}")
+        self.help_hit = None
+        self.say(f"E486: Pattern not found: {self.help_q}", True)
+
+    def key_help(self, ch):
+        """A key with the help box open: it scrolls, jumps by section, and searches;
+        Esc, q, or ? closes it. Other keys do nothing, so a slip doesn't lose your place."""
+        c = chr(ch) if 0 <= ch < 0x110000 else ""
+        self.msg, self.err = "", False
+        lines, starts = help_lines(self.help_w)
+        room, top = self.help_room, self.help_top
+        here = help_section(starts, top)
+        if self.pending:                                     # gg, ]], [[
+            c, ch, self.pending = {"gg": "home", "]]": "next", "[[": "back"}.get(self.pending + c, "none"), -1, ""
+        if c in ("\x1b", "q", "?", "\x03"):
+            self.mode, self.help_hit = "normal", None
+            return
+        if c == ":":                                         # on to the command just read about
+            self.mode, self.buf, self.help_hit = "command", "", None
+            self.hist_i = len(self.cmd_hist)
+            return
+        if c == "/":
+            self.mode, self.buf, self.help_search = "search", "", True
+            return
+        if c in ("g", "]", "["):
+            self.pending = c
+        elif c == "n":
+            return self.help_find(1)
+        elif c == "N":
+            return self.help_find(-1)
+        elif c == "j" or ch == curses.KEY_DOWN:
+            top += 1
+        elif c == "k" or ch == curses.KEY_UP:
+            top -= 1
+        elif c in ("\x04", "\x15"):
+            top += (1 if c == "\x04" else -1) * max(1, room // 2)
+        elif c in ("\x06", " ") or ch == curses.KEY_NPAGE:
+            top += max(1, room - 1)
+        elif c == "\x02" or ch == curses.KEY_PPAGE:
+            top -= max(1, room - 1)
+        elif c == "G" or ch == curses.KEY_END:
+            top = len(lines)
+        elif c == "home" or ch == curses.KEY_HOME:
+            top = 0
+        elif c in ("\t", "next"):
+            top = starts[min(here + 1, len(starts) - 1)]
+        elif c == "back" or ch == curses.KEY_BTAB:
+            top = starts[here - 1 if starts[here] >= top and here else here]
+        elif c.isdigit() and 1 <= int(c) <= len(starts):
+            top = starts[int(c) - 1]
+        self.help_top = max(0, min(top, len(lines) - room))
+
     def key_line(self, ch):
         c = chr(ch) if 0 <= ch < 0x110000 else ""
         if c == "\t" or ch == curses.KEY_BTAB:
@@ -397,6 +481,9 @@ class Keys:
                 if buf.strip():
                     self.cmd_hist.append(buf)
                 self.ex(buf)
+            elif self.help_search:
+                self.help_q = buf or self.help_q
+                self.help_find()
             else:
                 self.search_q = buf or self.search_q
                 self.search(self.search_q)

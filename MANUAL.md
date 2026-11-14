@@ -636,7 +636,8 @@ through earlier commands.
 | `:pre [sheet\|key\|slides] [N]` | Print preview: compile version N (default: the one showing) as it stands to a temporary PDF and open it. Writes nothing to the out folder and doesn't count as saving. Run it again after a change and an open viewer reloads. |
 | `:present [N]` | The board presenter (see [The board presenter](#the-board-presenter)) for version N (default: the one showing), the sheet as it stands: writes `NAME.present.html` to the out folder and opens it in the browser. Doesn't count as saving. |
 | `:N` | On the sheet: problem N. On the types pane: row N. |
-| `:help` or `?` | Show the keys |
+| `:help` or `?` | The help box: every key and command, by section. `j` `k` scroll (`^D` `^U` half a page, `^F` `^B` or Space a page, `gg` `G` the ends); `]]` `[[` or `Tab` go a section on or back, and `1`-`9` jump to one; `/text` searches it (`n` `N`); `:` goes on to a command; `Esc`, `q`, or `?` closes it. From the sheet it opens at the sheet's keys. |
+| `:help TOPIC` | The help box at the section whose title has that word: `:help files`, `:help sections`, `:help library` |
 
 `Ctrl-C` doesn't quit (same as vim); use `:q!` instead. The app needs a
 terminal of at least 72×14. It works without color; italics show where the

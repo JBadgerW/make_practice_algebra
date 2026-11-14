@@ -981,6 +981,62 @@ gk("u"); assert info(g)[1]["On sheet"][0] == str(had), "and the sheet as it was"
 gk("\x1b")
 gk("j"); gk("I"); assert info(g)[1]["Step"][0].startswith("1 of literal_by_type: One Step") and info(g)[0] == "Type 1: One Step"
 gk("q"); g.row = 0; gk("I"); assert g.mode == "normal" and g.err, "nor on COURSE"
+
+# ? : the help box, by section; it scrolls, jumps, and searches, and only Esc, q, or ? closes it
+from tui.common import HELP, HELP_KEYS_W, help_lines
+def helpbox(app, h=24, w=80):
+    scr = object.__new__(T.Screen); scr.scr, scr.st = FakeScr(h, w), {"search": 0}
+    scr.help(app, h, w)
+    return scr.scr.text()
+OLD_HELP = """j k gg G /text n N l + ^A 20l L 3L h - ^X x dd D i a cc r o O 5G 3r R W A yy p P J K ]] [[ cS cI
+    zM zR za zs gt gT ^W v gv d y :group gs :scope u ^R . Tab I f ^P ✗ ? :w :w! :wq :x ZZ :q :q! ZQ :e :open :new
+    :new! :pre :present :decoys :saveas :add :scale :mix :reroll :space :width :draft :groups :shuffle :join :j :ja
+    :rename :form :title :class :instructions :versions :name :out :set :course :rescan :library :warnings 3f""".split()
+for width in (74, 66):
+    hl, hs = help_lines(width)
+    words = " ".join(f"{k} {t}" for _, k, t in hl).split()
+    for tok in OLD_HELP:
+        assert any(tok in x for x in words), f"the help lost {tok}"
+    assert max(len(k) if kind == "long" else len(t) + (HELP_KEYS_W if kind == "row" else 0)
+               for kind, k, t in hl) <= width, "no help line is wider than its box"
+    assert len(hs) == len(HELP) and all(hl[i][0] == "head" for i in hs)
+hp = T.App(seed=2); hk = driver(hp)
+hk("?"); assert hp.mode == "help" and hp.help_top == 0, "from the banks pane: the top"
+drawn = helpbox(hp); assert "BANKS PANE" in drawn and "Banks pane · 1 of 9" in drawn and "Top" in drawn, drawn
+hl, hs = help_lines(hp.help_w)
+hk("j"); assert hp.help_top == 1
+hk("k"); hk("k"); assert hp.help_top == 0, "it stops at the top"
+hk("\x04"); assert hp.help_top == hp.help_room // 2
+hk("G"); assert hp.help_top == len(hl) - hp.help_room and "Bot" in helpbox(hp) and hl[-1][2] in helpbox(hp)
+hk("j"); assert hp.help_top == len(hl) - hp.help_room, "and at the bottom"
+hk("gg"); assert hp.help_top == 0
+hk("]]"); assert hp.help_top == hs[1]
+hk("\t"); assert hp.help_top == hs[2]
+hk("j"); hk("[["); assert hp.help_top == hs[2], "[[ first goes to the top of this section"
+hk("[["); assert hp.help_top == hs[1]
+hk("4"); assert hp.help_top == hs[3] and "Views · 4 of 9" in helpbox(hp)
+before = repr(hp.sheet)
+hk("x"); hk("l"); hk("D")
+assert hp.mode == "help" and repr(hp.sheet) == before, "a key help doesn't list does nothing"
+hk("gg"); hk("/"); assert hp.mode == "search" and "BANKS PANE" in helpbox(hp), "the box stays while the search is typed"
+hk("reroll\n"); assert hp.mode == "help" and "reroll" in hl[hp.help_hit][1] + hl[hp.help_hit][2]
+assert hp.help_top <= hp.help_hit < hp.help_top + hp.help_room, "the line found is in view"
+first = hp.help_hit
+hk("n"); assert hp.help_hit > first and "reroll" in (hl[hp.help_hit][1] + hl[hp.help_hit][2])
+assert hp.help_top <= hp.help_hit < hp.help_top + hp.help_room
+hk("N"); assert hp.help_hit == first
+hk("/zzzz\n"); assert hp.mode == "help" and hp.err and "E486" in hp.msg
+hk("/"); hk("\x1b"); assert hp.mode == "help", "Esc from the search comes back to the box"
+for close in ("\x1b", "q", "?"):
+    hk(close); assert hp.mode == "normal"
+    hk("?"); assert hp.mode == "help"
+hk(":"); assert hp.mode == "command", ": goes on to a command"
+hk("help files\n"); assert hp.mode == "help" and hl[hp.help_top][2] == "FILES AND PRINTING"
+hk("q"); hk(":help nosuch\n"); assert hp.mode == "normal" and hp.err and "E149" in hp.msg
+hk("\t"); hk("?"); assert hl[hp.help_top][2] == "THE SHEET: PROBLEMS", "from the sheet: the sheet's keys"
+small = helpbox(hp, 14, 72); assert "THE SHEET: PROBLEMS" in small and "Esc" in small
+hk("G"); small = helpbox(hp, 14, 72); assert help_lines(hp.help_w)[0][-1][2] in small, "the last line shows on the smallest screen"
+hk("q")
 gk("\t")
 gk("gg]]]]"); assert g.cur[0] == 1
 gk(":scope bank\n"); assert all(sh.from_bank(it) for it in g.sheet["sections"][1]["items"]), "a section's header: all of it"
