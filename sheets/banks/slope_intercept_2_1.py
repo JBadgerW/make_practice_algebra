@@ -70,6 +70,12 @@ each axis (a triangle big enough to label), and the y-intercept is on the graph.
     Step 9   the same S on both axes, any of the five
     Step 10  a different S on each axis
 
+Steps 11 to 18: Word Problems, one step for each of the teacher's word problems
+(2-1_word_problems.txt: 1a, 1b, 2, 3, 4, 5, 6, 7, in that order), each in four
+stories with new numbers every draw; they are written, checked, and shown by
+words_2_1.py, which has the details. Their prompt is the story's words, and
+their answer its parts separated by "; " (Step 17: letters, with choices).
+
 A problem: dict(type, form, prompt, answer, source), in Typst math.
     form    "A" to "F", as above (None in Steps 2, 4, 5, 6, 7)
     prompt  "x = 3/2 y + 6"; in Steps 2 and 4, "y = 2/3 x - 4"; in 5 to 7, "(1/2, -3), (4, 1 2/3)"
@@ -93,6 +99,7 @@ from ..gen import need, written
 from ..check import to_sympy
 from ..graphs import Graph, PREAMBLE, INK
 from ..typmath import display, dfrac, text as plain
+from . import words_2_1 as W
 
 NAME = FAMILY = "slope_intercept_2_1"
 FIXED = False
@@ -162,7 +169,7 @@ TYPES = [
          move="Scale each axis on its own: x to 1, y to 1000. Then sketch as in Estimation Graphs 1; "
               "the run and rise are in each axis's units: run 1.3, rise 950.",
          space="0in"),
-]
+] + W.TYPES
 
 class Steps(gen.Types):
     def label(self, t):
@@ -181,12 +188,15 @@ DENOMINATORS = {"5": (1,), "6": (1,), "7": (1, 2, 4)}   # a coordinate's denomin
 KEY_DENOMINATOR = 12           # Step 7: the slope's and the intercept's denominators at most this
 ESTIMATE = ("8", "9", "10")    # the estimation graphs: two points and bare axes
 TWO_POINTS = POINTS + ESTIMATE
+WORDS = W.STEPS                # the word problems (words_2_1.py)
 GRAIN = {1: F(1, 10), 10: F(1, 2), 100: F(1), 1000: F(10), 10000: F(100)}   # an axis's S: its coordinates' multiple
 
 def initial_seen():
     return set()
 
 def seen_key(p):
+    if p["type"] in WORDS:
+        return (NAME, W.seen_key(p), None, p["type"])
     return (NAME, p["prompt"], p.get("form"), p["type"])   # the form and step, for spreading each step's forms
 
 # ------------------------------------------------------------------
@@ -362,6 +372,8 @@ def draw_points(entry, r):
     return dict(form=None, prompt=point_prompt(pts), answer=slope_intercept(m, b))
 
 def draw(entry, r, tpl, want=None):
+    if entry in WORDS:
+        return W.draw(entry, r, tpl)
     if entry in TWO_POINTS:
         return draw_points(entry, r)
     a, c, b = line(r)
@@ -375,7 +387,7 @@ def draw(entry, r, tpl, want=None):
 
 def _step(entry):
     """A step's own generator: its forms are spread over the sheet's problems of that step only."""
-    return gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: 1,
+    return gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: len(W.STORIES) if e in WORDS else 1,
                          balance=(FORMS, lambda k: k[2] if k[0] == NAME and len(k) == 4 and k[3] == entry else None))
 STEP_GENERATE = {k: _step(k) for k in KEYS}
 
@@ -425,6 +437,8 @@ def written_form(answer):
     return m, b
 
 def check(p):
+    if p.get("type") in WORDS:
+        return W.check(p)
     try:
         got = written_form(p["answer"])
         if got is None:
@@ -580,6 +594,8 @@ def through_typst(p):
     return f"{THROUGH}{a} and {b}."
 
 def typst(p, gap="0.3em", key=False):
+    if p["type"] in WORDS:
+        return W.typst(p)
     if p["type"] in POINTS:
         return through_typst(p)
     eq = display(dfrac(p["prompt"]))
@@ -589,6 +605,8 @@ def typst(p, gap="0.3em", key=False):
 
 def key_typst(p, gap="0.3em"):
     """The key's prompt: the line drawn on the graph."""
+    if p["type"] in WORDS:
+        return W.typst(p)
     return typst(p, gap, key=p["type"] in GRAPHED and written_form(p["answer"]) is not None)
 
 def slide_parts(p, key=False):
@@ -617,9 +635,13 @@ def slide_typst(p, key=False):
 
 def answer_typst(p):
     """The answer of Step 2 and Steps 8 to 10 is the graph alone (key_typst); the others give y = m x + b."""
+    if p["type"] in WORDS:
+        return W.answer_typst(p)
     return "" if p["type"] in ("2",) + ESTIMATE else display(dfrac(p["answer"]))
 
 def text(p):
+    if p["type"] in WORDS:
+        return W.text(p)
     if p["type"] in ESTIMATE:
         try:
             shown = point_prompt(points_of(p["prompt"]), p["type"])
@@ -639,6 +661,8 @@ def text(p):
     return plain(p["prompt"])
 
 def answer_text(p):
+    if p["type"] in WORDS:
+        return W.answer_text(p)
     got = written_form(p["answer"])
     if p["type"] in ESTIMATE and got is not None:
         try:
@@ -664,6 +688,8 @@ def display_b(p):
     return f"{'=' if near == b else '≈'} {decimal(near)}"
 
 def height(p):
+    if p["type"] in WORDS:
+        return W.height(p)
     return 2.6 if p["type"] in GRAPHED else (0.55 if "/" in p["prompt"] else 0.3)
 def _equation(t, example):
     """t cleaned, if it is an equation whose sides read as Typst math; ValueError otherwise."""
@@ -687,6 +713,8 @@ def from_edit(t, old):
     """An edited prompt, solved for y again (a prompt that isn't a line keeps the old answer, which check() marks);
     in Steps 5 to 7, two points, and the line through them."""
     step = old.get("type")
+    if step in WORDS:
+        return W.from_edit(t, old)
     if step in TWO_POINTS:
         t = point_prompt(points_of(t), step)
     else:
@@ -699,6 +727,8 @@ def from_edit(t, old):
     return new, check(new)
 
 def with_answer(p, t):
+    if p.get("type") in WORDS:
+        return W.with_answer(p, t, check)
     new = dict(p, answer=_equation(t, "y = 2/3 x - 4"))
     return new, check(new)
 

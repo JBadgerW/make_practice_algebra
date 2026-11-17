@@ -133,7 +133,7 @@ assert [B.type_instructions(k) for k in B.KEYS] == [
     "Solve each equation for y. Write it in the form y = mx + b.", "Graph each line.", "Solve each equation for y, then graph it.",
     "Write the equation of each line in the form y = mx + b."] + [
     "Write the equation of the line through each pair of points in the form y = mx + b."] * 3 + [
-    B.TYPE[k]["instructions"] for k in B.ESTIMATE]
+    B.TYPE[k]["instructions"] for k in B.ESTIMATE] + [B.TYPE[k]["instructions"] for k in B.WORDS]
 assert all(B.type_instructions(k).startswith("Sketch the line through each pair of points.") for k in B.ESTIMATE)
 assert [B.TYPE[k]["title"] for k in B.ESTIMATE] == ["Estimation Graphs 1", "Estimation Graphs 2", "Estimation Graphs 3"]
 
@@ -269,6 +269,72 @@ assert B.check(dict(p, type="8", prompt="(9, 1), (8, 3)", answer="y = -2 x + 19"
 assert B.check(dict(p, type="8", prompt="(2.5, 1), (8, 3)", answer="y = 4/11 x + 1/11")) == "failed", "Step 8 is integers"
 new, status = B.from_edit("(2.50, -7) and (-4, 3.5)", dict(p, type="9"))
 assert new["prompt"] == "(2.5, -7), (-4, 3.5)" and new["answer"] == "y = -21/13 x - 77/26" and status == "checked"
+
+# ---- Steps 11 to 18: the word problems, one step for each of the teacher's, in order
+W = B.W
+assert B.KEYS[10:] == list(B.WORDS) == [str(k) for k in range(11, 19)]
+assert all(B.TYPE[k]["title"].startswith("Word Problems: ") and B.ENTRY[k]["width"] == "full" for k in B.WORDS)
+for step in B.WORDS:
+    rng, seen = random.Random(30 + int(step)), set()
+    stories = Counter()
+    for _ in range(60):
+        p = B.generate(step, rng, seen)
+        stories[p["story"]] += 1
+        assert B.check(p) == "checked" and p["form"] is None
+        assert "Let x be" in p["prompt"] or step == "17", "x and y are named, so the equation is checkable"
+        assert not re.search(r"\b(he|she|his|her|him)\b", p["prompt"], re.I), "no pronouns: the name is repeated"
+        new, status = B.from_edit(B.edit_text(p), p)
+        assert status == "checked" and new["answer"] == p["answer"] and new["source"] == "edited"
+        assert B.text(p) and B.answer_text(p) and B.answer_typst(p) and B.typst(p) == B.key_typst(p)
+        assert B.slide_typst(p) is None, "a word problem slides as usual"
+        if step != "17":
+            eqs = [b for b in p["answer"].split("; ") if b.startswith("y = ")]
+            assert eqs and all(W.read_equation(e) is not None for e in eqs)
+    assert set(stories) == set(W.STORIES), f"Step {step} draws all four stories"
+
+# the key's equation: its value and its form
+p = dict(type="11", form=None, story="a", prompt=W.gen.fill(W.template("11", "a"), who="Amari", B="45.15",
+         B2="23.15", day1="Monday", day2="Thursday"), answer="")
+want = "y = -2.75 x + 45.15; " + W.meaning("2.75", "ride", "45.15", "fare card") + \
+    "; 16 rides: after 16 rides, $1.15 is left, less than one ride costs."
+assert B.from_edit(p["prompt"], dict(p, answer=want))[0]["answer"] == want
+p["answer"] = want
+assert B.check(p) == "checked"
+for wrong in ("y = -2.75 x + 23.15", "y = 45.15 - 2.75 x", "y = -2.5 x + 45.15", "y = 2.75 x + 45.15"):
+    assert B.check(dict(p, answer=want.replace("y = -2.75 x + 45.15", wrong))) == "failed", wrong
+assert B.check(dict(p, answer=want.replace("16 rides", "17 rides"))) == "failed"
+assert W.read_equation("y = -5/8 x + 15") == (F(-5, 8), 15) and W.read_equation("y = -10/16 x + 15") is None
+assert W.read_equation("y = -1 x + 4") is None and W.read_equation("y = 70 x + 0") is None
+assert W.read_equation("y = -x + 4") == (-1, 4) and W.read_equation("y = 70 x") == (70, 0)
+
+# Step 12 from the source's numbers: after 2 coffees $19.70, after 4 $13.40
+v = dict(who="Ana", n1="2", B1="19.70", n2="4", B2="13.40")
+assert W.answer_of("12", "a", W.gen.fill(W.template("12", "a"), **v)).startswith("y = -3.15 x + 26; ")
+# Step 14: $840, Plan A $180 down and $60 a week (11 weeks), Plan B $0 down and $70 (12)
+v = dict(who="Ana", P="840", DA="180", WA="60", DB="0", WB="70")
+assert W.answer_of("14", "a", W.gen.fill(W.template("14", "a"), **v)) == \
+    "y = 60 x + 180; y = 70 x; Plan A: with Plan A, y reaches 840 after 11 weeks, and with Plan B, after 12 weeks."
+# Step 16: 11.25 miles left after 0.5 h, 6 after 1.2 h; 5 miles closer: 5 mi/h
+v = dict(who="Ana", who2="Ben", t1="0.5", d1="11.25", t2="1.2", d2="6", k="5")
+assert W.answer_of("16", "a", W.gen.fill(W.template("16", "a"), **v)).startswith("y = -7.5 x + 15; 5 mi/h: ")
+# Step 18: 11 7/8 in at 5 h, 10 at 8 h, 8 1/8 at 11 h; open 18 hours: no refill
+v = dict(who="Ana", h1="5", L1="11 7/8", h2="8", L2="10", h3="11", L3="8 1/8", H="18")
+a = W.answer_of("18", "a", W.gen.fill(W.template("18", "a"), **v))
+assert a.startswith("y = -5/8 x + 15; ") and "No: when x = 18, y = 3 3/4" in a and "after 24 hours" in a
+try:
+    W.answer_of("18", "a", W.gen.fill(W.template("18", "a"), **dict(v, L2="9")))
+    raise AssertionError("readings off a line")
+except ValueError:
+    pass
+# Step 17 from the source's table: $9.70, $10.25, $10.80, $11.35
+st, f = W.STORY["17"]["a"], dict(m=F(55, 100), b=F(970, 100))
+assert W.true_statement(st, f, "The slope is $0.55 and is the amount of the pay raise each year.")
+assert W.true_statement(st, f, "The y-intercept is $9.70 and is the starting hourly rate of pay.")
+assert not W.true_statement(st, f, "The slope is $9.70 and is the number of years of experience.")
+assert not W.true_statement(st, f, "The y-intercept is $0.55 and is the hourly rate of pay.")
+p = B.generate("17", random.Random(3), set())
+assert B.check(dict(p, answer="A, B, C, D")) == "failed"
+assert B.with_answer(p, p["answer"].replace(",", " "))[1] == "checked"
 
 B.selftest(300, 1)
 print("all slope_intercept_2_1 tests passed")

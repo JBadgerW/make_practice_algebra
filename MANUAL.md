@@ -205,6 +205,14 @@ ticks and numbers the axes, draws the line, the labeled rise-over-run
 triangle, and the y-intercept with its estimate. `i` edits the points, as
 `(2.5, -7), (-4, 3.5)`.
 
+`slope_intercept_2_1/11:1` through `/18:1` draw the word problems, one step
+for each of the lesson's word problems (README has the list). A version
+redraws the same step with a new story, numbers, and names. Every problem
+says what x and y stand for; the key gives each equation in slope-intercept
+form and writes each interpretation as a sentence. `i` edits the story's
+words: change only names and numbers, and the key is found again from them.
+Step 17 is select-all multiple choice; edit its answer as letters (`B, D`).
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists
@@ -930,7 +938,7 @@ python3 tests/test_library.py                # the library: banks, courses, tags
 python3 tests/test_typmath.py                # sympy -> Typst, and the answer-form checks
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling, and its 100 source problems
-python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules
+python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules; the word problems check from their words
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_present.py                # the board presenter: its panels compile; clicks, strip, and undo (needs node)
 python3 tests/screen_test.py 80 24 ":mix all:1\r" wait3 @    # the real screen (needs pyte)

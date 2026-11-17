@@ -297,6 +297,23 @@ lattice point besides (0, b).
 | 8 | Estimation Graphs 1 | `(2, 4)` and `(−4, −5)`, with bare axes: integer points, both axes to 10 |
 | 9 | Estimation Graphs 2 | `(0.3, −0.7)` and `(−0.8, 0.4)`, or `(450, −200)` and `(−700, 900)`: both axes to the same scale |
 | 10 | Estimation Graphs 3 | `(0.4, 650)` and `(−0.9, −300)`: a different scale on each axis |
+| 11 | Word Problems: A Card's Balance | a fare card's balance before Monday's first ride and after Thursday's ride home: the equation, what the slope and y-intercept mean, how many rides it pays for |
+| 12 | Word Problems: Balance from Two Readings | a gift card after 2 coffees and after 4: `y = −3.15x + 26`, and what it means |
+| 13 | Word Problems: Distance Left to Go | a 25-mile trail at 4 mi/h: `y = −4x + 25`, and what it means |
+| 14 | Word Problems: Payment Plans | $840; $180 down and $60 a week, or $0 down and $70: each plan's equation, and which pays off first |
+| 15 | Word Problems: Distance Left in a Race | an 8-mile race at 6 mi/h: `y = −6x + 8` |
+| 16 | Word Problems: Arriving Together | 11.25 miles left after 0.5 h, 6 after 1.2 h: `y = −7.5x + 15`; a friend 5 miles closer must go 5 mi/h |
+| 17 | Word Problems: A Model from a Table | a table at x = 0 to 3; select every true statement about the slope and y-intercept |
+| 18 | Word Problems: Constant Rate from Readings | three levels in eighths of an inch: `y = −5/8 x + 15`; full is x = 0; does it run out before closing? |
+
+Steps 11 to 18 are the teacher's Lesson 2-1 word problems, in order (1a, 1b,
+2, 3, 4, 5, 6, 7), each in four stories with the same math (a fare card, a
+bus pass, a ferry card, a toll account; ...) and new numbers and names every
+draw. They live in `sheets/banks/words_2_1.py`. Each story says what x and y
+stand for. The key's equations are in slope-intercept form, with money as
+decimals with cents (`y = −1.50x + 45.10`) and Step 18's rate as a fraction;
+interpretations are written out in sentences. The check reads the numbers back
+out of the words and solves forward from them.
 
 Steps 5 to 7 give two points, each coordinate from −10 to 10 and not 0 (so
 neither point is an intercept), different in x and in y; Step 7's
@@ -435,6 +452,7 @@ ever runs code.
 | `sheets/banks/single_step.py` | The Prealgebra single-step equations bank: one basic fact on 1 to 15 per equation, by kind of fact, and a sympy check |
 | `sheets/banks/modeling_1_2.py` | The Lesson 1-2: Modeling bank: five levels, an entry per category, a story per problem shape of the teacher's bank, and a check that reads the prompt back with its story |
 | `sheets/banks/slope_intercept_2_1.py` | The Lesson 2-1: Slope-Intercept Form bank: a step per entry: 1 solve for y from six forms, 2 graph, 3 solve and graph, 4 write the equation of a drawn line; a sympy check, and the key's graph |
+| `sheets/banks/words_2_1.py` | Lesson 2-1's word problems, Steps 11 to 18 (not a bank of its own): the stories, the forward check from the words, and how they're shown |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |
 | `sheets/banks/absolute.py` | The Lesson 1-7: Absolute Value Equations and Inequalities bank: the eight types, the inside and outside templates, and a sympy check that solves the prompt again |
