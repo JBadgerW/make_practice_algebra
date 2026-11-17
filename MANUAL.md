@@ -651,7 +651,8 @@ through earlier commands.
 | `:decoys` | A warm-up's new decoys (`:pre key` shows them) |
 | `:form warmup\|worksheet` `:versions N` `:title TEXT` `:class NAME` `:instructions TEXT` `:name N` `:out DIR` | Set a setting (`Tab` completes the folder in `:out`) |
 | `:set answers` `noanswers` `answers!`, `compact` ... | Toggles; `:set key=value` sets settings |
-| `:e FILE.sheet.json` | Open a sheet (a relative path starts in the out folder) |
+| `:e FILE.sheet.json` | Open a sheet (a relative path starts in the out folder). If there are unwritten changes, it refuses with *E37*. |
+| `:e! FILE.sheet.json` | Open a sheet and discard unwritten changes (`u` brings them back) |
 | `:new` | Start a new sheet. With unwritten changes it asks first: `w` writes them (asking for the name if it's still `untitled`), `d` discards them, and Esc keeps working on this one. The title, name, versions, form, and instructions go back to their defaults; the out folder, class, and course stay. `u` brings the old sheet back. |
 | `:new!` | Start a new sheet without asking, discarding changes |
 | `:open [sheet\|slides]` | Open the written PDF (default: the worksheet); every version is in it, each with its key after it |

@@ -751,7 +751,7 @@ try:
     ck("\x1b")
     ck(":out ~/Desktop\n:e \t"); assert c.buf == "e Unit 1/", "a relative :e starts in out, not where mathsheet started: " + c.buf
     assert c.comp["options"] == ["Unit 1/", "old_v1.json", "untitled.sheet.json", ""], c.comp["options"]
-    ck("\x1b:e unt\t\n"); assert not c.err and c.s["out"] == "~/Desktop" and c.total(), c.msg
+    ck("\x1b:e! unt\t\n"); assert not c.err and c.s["out"] == "~/Desktop" and c.total(), c.msg
     ck(":out ~/Documents\n:w Algebra/alg\n"); assert c.s["out"] == "~/Documents/Algebra" and c.s["name"] == "alg", \
         ":w FOLDER/NAME starts in out too: " + c.s["out"]
     ck(":out sets\n:e \t"); assert c.buf == "e untitled.sheet.json", "a relative out still starts where mathsheet started"
@@ -1293,6 +1293,12 @@ assert d.s["name"] == "quiz_a" and not d.err, d.msg
 dk(":w\n"); assert not d.err, "undoing :new brings back the sheet, and its file with it"
 e2 = T.App(seed=4); e2k = driver(e2)
 e2k(f":out {OUT}\n:e quiz_a.sheet.json\n:w\n"); assert not e2.err, "a sheet opened with :e owns its file"
+# ---- :e with unwritten changes: refused (E37) unless :e!, which u undoes
+e2.open.add("literal"); e2.row = e2.rows().index(("count", ("literal", "1"))); e2k("l")
+n = e2.total(); assert e2.dirty()
+e2k(":e quiz_c.sheet.json\n"); assert e2.err and "E37" in e2.msg and e2.s["name"] == "quiz_a" and e2.total() == n, e2.msg
+e2k(f":e! {sub_dir}/quiz_c.sheet.json\n"); assert not e2.err and e2.s["name"] == "quiz_c" and not e2.dirty(), e2.msg
+e2k(":e ../quiz_a.sheet.json\n"); assert not e2.err and e2.s["name"] == "quiz_a", "nothing unwritten: no asking"
 u2 = T.App(seed=5); u2k = driver(u2); u2.open.add("literal"); u2.row = u2.rows().index(("count", ("literal", "1"))); u2k("2l")
 u2k(f":out {OUT}\n:w\n"); assert u2.mode == "insert" and u2.buf == "untitled"
 u2k("\n"); assert u2.err and "E13" in u2.msg and "untitled.sheet.json" in u2.msg, "Enter on untitled: an older untitled is kept"

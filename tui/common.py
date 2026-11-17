@@ -98,11 +98,11 @@ HELP = [
         ("!", "the problem's bank is missing"),
     ]),
     ("Files and printing", [
-        (":w  :w!", "write the sheet, its worksheets, keys, and slides (! doesn't ask about the name)"),
+        (":w  :w!", "write the sheet, its worksheets, keys, and slides (! doesn't ask about the name, and writes over another sheet's file)"),
         (":w NAME  :saveas NAME", "write under a new name (FOLDER/NAME: there; Tab completes)"),
         (":wq  :x  ZZ", "write, then quit"),
         (":q  :q!  ZQ", "quit (! and ZQ discard changes)"),
-        (":e FILE.sheet.json", "open a sheet"),
+        (":e FILE.sheet.json", "open a sheet (refused with unwritten changes; :e! discards them)"),
         (":new", "start a new sheet (asks to write or discard changes; :new! discards)"),
         (":pre [sheet|key|slides] [N]", "preview the sheet as it stands (writes nothing)"),
         (":open [sheet|slides]", "open the written PDF"),

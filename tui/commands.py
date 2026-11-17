@@ -99,7 +99,12 @@ class Commands:
         elif cmd in ("set", "se"):
             self.ex_set(rest)
         elif cmd in ("e", "edit"):
-            self.load(rest) if rest else self.say("usage: :e FILE.sheet.json", True)
+            if not rest:
+                self.say("usage: :e FILE.sheet.json", True)
+            elif self.dirty() and self.total() and not bang:
+                self.say("E37: No write since last change (add ! to override)", True)
+            else:
+                self.load(rest)
         elif cmd == "open":
             self.open_file(rest.split())
         elif cmd in ("pre", "preview"):
