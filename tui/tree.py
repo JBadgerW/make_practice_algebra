@@ -71,9 +71,21 @@ class Tree:
         def mine(it):
             if (it["bank"], it["entry"]) == (st["bank"], st["entry"]):
                 return True
-            ib = banks.get(it["bank"])
-            return not it["edited"] and (ib.FAMILY, ib.seen_key(it["problem"])) in pinned
+            if not pinned or it["edited"]:              # a seen_key can be slow: only when there's something to match
+                return False
+            return self.item_keys()[id(it)] in pinned
         return mine
+
+    def item_keys(self):
+        """{id(item): (family, seen_key)} for the sheet's items, worked out once for
+        each sheet: every step's count asks for every item's."""
+        def make():
+            out = {}
+            for it in sh.items(self.sheet):
+                ib = banks.get(it["bank"])
+                out[id(it)] = (ib.FAMILY, ib.seen_key(it["problem"]))
+            return out
+        return self.memo("item_keys", make)
 
     def seq_items(self, name):
         """Is a sheet item one of this sequence's (see step_items)?"""

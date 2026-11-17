@@ -79,6 +79,7 @@ an integer intercept from -9 to 9 and another lattice point on the graph
 In Steps 2 and 4 the prompt itself must be written y = m x + b. The key's graph is
 drawn from the answer as check() reads it, so it shows the line checked.
 """
+import functools
 import math
 import re
 from decimal import Decimal
@@ -384,8 +385,11 @@ def generate(entry, rng, seen):
 X, Y = sp.Symbol("x"), sp.Symbol("y")
 ANSWER = re.compile(r"y = (?P<m>-?(\d+/\d+ |\d+ )?)x( (?P<sign>[+-]) (?P<b>\d+(/\d+)?))?")
 
+@functools.lru_cache(maxsize=4096)
 def solved(prompt):
-    """(m, b), Fractions, for a prompt that is a line in x and y with a slope; ValueError otherwise."""
+    """(m, b), Fractions, for a prompt that is a line in x and y with a slope; ValueError otherwise.
+    Remembered: sympy takes about 20 ms a line, and the screen asks again after every change
+    (a Lesson 2-4 problem's seen_key reads both its lines)."""
     lhs, _, rhs = prompt.partition("=")
     if not rhs:
         raise ValueError("an equation needs an =")

@@ -86,6 +86,23 @@ a.ex("mix all:2")
 a.key("\t")
 check(a, f"Algebra 1, {a.total()} problems, sheet focus")
 
+# ---- a change to the sheet: the frame after it recounts every row, and a count mustn't
+# ---- work out a problem's seen_key (sympy, in Lesson 2-4's Type 5) once for each step
+a = T.App(seed=4)
+a.ex("course Algebra 1")
+a.ex("add parallel_perp_2_4/5:12")
+a.key("\t")
+a.cur = (0, -1)                                       # the section's title: - changes all 12
+scr = screen()
+scr.draw(a)
+t = time.perf_counter()
+a.key("-")
+scr.draw(a)
+changed = (time.perf_counter() - t) * 1000
+assert a.item((0, 0))["space"] == "1in", a.item((0, 0))["space"]
+assert changed < BUDGET_OPEN_MS, f"- on 12 Type 5 problems took {changed:.0f} ms (budget {BUDGET_OPEN_MS})"
+print(f"  - on 12 Lesson 2-4 Type 5 problems: {changed:.0f} ms")
+
 # ---- a made-up library of 1000 banks, 5 types each, in Algebra 1's units
 class FakeBank:
     FIXED = False
