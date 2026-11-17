@@ -1,10 +1,12 @@
 """Lesson 2-4: Parallel and Perpendicular Lines. A line and a point; write the line parallel or
-perpendicular to it through the point, in slope-intercept form. Four types:
+perpendicular to it through the point, in slope-intercept form; or two lines, and whether they
+are parallel, perpendicular, or neither. Five types:
 
     1  Parallel, from slope-intercept form        y = 2/3 x - 4; (3, 5)       y = 2/3 x + 3
     2  Perpendicular, from slope-intercept form   y = 2/3 x - 4; (4, -1)      y = -3/2 x + 5
     3  Parallel, from another form                3 x - 2 y = 20; (-2, 5)     y = 3/2 x + 8
     4  Perpendicular, from another form           3 x - 2 y = 20; (6, -1)     y = -2/3 x + 3
+    5  Parallel, perpendicular, or neither        y = 2 x + 6; x - 2 y = -6   neither
 
 Each problem reads "Find the equation of the line parallel to 3 x - 2 y = 20 that passes through
 point (-2, 5)." Every answer is slope-intercept form, written as Lesson 2-1 writes it (lowest
@@ -28,11 +30,25 @@ The numbers:
       given line).
     - The answer's y-intercept, often a fraction, is at most 20 either way.
 
+Type 5 reads "Are the lines y = 2 x + 6 and x - 2 y = -6 parallel, perpendicular, or neither?"
+Each line is in any of the five forms, drawn at random (the same rules as the given line above,
+with an intercept-form line's intercepts made to fit its slope). If the first slope is a/b (Lesson
+2-2's slope), the second is one of
+    a/b    parallel          (the lines distinct)
+    -b/a   perpendicular
+    b/a    neither           (a/b never 1 or -1 here, or it would be parallel or perpendicular)
+    -a/b   neither
+and the two slopes are as often one way round as the other. A sheet's Type 5 problems are spread
+evenly over the four (gen.generator's balance), so half its answers are "neither". Its form is
+the two lines' forms, "si,std"; its answer is the word.
+
 A problem: dict(type, form, prompt, answer, source), in Typst math; form is the given line's.
     prompt  "3 x - 2 y = 20; (-2, 5)"      answer  "y = 3/2 x + 8"
+    prompt  "y = 2 x + 6; x - 2 y = -6"    answer  "neither"            (Type 5, form "si,std")
 check() reads the given line back from the prompt strictly in its form (and has sympy agree),
 works out the wanted line from it and the point alone, and reads the answer strictly as
-slope-intercept form.
+slope-intercept form. In Type 5 it reads both lines strictly in their forms, works out the
+answer from their slopes, and fails a pair whose slopes aren't one of the four above.
 """
 import re
 from fractions import Fraction as F
@@ -70,15 +86,25 @@ TYPES = [
          move="Find the given line's slope: solve it for y (y = 3/2 x - 10) and read m = 3/2. The "
               "perpendicular slope is its opposite reciprocal, -2/3. Put it and the point into "
               "y = m x + b: -1 = -2/3 (6) + b, so -1 = -4 + b and b = 3. The line is y = -2/3 x + 3."),
+    dict(key="5", title="Parallel, Perpendicular, or Neither",
+         instructions="Tell whether each pair of lines is parallel, perpendicular, or neither.",
+         look="Two lines, each in any of the five forms, like y = 2 x + 6 and x - 2 y = -6.",
+         move="Find each line's slope: y = 2 x + 6 has m = 2; solve x - 2 y = -6 for y (y = 1/2 x + 3) "
+              "and read m = 1/2. The same slope is parallel; opposite reciprocals (flipped, the sign "
+              "changed) are perpendicular; anything else is neither. 2 and 1/2 are reciprocals, but "
+              "the sign is the same, so the lines are neither."),
 ]
 
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
 label, entry_key, type_of, heading, hint, special, type_instructions = T.functions()
 
-PARALLEL = ("1", "3")          # the rest are perpendicular
+PARALLEL = ("1", "3")          # 2 and 4 are perpendicular
+WHICH = "5"                    # parallel, perpendicular, or neither
 OTHER_FORMS = ("ps", "std", "gen", "int")
-SOURCES = {"1": ("si",), "2": ("si",), "3": OTHER_FORMS, "4": OTHER_FORMS}
+SOURCES = {"1": ("si",), "2": ("si",), "3": OTHER_FORMS, "4": OTHER_FORMS, WHICH: fm.FORMS}
+CASES = ("parallel", "perpendicular", "reciprocal", "opposite")     # Type 5's second slope: a/b, -b/a, b/a, -a/b
+VERDICT = dict(parallel="parallel", perpendicular="perpendicular", reciprocal="neither", opposite="neither")
 GIVEN_INTERCEPT = 9            # the given line's y-intercept in si, std, gen form: -9 to 9
 INTERCEPTS = 10                # intercept form: each intercept -10 to 10, not 0
 POINT = 9                      # a point's coordinates, -9 to 9, not 0
@@ -91,7 +117,14 @@ def relation(typ):
     return "parallel" if typ in PARALLEL else "perpendicular"
 
 def seen_key(p):
-    # Types 1 and 3 (and 2 and 4) never share a prompt on a sheet; the form and type, for spreading the forms
+    # Types 1 and 3 (and 2 and 4) never share a prompt on a sheet; the form and type, for spreading the forms;
+    # in Type 5, the case, for spreading the four
+    if p["type"] == WHICH:
+        try:
+            case = case_of(p)
+        except Exception:
+            case = None
+        return (NAME, "which", p["prompt"], case, WHICH)
     return (NAME, relation(p["type"]), p["prompt"], p.get("form"), p["type"])
 
 # ------------------------------------------------------------------
@@ -114,12 +147,18 @@ def answer(typ, m0, pt):
 # ------------------------------------------------------------------
 # Drawing
 # ------------------------------------------------------------------
-def given_line(r, form):
-    """(m0, b0, point-slope form's point or None) of a given line that form can show."""
+def given_line(r, form, m0=None):
+    """(m0, b0, point-slope form's point or None) of a given line that form can show; its slope m0
+    if given, else drawn."""
     if form == "int":
-        xi, yi = gen.signed(r, 1, INTERCEPTS), gen.signed(r, 1, INTERCEPTS)
-        return F(-yi, xi), F(yi), None
-    m0 = ps.slope(r)
+        if m0 is None:
+            xi, yi = gen.signed(r, 1, INTERCEPTS), gen.signed(r, 1, INTERCEPTS)
+            return F(-yi, xi), F(yi), None
+        # y-intercept k |a|, x-intercept -k |a| / m0 = ∓ k b: both whole and at most 10 either way
+        most = min(INTERCEPTS // abs(m0.numerator), INTERCEPTS // m0.denominator)
+        need(most >= 1)
+        return m0, F(gen.signed(r, 1, most) * abs(m0.numerator)), None
+    m0 = ps.slope(r) if m0 is None else m0
     if form == "ps":
         q = (gen.signed(r, 1, POINT), gen.signed(r, 1, POINT))
         b0 = q[1] - m0 * q[0]
@@ -129,7 +168,25 @@ def given_line(r, form):
         return m0, F(gen.signed(r, 1, GIVEN_INTERCEPT)), None
     return m0, F(r.randint(-GIVEN_INTERCEPT, GIVEN_INTERCEPT)), None
 
+def second_slope(case, m):
+    return dict(parallel=m, perpendicular=-1 / m, reciprocal=1 / m, opposite=-m)[case]
+
+def draw_which(r, case):
+    m = ps.slope(r)
+    need(case in ("parallel", "perpendicular") or abs(m) != 1)
+    slopes = [m, second_slope(case, m)]
+    r.shuffle(slopes)
+    lines = []
+    for m in slopes:
+        form = r.choice(fm.FORMS)
+        lines.append((form, *given_line(r, form, m)))
+    need(lines[0][1:3] != lines[1][1:3])                        # two lines, not one
+    return dict(form=",".join(f for f, *_ in lines), prompt="; ".join(fm.write(*l) for l in lines),
+                answer=VERDICT[case])
+
 def draw(entry, r, tpl, want=None):
+    if entry == WHICH:
+        return draw_which(r, want or r.choice(CASES))
     form = want or r.choice(SOURCES[entry])
     m0, b0, q = given_line(r, form)
     pt = (gen.signed(r, 1, POINT), gen.signed(r, 1, POINT))
@@ -145,9 +202,11 @@ def keeps_rules(typ, m0, b0, pt):
     return abs(y1 - m * x1) <= INTERCEPT
 
 def _type(entry):
-    """A type's own generator: its given forms are spread over the sheet's problems of that type only."""
+    """A type's own generator: its given forms (in Type 5, its cases) are spread over the sheet's
+    problems of that type only."""
     return gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: 1,
-                         balance=(SOURCES[entry], lambda k: k[3] if k[0] == NAME and len(k) == 5 and k[4] == entry else None))
+                         balance=(CASES if entry == WHICH else SOURCES[entry],
+                                  lambda k: k[3] if k[0] == NAME and len(k) == 5 and k[4] == entry else None))
 TYPE_GENERATE = {k: _type(k) for k in KEYS}
 
 def generate(entry, rng, seen):
@@ -197,9 +256,48 @@ def line_of(p):
             raise ValueError("no perpendicular slope")
     return m, y1 - m * x1
 
+def split_two(prompt):
+    """The two lines of a Type 5 prompt "y = 2 x + 6; x - 2 y = -6"; ValueError if it isn't two."""
+    eqs = [e.strip() for e in clean(prompt).split(";")]
+    if len(eqs) != 2 or not all(eqs):
+        raise ValueError("write two lines, like y = 2 x + 6; x - 2 y = -6")
+    return eqs
+
+def lines_of(p):
+    """[(m, b), (m, b)] of a Type 5 prompt, each line read strictly in its form, sympy agreeing,
+    its slope not 0; ValueError if it isn't."""
+    forms = p.get("form", "").split(",")
+    eqs = split_two(p["prompt"])
+    if len(forms) != 2 or not set(forms) <= set(fm.FORMS):
+        raise ValueError("not two of the five forms")
+    lines = []
+    for form, eq in zip(forms, eqs):
+        line = fm.read(form, eq)
+        if line is None or line[0] == 0 or line != si.solved(eq):
+            raise ValueError(f"write {eq} in {fm.FORM_NAME[form]} form, with a slope")
+        lines.append(line)
+    return lines
+
+def case_of(p):
+    """Which of the four a Type 5 prompt's slopes are, from the prompt alone; ValueError if the
+    lines are one line or their slopes are none of the four."""
+    (m1, b1), (m2, b2) = lines_of(p)
+    if (m1, b1) == (m2, b2):
+        raise ValueError("that's one line twice")
+    case = next((c for c in CASES if second_slope(c, m1) == m2), None)
+    if case is None:
+        raise ValueError("the slopes are a/b and a/b, -b/a, b/a, or -a/b")
+    return case
+
+def word(t):
+    """"Neither." -> "neither"."""
+    return clean(t).lower().rstrip(".")
+
 def check(p):
     try:
         try:
+            if p["type"] == WHICH:
+                return "checked" if word(p["answer"]) == VERDICT[case_of(p)] else "failed"
             want = line_of(p)
         except ValueError:
             return "failed"
@@ -220,6 +318,12 @@ def eq_typst(t):
     return display(dfrac(t))
 
 def sentence(p, show):
+    if p["type"] == WHICH:
+        try:
+            one, two = split_two(p["prompt"])
+        except ValueError:
+            return show(p["prompt"])
+        return f"Are the lines {show(one)} and {show(two)} parallel, perpendicular, or neither?"
     try:
         line, pt = split(p["prompt"])
     except ValueError:
@@ -232,13 +336,14 @@ def typst(p, gap="0.3em"):
 def answer_typst(p):
     """Set a little lower than usual: the prompt is a sentence that can run to the right edge, where
     the key's answer floats, and a fraction in the answer would ride up into it."""
-    return f"#pad(top: 0.6em)[{eq_typst(p['answer'])}]"
+    a = p["answer"]
+    return f"#pad(top: 0.6em)[{a if p['type'] == WHICH and a.isalpha() else eq_typst(a)}]"
 
 def text(p):
     return sentence(p, plain)
 
 def answer_text(p):
-    return plain(p["answer"])
+    return p["answer"] if p["type"] == WHICH else plain(p["answer"])
 
 def height(p):
     return 0.55 if "/" in p["prompt"] or "/" in p["answer"] else 0.3
@@ -247,7 +352,8 @@ def height(p):
 # Editing
 # ------------------------------------------------------------------
 EXAMPLE = {"1": "y = 2/3 x - 4; (3, 5)", "2": "y = 2/3 x - 4; (3, 5)",
-           "3": "3 x - 2 y = 20; (-2, 5)", "4": "3 x - 2 y = 20; (-2, 5)"}
+           "3": "3 x - 2 y = 20; (-2, 5)", "4": "3 x - 2 y = 20; (-2, 5)", WHICH: "y = 2 x + 6; x - 2 y = -6"}
+NUMBERED = re.compile(r"\(\s*[12]\s*\)")      # "(1) y = 2 x + 6, (2) ..." as a teacher might type it
 TRAILING_POINT = re.compile(rf"[\s;,]*(?:through|point)?\s*(\(\s*(?:{si.NUMBER})\s*,\s*(?:{si.NUMBER})\s*\))\s*\.?\s*$")
 
 def edit_text(p):
@@ -260,8 +366,11 @@ def from_edit(t, old):
     """An edited prompt, its answer worked out again. In Types 1 and 2 the line may be typed in any
     form, and is written back in slope-intercept form; in Types 3 and 4 it must be in point-slope,
     standard, general, or intercept form, as Lesson 2-3 writes them. A prompt that breaks the
-    rules keeps the old answer, which check() marks."""
+    rules keeps the old answer, which check() marks. In Type 5, two lines, each in any of the five
+    forms as Lesson 2-3 writes them, between ";", ",", or "and"; the forms are kept as typed."""
     typ = old.get("type")
+    if typ == WHICH:
+        return which_from_edit(t, old)
     t = clean(t)
     g = TRAILING_POINT.search(t)
     bad = ValueError(f"write a line with a slope and a point with whole-number coordinates, like {EXAMPLE[typ]}")
@@ -292,8 +401,31 @@ def from_edit(t, old):
     new = dict(old, prompt=prompt, form=form, answer=ans, source="edited")
     return new, check(new)
 
+def which_from_edit(t, old):
+    bad = ValueError(f"write two lines, each in one of the five forms and with a slope, like {EXAMPLE[WHICH]}")
+    t = NUMBERED.sub(" ", clean(t)).strip().rstrip(".?")
+    eqs = [fm.tidy(e) for e in re.split(r";|,|\band\b", t) if e.strip()]
+    if len(eqs) != 2:
+        raise bad
+    forms = [fm.form_of(e) for e in eqs]
+    if None in forms:
+        raise bad
+    new = dict(old, prompt="; ".join(eqs), form=",".join(forms), source="edited")
+    try:
+        new["answer"] = VERDICT[case_of(new)]
+    except ValueError:
+        if lines_of_or_none(new) is None:
+            raise bad from None
+    return new, check(new)
+
+def lines_of_or_none(p):
+    try:
+        return lines_of(p)
+    except ValueError:
+        return None
+
 def with_answer(p, t):
-    new = dict(p, answer=fm.tidy(t))
+    new = dict(p, answer=word(t) if p["type"] == WHICH else fm.tidy(t))
     return new, check(new)
 
 def selftest(n, seed):

@@ -17,9 +17,9 @@ assert "parallel_perp_2_4" in dict(lib.view("Algebra 1"))["Lessons"]
 assert B.TITLE == "Lesson 2-4: Parallel and Perpendicular Lines"
 assert B.heading("4") == "Type 4: Perpendicular, From Another Form"
 
-# ---- every type: drawn, checked, in its rules, its given forms spread evenly
+# ---- Types 1 to 4: drawn, checked, in their rules, their given forms spread evenly
 rng = random.Random(11)
-for k in B.KEYS:
+for k in "1234":
     seen, forms = set(), Counter()
     for _ in range(200):
         p = B.generate(k, rng, seen)
@@ -43,6 +43,64 @@ for k in B.KEYS:
             assert b != b0, "never the given line"
         assert p["answer"] == B.slope_intercept(m, b)
     assert set(forms) == set(B.SOURCES[k]) and max(forms.values()) - min(forms.values()) <= 1, forms
+
+# ---- Type 5: drawn, checked, in its rules, its four cases spread evenly
+assert B.heading("5") == "Type 5: Parallel, Perpendicular, or Neither"
+seen, cases, forms, first = set(), Counter(), Counter(), Counter()
+for _ in range(400):
+    p = B.generate("5", rng, seen)
+    assert B.check(p) == "checked", p
+    (m1, b1), (m2, b2) = B.lines_of(p)
+    case = B.case_of(p)
+    cases[case] += 1
+    forms.update(p["form"].split(","))
+    want = dict(parallel=m1, perpendicular=-1 / m1, reciprocal=1 / m1, opposite=-m1)[case]
+    assert m2 == want and (m1, b1) != (m2, b2) and m1 != 0
+    assert p["answer"] == ("neither" if case in ("reciprocal", "opposite") else case)
+    if case in ("reciprocal", "opposite"):
+        assert abs(m1) != 1, "never secretly parallel or perpendicular"
+    for form, eq in zip(p["form"].split(","), B.split_two(p["prompt"])):
+        if form == "int":
+            assert all(n.denominator == 1 and 0 < abs(n) <= 10 for n in B.fm.intercepts(*B.fm.read("int", eq)))
+    first[m1.denominator == 1] += 1
+assert max(cases.values()) - min(cases.values()) <= 1, cases
+assert set(forms) == set(B.fm.FORMS), forms
+assert min(first.values()) > 100, "the whole-number slope comes first or second"
+
+w = dict(type="5", form="si,si", prompt="y = 2 x + 6; y = 1/2 x + 3", answer="neither")
+assert B.check(w) == "checked"
+for wrong in ("parallel", "perpendicular", "y = 2 x"):
+    assert B.check(dict(w, answer=wrong)) == "failed", wrong
+assert B.check(dict(w, answer="Neither.")) == "checked"
+for prompt, form, ans in (("x - 2 y = -6; y + 1 = -2 (x - 3)", "std,ps", "perpendicular"),
+                          ("x/3 + y/6 = 1; 2 x + y - 4 = 0", "int,gen", "parallel"),
+                          ("y = -2/3 x + 1; 2 x - 3 y = 6", "si,std", "neither")):
+    assert B.check(dict(type="5", form=form, prompt=prompt, answer=ans)) == "checked", prompt
+for prompt, form in (("y = 2 x + 6; y = 3 x + 1", "si,si"),                 # slopes none of the four
+                     ("y = 2 x + 6; 2 x - y = -6", "si,std"),               # one line twice
+                     ("y = 2 x + 6; y = 5", "si,si"),                       # no slope
+                     ("y = 2 x + 6; y = 1/2 x + 3", "si,std"),              # not the form it claims
+                     ("y = 2 x + 6", "si,si")):
+    assert B.check(dict(type="5", form=form, prompt=prompt, answer="neither")) == "failed", prompt
+assert B.text(w) == "Are the lines y = 2 x + 6 and y = 1/2 x + 3 parallel, perpendicular, or neither?"
+assert B.typst(w) == "Are the lines $display(y = 2 x + 6)$ and $display(y = display(1/2) x + 3)$ parallel, perpendicular, or neither?"
+assert B.answer_typst(w) == "#pad(top: 0.6em)[neither]" and B.answer_text(w) == "neither" and B.height(w) == 0.55
+for t in ("(1) y=2x+6, (2) y=1/2x+3.", "y = 2x + 6 and y = 1/2 x + 3", "y=2x+6; y=1/2x+3"):
+    new, status = B.from_edit(t, dict(type="5", form="std,std", prompt="", answer=""))
+    assert new["prompt"] == "y = 2 x + 6; y = 1/2 x + 3" and new["form"] == "si,si" and new["answer"] == "neither" \
+        and status == "checked", t
+new, status = B.from_edit("x-2y=-6, y+1=-2(x-3)", dict(type="5", prompt="", answer=""))
+assert new["form"] == "std,ps" and new["answer"] == "perpendicular" and status == "checked"
+new, status = B.from_edit("y = 2 x + 6; y = 3 x + 1", dict(type="5", prompt="", answer="parallel"))
+assert status == "failed" and new["answer"] == "parallel", "slopes none of the four keep the old answer"
+for t in ("y = 2 x + 6", "y = 2 x + 6; y = 5", "y = 2 x + 6; 2 y = 4 x + 12 + 0 x"):
+    try:
+        B.from_edit(t, dict(type="5", prompt="", answer=""))
+        raise AssertionError(t)
+    except ValueError:
+        pass
+new, status = B.with_answer(dict(w, answer=""), " Perpendicular ")
+assert new["answer"] == "perpendicular" and status == "failed"
 
 # ---- the check
 p = dict(type="1", form="si", prompt="y = 2/3 x - 4; (3, 5)", answer="y = 2/3 x + 3")
