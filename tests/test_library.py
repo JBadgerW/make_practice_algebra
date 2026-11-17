@@ -34,6 +34,7 @@ assert set(ADV) <= set(ADV_UNITS["Additional Practice"]) | set(ADV_UNITS["Lesson
 assert "adv_lesson_19" in ADV_UNITS["Lessons"], "a lesson's bank, under Lessons"
 assert "adv_lesson_20" in ADV_UNITS["Lessons"]
 assert "adv_lesson_21" in ADV_UNITS["Lessons"]
+assert "adv_lesson_22" in ADV_UNITS["Lessons"]
 assert "adv_lesson_1" in ADV_UNITS["Lessons"]
 assert "adv_lesson_2" in ADV_UNITS["Lessons"]
 assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus",

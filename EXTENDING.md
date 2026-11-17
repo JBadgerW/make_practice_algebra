@@ -251,6 +251,7 @@ python3 tests/test_parallel_perp_2_4.py     # Lesson 2-4: Parallel and Perpendic
 python3 tests/test_adv_lesson_19.py         # Advanced Math Lesson 19: the deck's problems check; wrong and unfinished answers fail
 python3 tests/test_adv_lesson_20.py         # Advanced Math Lesson 20: the deck's problems check; unrationalized and unreduced answers fail
 python3 tests/test_adv_lesson_21.py         # Advanced Math Lesson 21: every source is reachable and checks; domains tested at every critical point; graphs by line tests
+python3 tests/test_adv_lesson_22.py         # Advanced Math Lesson 22: every source is reachable and checks; inequalities tested at every boundary; sketches by their marked points
 python3 tests/test_adv_lesson_1.py          # Advanced Math Lesson 1: every source is reachable and checks; the figures are drawn from the data
 python3 tests/test_adv_lesson_2.py          # Advanced Math Lesson 2: every source is reachable and checks; decimal keys within the deck's rounding
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
