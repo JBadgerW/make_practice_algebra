@@ -94,6 +94,23 @@ anything.
 9. **The Typst look stays the teacher's:** the preamble comes from
    `templates/` (Name/Date/Ver header, the `question` environment
    with `points`, `choices`, `parts`). Reuse it; don't restyle it.
+10. **Every problem says what to do on its own.** A problem gets copied onto
+   a quiz, shown alone on a slide, or mixed into a review sheet away from its
+   section's instructions, so its own words must tell the student the task.
+   Write it as one short sentence that leads with the verb and names the
+   object, with the problem's data in it: "Sketch the line through the points
+   (2.5, −7) and (−4, 3.5)."; "Write the equation of the line through the
+   points (2, 3) and (5, 9)."; "Write the equation of the line." over a drawn
+   graph. The section's instructions stay as they are and carry the details
+   (the form of the answer, how to mark the axes, what to label); the
+   problem's sentence carries only enough to make the task clear. Don't
+   repeat a whole paragraph in every problem, and don't leave a bare object
+   (a pair of points, a graph) with no verb. A short lead-in before an
+   equation ("Graph: y = 2/3 x − 4") is enough where the verb is the whole
+   task. Put the words in the display functions (`typst`, `text`, the
+   slides), not in the stored `prompt`, so checking, editing, and `seen_key`
+   still read the bare data. This is the standard for every bank unless the
+   teacher says otherwise for one.
 
 ## 4. Where the code assumes literal equations
 
@@ -436,6 +453,7 @@ banks pane shows); a bank file does this with a type `"id"` apart from its
 - [ ] `check` passes for hundreds of draws per type and doesn't depend on the formatter.
 - [ ] `tests/bench_banks.py BANK` under 100 ms a problem (draw with integers; sympy for the check).
 - [ ] Samples per type read by you and approved by the teacher.
+- [ ] Every problem says what to do without its section's instructions (section 3, item 10).
 - [ ] Worksheet, key, and slides compile; rendered pages inspected.
 - [ ] TUI: family selectable, preview correct, help and hints updated, tests added.
 - [ ] Tagged with the teacher's courses and units (types too, where they differ); `:warnings` empty.

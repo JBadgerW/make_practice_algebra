@@ -27,14 +27,17 @@ Step 2: Graph. The line is given as y = m x + b, with a blank graph, -10 to
 Step 3: Solve for y, then graph. A Step 1 form (spread over the six the
 same way) with a blank graph; the key gives y = m x + b and draws the line.
 Steps 2 and 3 show "Graph: " before the equation, so a problem says what to
-do without its step's instructions (the prompt itself is the equation alone).
+do without its step's instructions (the prompt itself is the equation alone);
+Steps 4 to 10 say it in a sentence of their own, below.
 
 Step 4: Write the equation. The line is drawn on the graph, with no
-equation; the key gives y = m x + b. The prompt holds the line's own
-y = m x + b, which draws it; the graph is the same on the sheet and the key.
+equation, under "Write the equation of the line."; the key gives y = m x + b.
+The prompt holds the line's own y = m x + b, which draws it; the graph is the
+same on the sheet and the key.
 
 Steps 5 to 7: Write the equation through two points. The prompt is two
-points, "(2, 3), (5, 9)" (shown "Through (2, 3) and (5, 9)"); the key gives
+points, "(2, 3), (5, 9)" (shown "Write the equation of the line through the
+points (2, 3) and (5, 9)."); the key gives
 y = m x + b, b a fraction in lowest terms when it isn't whole. Every
 coordinate is from -10 to 10 and not 0 (neither point is an intercept); the
 points differ in x and in y (no vertical or horizontal line).
@@ -48,7 +51,7 @@ points differ in x and in y (no vertical or horizontal line).
             denominators are at most 12, and the intercept is from -10 to 10
 
 Steps 8 to 10: Estimation Graphs. Two points, "(2.5, -7), (-4, 3.5)" (shown
-"Sketch: (2.5, -7) and (-4, 3.5)"), and
+"Sketch the line through the points (2.5, -7) and (-4, 3.5)."), and
 bare axes, square, named x and y: no grid, no frame, no tick marks. The
 student sketches: tick marks numbered at the middle and the end of each
 axis, the two points, the line out to the edges, the rise-over-run triangle
@@ -550,27 +553,31 @@ def estimate_graph(p, key=False, width=SHEET_WIDTH, size=6):
                           f"text(size: {sz}pt, fill: {INK[color]})[{words}]))")
     return g.typst()
 
-ASKED = "Graph: "                       # before the equation in Steps 2 and 3, so the problem says what to do
-SKETCH = "Sketch: "                     # Steps 8 to 10
+# Each problem says what to do on its own, without its step's instructions (EXTENDING.md, 3.10).
+ASKED = "Graph: "                       # before the equation in Steps 2 and 3
+WRITE = "Write the equation of the line."                        # Step 4, over its graph
+THROUGH = "Write the equation of the line through the points "   # Steps 5 to 7
+SKETCH = "Sketch the line through the points "                   # Steps 8 to 10
 
 def asked(p):
-    """What a graphed problem says beside its graph (Step 4's says nothing: the graph is all of it)."""
+    """What a graphed problem says beside its graph."""
     if p["type"] in ESTIMATE:
         try:
             a, b = (display(f"({decimal(x)}, {decimal(y)})") for x, y in points_of(p["prompt"]))
         except ValueError:
-            return SKETCH + display(p["prompt"])
-        return f"{SKETCH}{a} and {b}"
-    return "" if p["type"] in DRAWN else ASKED + display(dfrac(p["prompt"]))
+            return SKETCH + display(p["prompt"]) + "."
+        return f"{SKETCH}{a} and {b}."
+    return WRITE if p["type"] in DRAWN else ASKED + display(dfrac(p["prompt"]))
 
 def through_typst(p):
-    """Steps 5 to 7: "Through (2, 3) and (5, 9)", each point in display math."""
+    """Steps 5 to 7: "Write the equation of the line through the points (2, 3) and (5, 9).",
+    each point in display math."""
     try:
         pts = points_of(p["prompt"])
     except ValueError:
-        return display(dfrac(p["prompt"]))
+        return THROUGH + display(dfrac(p["prompt"])) + "."
     a, b = (display(dfrac(f"({mixed(x)}, {mixed(y)})")) for x, y in pts)
-    return f"Through {a} and {b}"
+    return f"{THROUGH}{a} and {b}."
 
 def typst(p, gap="0.3em", key=False):
     if p["type"] in POINTS:
@@ -578,8 +585,6 @@ def typst(p, gap="0.3em", key=False):
     eq = display(dfrac(p["prompt"]))
     if p["type"] not in GRAPHED:
         return eq
-    if p["type"] in DRAWN:
-        return f"#align(center)[{graph(p)}]"
     return f"{asked(p)} #v({SHEET_GAP}) #align(center)[{graph(p, key)}]"
 
 def key_typst(p, gap="0.3em"):
@@ -620,15 +625,15 @@ def text(p):
             shown = point_prompt(points_of(p["prompt"]), p["type"])
         except ValueError:
             shown = p["prompt"]
-        return SKETCH + plain(shown).replace("), (", ") and (") + "   [axes]"
+        return SKETCH + plain(shown).replace("), (", ") and (") + ".   [axes]"
     if p["type"] in POINTS:
         try:
             shown = point_prompt(points_of(p["prompt"]))
         except ValueError:
             shown = p["prompt"]
-        return "Through " + plain(shown).replace("), (", ") and (")
+        return THROUGH + plain(shown).replace("), (", ") and (") + "."
     if p["type"] in DRAWN:
-        return f"[graph of {plain(p['prompt'])}]"
+        return f"{WRITE}   [graph of {plain(p['prompt'])}]"
     if p["type"] in GRAPHED:
         return ASKED + plain(p["prompt"]) + "   [graph]"
     return plain(p["prompt"])

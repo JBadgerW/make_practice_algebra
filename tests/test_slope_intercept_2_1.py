@@ -104,7 +104,10 @@ for _ in range(40):
     sheet, key = B.typst(p), B.key_typst(p)
     assert sheet == key, "the same graph on the sheet and the key"
     assert "line(" in sheet and "rgb" in sheet and "circle(" not in sheet and "$display" not in sheet, "the line, no points, no equation"
-    assert B.answer_typst(p).startswith("$display(y =") and B.answer_text(p) == B.text(p)[len("[graph of "):-1]
+    assert sheet.startswith("Write the equation of the line. #v("), "the problem says what to do"
+    assert B.text(p).startswith("Write the equation of the line.   [graph of ")
+    assert B.answer_typst(p).startswith("$display(y =") and B.answer_text(p) == B.text(p)[len("Write the equation of the line.   [graph of "):-1]
+    assert B.slide_typst(p).startswith("#grid(columns: 2, column-gutter: 1.5em, align: horizon, [Write the equation of the line. #v(")
     q, k = B.slide_typst(p), B.slide_typst(p, key=True)
     assert f"#hide[#text(fill: red)[{B.answer_typst(p)}]]" in q and "#hide" not in k
     assert q.replace(f"#hide[#text(fill: red)[{B.answer_typst(p)}]]", "") == k.replace(f"#text(fill: red)[{B.answer_typst(p)}]", ""), \
@@ -152,8 +155,9 @@ for step in B.POINTS:
             assert b.denominator == 1 and b != 0 and abs(b) <= 10, "the intercept on the graph"
         if step == "7":
             assert m.denominator <= 12 and b.denominator <= 12 and abs(b) <= 10, "the intercept on the graph"
-        assert B.typst(p).startswith("Through $display(") and " and $display(" in B.typst(p)
-        assert B.text(p).startswith("Through (") and ") and (" in B.text(p)
+        assert B.typst(p).startswith("Write the equation of the line through the points $display(") and " and $display(" in B.typst(p)
+        assert B.typst(p).endswith(")$.")
+        assert B.text(p).startswith("Write the equation of the line through the points (") and ") and (" in B.text(p) and B.text(p).endswith(").")
         assert B.slide_typst(p) is None
 ws = [B.generate("6", random.Random(i), set()) for i in range(200)]
 assert any(B.written_form(p["answer"])[1].denominator > 1 for p in ws), "Step 6 draws fractional intercepts"
@@ -195,7 +199,8 @@ for _ in range(80):
         for v in (x, y):
             assert (B.mixed(v) in p["prompt"]) and (abs(v) < 1 or v.denominator == 1 or " " in B.mixed(v))
 old = dict(type="7", form=None, prompt="(9/2, 1), (-1/2, -11/4)", answer="")
-assert B.text(old) == "Through (4 1/2, 1) and (−1/2, −2 3/4)", "a saved improper fraction shows mixed"
+assert B.text(old) == "Write the equation of the line through the points (4 1/2, 1) and (−1/2, −2 3/4).", \
+    "a saved improper fraction shows mixed"
 assert "4 display(1/2)" in B.typst(old) and "-2 display(3/4)" in B.typst(old)
 new, status = B.from_edit("(9/2, 1), (1/2, -3)", old)
 assert new["prompt"] == "(4 1/2, 1), (1/2, -3)" and new["answer"] == "y = x - 7/2" and status == "checked"
@@ -233,12 +238,12 @@ for step in B.ESTIMATE:
         assert abs(B.through(pts)[1]) <= sy, "the y-intercept on the graph"
         assert (step != "8" or (sx, sy) == (10, 10)) and (step != "9" or sx == sy) and (step != "10" or sx != sy)
         sheet, key = B.typst(p), B.key_typst(p)
-        assert sheet.startswith("Sketch: $display(") and " and $display(" in sheet
+        assert sheet.startswith("Sketch the line through the points $display(") and " and $display(" in sheet and ")$. #v(" in sheet
         assert sheet.count("line(") == 2 and "content(" in sheet and "circle(" not in sheet, "bare axes: no ticks, no numbers"
         assert "luma(200)" not in sheet, "no grid"
         assert key.count("circle(") == 3 and "run " in key and "rise " in key and "b " in key
         assert key.count("stroke: 0.7pt)") == 2 + 8, "the axes, and four ticks on each"
-        assert B.answer_typst(p) == "" and B.text(p).startswith("Sketch: (") and B.text(p).endswith("[axes]")
+        assert B.answer_typst(p) == "" and B.text(p).startswith("Sketch the line through the points (") and B.text(p).endswith(").   [axes]")
         assert B.answer_text(p).startswith("run ") and "y-intercept" in B.answer_text(p)
         q, k = B.slide_typst(p), B.slide_typst(p, key=True)
         assert q.startswith("#grid(columns: 2") and "run " in k and "run " not in q
