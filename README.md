@@ -315,6 +315,26 @@ decimals with cents (`y = −1.50x + 45.10`) and Step 18's rate as a fraction;
 interpretations are written out in sentences. The check reads the numbers back
 out of the words and solves forward from them.
 
+### Lesson 2-2: Point-Slope Form: word problems
+
+The `point_slope_2_2` bank's Types 7 to 12 are the teacher's Lesson 2-2 word
+problems, in order, each in four stories with new numbers and names every draw.
+They live in `sheets/banks/words_2_2.py` and are built like Lesson 2-1's.
+
+| Key | Type | Source example |
+|---|---|---|
+| 7 | Word Problems: Is the Budget Enough? | $725 for 50 guests, $1,925 for 150; 75 guests on $1,200: `y − 725 = 12(x − 50)`, yes |
+| 8 | Word Problems: Finding the One-Time Fee | 5.5 hours for $93.75 at $12.50 an hour: `y − 93.75 = 12.50(x − 5.5)`; the fee is b, $25 |
+| 9 | Word Problems: Paying Back a Loan | owes $456 after 2 weeks, $228 after 5: borrowed $608, pays $76; what each form shows |
+| 10 | Word Problems: Two Forms from a Table | 25 for $100, ... 100 for $220: both forms; $1.60 each; the $60 fee is b |
+| 11 | Word Problems: Matching a Context to a Table | a table at x = 0 to 3; one of four contexts matches |
+| 12 | Word Problems: Rising at a Constant Rate | 9 m after 14.5 s, 20 m after 42 s: `y − 9 = 0.4(x − 14.5)`; starts at 3.2 m, `y = 0.4x + 3.2` |
+
+Point-slope form goes through the story's first reading (an edited answer
+through any of its readings is accepted), money keeps its cents
+(`12.50`), and slope-intercept form is given wherever the question needs the
+y-intercept.
+
 Steps 5 to 7 give two points, each coordinate from −10 to 10 and not 0 (so
 neither point is an intercept), different in x and in y; Step 7's
 coordinates are in lowest terms (an integer as an integer, never n/1), and
@@ -452,6 +472,7 @@ ever runs code.
 | `sheets/banks/single_step.py` | The Prealgebra single-step equations bank: one basic fact on 1 to 15 per equation, by kind of fact, and a sympy check |
 | `sheets/banks/modeling_1_2.py` | The Lesson 1-2: Modeling bank: five levels, an entry per category, a story per problem shape of the teacher's bank, and a check that reads the prompt back with its story |
 | `sheets/banks/slope_intercept_2_1.py` | The Lesson 2-1: Slope-Intercept Form bank: a step per entry: 1 solve for y from six forms, 2 graph, 3 solve and graph, 4 write the equation of a drawn line; a sympy check, and the key's graph |
+| `sheets/banks/words_2_2.py` | Lesson 2-2's word problems, Types 7 to 12 of `point_slope_2_2` (not a bank of its own) |
 | `sheets/banks/words_2_1.py` | Lesson 2-1's word problems, Steps 11 to 18 (not a bank of its own): the stories, the forward check from the words, and how they're shown |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |

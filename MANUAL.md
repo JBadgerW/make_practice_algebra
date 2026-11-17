@@ -213,6 +213,11 @@ form and writes each interpretation as a sentence. `i` edits the story's
 words: change only names and numbers, and the key is found again from them.
 Step 17 is select-all multiple choice; edit its answer as letters (`B, D`).
 
+`point_slope_2_2/7:1` through `/12:1` draw Lesson 2-2's word problems the
+same way: the key gives point-slope form through the story's first reading,
+and slope-intercept form where the question needs the y-intercept. Type 11
+is multiple choice (one letter).
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists

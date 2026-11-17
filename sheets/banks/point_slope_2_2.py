@@ -28,6 +28,12 @@ The numbers:
       for a whole slope), the first from -8 to 8; every x and y is from -20 to 20, the first
       column's not 0; the y-intercept is at most 20 either way.
 
+Types 7 to 12: Word Problems, one type for each of the teacher's word problems
+(2-2_world_problems.md: Example 4a, 35, 36, 37, 38, 40, in that order), each in four
+stories with new numbers every draw; they are written, checked, and shown by
+words_2_2.py, which has the details. Their prompt is the story's words, and their answer
+its parts separated by "; " (Type 11: a letter, with choices).
+
 A problem: dict(type, prompt, answer, source), in Typst math.
     prompt  1, 4: "(2, -3), (5, 9)"    2, 5: "y + 3 = 2/3 (x - 4)"    3: "m = 2/3, (4, -3)"
             6: "(-2, 5), (0, 4), (2, 3), (4, 2), (6, 1)"
@@ -48,6 +54,7 @@ from ..check import to_sympy
 from ..graphs import Graph, PREAMBLE
 from ..typmath import display, dfrac, text as plain
 from . import slope_intercept_2_1 as si
+from . import words_2_2 as W
 
 NAME = FAMILY = "point_slope_2_2"
 FIXED = False
@@ -92,7 +99,7 @@ TYPES = [
          move="Slope from any two columns: m = (4 - 5)/(0 - (-2)) = -1/2. Put a point, like the first, "
               "into point-slope form: y - 5 = -1/2 (x + 2). Distribute and get y alone: y = -1/2 x + 4.",
          space="1.5in"),
-]
+] + W.TYPES
 
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
@@ -108,12 +115,15 @@ TABLE_START = 8                # Type 6: the first x from -8 to 8
 ROWS = 5                       # Type 6: a table's points
 TWO = ("1", "4")               # a prompt of two points
 EQUATION = ("2", "5")          # a prompt in point-slope form
+WORDS = W.TYPES_               # the word problems (words_2_2.py)
 PARTS = {"1": ("m",), "2": ("si",), "3": ("ps", "si"), "4": ("m", "ps", "si"), "5": ("si",), "6": ("ps", "si")}
 
 def initial_seen():
     return set()
 
 def seen_key(p):
+    if p["type"] in WORDS:
+        return (NAME, p["type"], W.seen_key(p))
     return (NAME, p["type"], p["prompt"])
 
 # ------------------------------------------------------------------
@@ -169,6 +179,8 @@ def nonzero(r, n):
     return gen.signed(r, 1, n)
 
 def draw(entry, r, tpl):
+    if entry in WORDS:
+        return W.draw(entry, r, tpl)
     if entry in TWO:
         pts = [(r.randint(-WINDOW, WINDOW), r.randint(-WINDOW, WINDOW)) for _ in range(2)]
         need(two_keep_rules(entry, pts))
@@ -225,7 +237,7 @@ def table_keeps_rules(pts):
         return False
     return all(x == pts[0][0] + i * dx and y == pts[0][1] + m * i * dx for i, (x, y) in enumerate(pts))
 
-generate = gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: 1)
+generate = gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: len(W.STORIES) if e in WORDS else 1)
 
 # ------------------------------------------------------------------
 # Reading back and checking
@@ -345,6 +357,8 @@ def line_of(p):
     return m, b, pts
 
 def check(p):
+    if p.get("type") in WORDS:
+        return W.check(p)
     try:
         try:
             m, b, pts = line_of(p)
@@ -406,6 +420,8 @@ def eq_typst(t):
 
 def typst(p, gap="0.3em", key=False):
     typ = p["type"]
+    if typ in WORDS:
+        return W.typst(p)
     try:
         if typ in TWO:
             a, b = (eq_typst(f"({x}, {y})") for x, y in points_of(p["prompt"]))
@@ -426,6 +442,8 @@ def key_typst(p, gap="0.3em"):
 
 def answer_typst(p):
     """Each part on its own line; Type 5's answer is the graph alone (key_typst)."""
+    if p["type"] in WORDS:
+        return W.answer_typst(p)
     if p["type"] == "5":
         return ""
     parts = [eq_typst(s.strip()) for s in p["answer"].split(";")]
@@ -445,6 +463,8 @@ def slide_typst(p, key=False):
 
 def text(p):
     typ = p["type"]
+    if typ in WORDS:
+        return W.text(p)
     if typ in TWO:
         return plain(p["prompt"].replace("), (", ") and ("))
     if typ == "3":
@@ -460,6 +480,8 @@ def text(p):
     return plain(p["prompt"])
 
 def answer_text(p):
+    if p["type"] in WORDS:
+        return W.answer_text(p)
     if p["type"] == "5":
         got = read_slope_intercept(p["answer"])
         if got:
@@ -468,6 +490,8 @@ def answer_text(p):
     return "   ".join(plain(s.strip()) for s in p["answer"].split(";"))
 
 def height(p):
+    if p["type"] in WORDS:
+        return W.height(p)
     return 2.6 if p["type"] == "5" else 1.4 if p["type"] == "6" else 0.55 if "/" in p["prompt"] else 0.3
 
 # ------------------------------------------------------------------
@@ -486,6 +510,8 @@ def from_edit(t, old):
     """An edited prompt, its answer worked out again (one that breaks the type's rules keeps the
     old answer, which check() marks)."""
     typ = old.get("type")
+    if typ in WORDS:
+        return W.from_edit(t, old)
     t = " ".join(t.replace("−", "-").split())
     try:
         if typ in TWO or typ == "6":
@@ -506,6 +532,8 @@ def from_edit(t, old):
     return new, check(new)
 
 def with_answer(p, t):
+    if p.get("type") in WORDS:
+        return W.with_answer(p, t, check)
     new = dict(p, answer="; ".join(" ".join(s.replace("−", "-").split()) for s in t.split(";")))
     return new, check(new)
 
