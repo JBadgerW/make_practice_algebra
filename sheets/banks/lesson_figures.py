@@ -13,9 +13,10 @@ passes a bigger one), and labels take the text size around them.
                                       `sides` (pairs of names) drawn, lengths `below` (pair -> markup)
     mapping(domain, range_, arrows)   Lesson 21: a mapping diagram, two ovals of members and arrows
     rule_mapping(left, right, rule)   Lesson 21: a mapping by a rule, x ∈ ℝ -> x + 2
+    number_line(lo, hi, pieces, dots) Lesson 22: a number line, blank or with a graph drawn on it
 """
 import math
-from ..graphs import PREAMBLE, _num
+from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
 
 R = 1.15                                        # a sector's circle radius
 SHADE = "luma(175)"
@@ -282,3 +283,35 @@ def rule_mapping(left, right, rule, unit="1cm"):
     cmds += _arrow((0.95, 0), (3.45, 0), gap=0.0)
     cmds.append(_label(2.2, 0.05, rule, "south"))
     return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 22: number lines
+# ------------------------------------------------------------------
+def number_line(lo, hi, pieces=(), dots=(), ink="black", width=7.6, slide_width=22.0):
+    """The integers lo..hi on a line with arrows at both ends, each one ticked and numbered.
+    pieces: (a, b) heavy parts of a graph; None for a or b is a ray off that end, with an
+    arrowhead. dots: (x, solid?) circles, solid or open. Drawn `width` cm wide on a sheet and
+    slide_width on a slide (graphs.SLIDE_STATE), its numbers larger and its graph heavier there;
+    a slide gives it room, as it does a graph."""
+    u = width / (hi - lo + 2)
+    x = lambda v: u * (v - lo + 1)
+    color = INK.get(ink, ink)
+    size = _num(min(9, max(6, 17 * u)))                       # the numbers: as big as their spacing allows
+    cmds = [f'line((0, 0), ({_num(width)}, 0), stroke: 0.7pt, mark: (start: ">", end: ">", fill: black, scale: 0.6))']
+    for v in range(lo, hi + 1):
+        cmds.append(f"line(({_num(x(v))}, -0.09), ({_num(x(v))}, 0.09), stroke: 0.7pt)")
+        cmds.append(f'content(({_num(x(v))}, -0.13), anchor: "north", text(size: {size}pt * gs)[{_minus(v)}])')
+    for a, b in pieces:
+        start = 0.04 if a is None else x(a)
+        end = width - 0.04 if b is None else x(b)
+        pts = (end, start) if a is None else (start, end)          # a ray's arrowhead at its far end
+        mark = f', mark: (end: ">", fill: {color}, scale: 0.75)' if a is None or b is None else ""
+        cmds.append(f"line(({_num(pts[0])}, 0), ({_num(pts[1])}, 0), stroke: 2pt * gw + {color}{mark})")
+    for v, solid in dots:
+        cmds.append(f"circle(({_num(x(v))}, 0), radius: 0.085, fill: {color if solid else 'white'}, stroke: 1pt + {color})")
+    body = "\n    ".join(cmds)
+    return (f"#context {{ let t = {SLIDE_STATE}.get()\n"
+            f"  let gs = 1 + t * {_num(SLIDE_TEXT - 1)}\n"
+            f"  let gw = 1 + t\n"
+            f"  cetz.canvas(length: (1 + t * {_num(slide_width / width - 1)}) * 1cm, {{\n"
+            f"    import cetz.draw: *\n    {body}\n  }}) }}")
