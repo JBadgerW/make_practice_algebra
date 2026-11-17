@@ -64,6 +64,7 @@ HELP = [
     ("The sheet: sections and selecting", [
         ("]]  [[", "next, previous section"),
         ("o  O", "new section below, above"),
+        ("J  K", "on a title: move the section down, up (3J: three places)"),
         ("cS  cI", "change the section's title; its instructions"),
         (":rename TEXT", "retitle the cursor's section"),
         (":join  :j", "merge the section below into this one"),
