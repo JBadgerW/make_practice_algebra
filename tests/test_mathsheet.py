@@ -1048,7 +1048,7 @@ gk("zM"); assert lesson.TITLE in text(g); gk("zR")
 gk("x"); assert not any(it["bank"] == L4 for it in sh.items(g.sheet)) and g.sheet["sections"] == []
 g.row = g.rows().index(("bank", "inequalities")); gk("6l")
 assert titles(g) == [banks.get("inequalities").TITLE] and len({it["entry"] for it in sh.items(g.sheet)}) > 1
-gk(f":out {OUT}\n:name whole\n:w\n"); assert not g.err, g.msg
+gk(f":out {OUT}\n:name whole_bank\n:w\n"); assert not g.err, g.msg
 library.rescan()
 
 # ---- :pre compiles the sheet as it stands to a temp PDF, writing and saving nothing
@@ -1278,6 +1278,25 @@ assert (sub_dir / "quiz_c.sheet.json").exists() and d.s["name"] == "quiz_c" and 
 dk(":w bad name\n"); assert d.err and d.s["name"] == "quiz_c"
 dk(":saveas\n"); assert d.err and "usage" in d.msg
 dk(f":w {OUT}/quiz_\t"); assert d.comp and d.buf.endswith(".sheet.json"), (d.buf, "Tab completes a sheet's path"); dk("\x1b")
+
+# ---- plain :w never writes over another sheet's file either, however the name got there
+qa = Path(OUT) / "quiz_a.sheet.json"
+dk(f":out {OUT}\n:name quiz_a\n"); before = qa.read_text()
+dk("x:w\n"); assert d.err and "E13" in d.msg and qa.read_text() == before, ":name to another sheet's file, then :w: refused"
+dk(":wq\n"); assert d.err and not d.quit, ":wq refused too, and doesn't quit"
+dk(":w!\n"); assert not d.err and qa.read_text() != before, ":w! writes over it"
+dk("x:w\n"); assert not d.err, "and from then on it's this sheet's own"
+old_sid = d.s["sid"]; dk(":new!\n"); d.open.add("literal"); d.row = d.rows().index(("count", ("literal", "1"))); dk("2l")
+dk(":name quiz_a\n:w\n"); assert d.err and "E13" in d.msg, "a new sheet doesn't own the last one's file"
+while d.s["sid"] != old_sid: dk("u")
+assert d.s["name"] == "quiz_a" and not d.err, d.msg
+dk(":w\n"); assert not d.err, "undoing :new brings back the sheet, and its file with it"
+e2 = T.App(seed=4); e2k = driver(e2)
+e2k(f":out {OUT}\n:e quiz_a.sheet.json\n:w\n"); assert not e2.err, "a sheet opened with :e owns its file"
+u2 = T.App(seed=5); u2k = driver(u2); u2.open.add("literal"); u2.row = u2.rows().index(("count", ("literal", "1"))); u2k("2l")
+u2k(f":out {OUT}\n:w\n"); assert u2.mode == "insert" and u2.buf == "untitled"
+u2k("\n"); assert u2.err and "E13" in u2.msg and "untitled.sheet.json" in u2.msg, "Enter on untitled: an older untitled is kept"
+u2k(":w\n\x15fresh\n"); assert not u2.err and u2.s["name"] == "fresh", "a new name at the prompt writes"
 
 # ---- :scale makes the sheet longer or shorter, kind by kind in each section, never to none
 from fractions import Fraction as Fr

@@ -7,18 +7,37 @@ from .common import dir_label, home_path, SHEET
 
 class Files:
     # -- files ---------------------------------------------------------
-    def write(self):
+    def sheet_file(self, out=None, name=None):
+        """The .sheet.json that :w writes (for this out and name, by default the sheet's own)."""
+        return Path(out or self.s["out"]).expanduser().resolve() / f"{name or self.s['name']}.sheet.json"
+
+    def clash(self, path, force=False):
+        """The E13 error if writing to path would write over another file: one that
+        exists and isn't the one this sheet was last opened from or written to (as
+        in vim, after :saveas B the file A is no longer its own). None if it's free
+        (or force)."""
+        if force or not path.exists() or self.own.get(self.s["sid"]) == path:
+            return None
+        return f"E13: {dir_label(path.parent)}/{path.name} exists (add ! to write over it)"
+
+    def write(self, force=False):
+        """Write the sheet under its out and name. Without force, refused (E13) if
+        that would write over another sheet's file."""
         if not self.total():
             return self.say("E: nothing to write: the sheet is empty", True) or False
         out, name = self.s["out"], self.s["name"]
         sheet = copy.deepcopy(self.sheet)
-        path = Path(out).expanduser().resolve() / f"{name}.sheet.json"
+        path = self.sheet_file()
+        err = self.clash(path, force)
+        if err:
+            return self.say(err, True) or False
         sheet["command"] = f"python3 make_practice.py --sheet {shlex.quote(str(path))}"
         try:
             r = build.build(sheet, out, name)
         except (RuntimeError, OSError) as e:
             self.say(f"E: {e}".splitlines()[0], True)
             return False
+        self.own[self.s["sid"]] = path
         self.written, self.last_build = self.snapshot(), r
         self.rev += 1                               # dirty() compares against the new written state
         try:
@@ -33,14 +52,15 @@ class Files:
                  f'({"PDFs compiled" if r["compiled"] else "typst not found: .typ only"}){warn}', bool(bad))
         return True
 
-    def write_cmd(self, then=None, force=False):
+    def write_cmd(self, then=None, force=False, asked=False):
         """:w, :wq: write, then (then="quit") quit or (then="new") start a new sheet.
         While the name is still the default, ask first: the name to write under,
         filled in, so Enter confirms it and typing changes it (Esc writes nothing).
-        With ! there's no asking."""
-        if self.total() and not force and self.s["name"] == draft.DEFAULTS["name"]:
+        Another sheet's file is never written over (E13) unless force (!), which
+        also skips the asking; asked: the name is settled, don't ask."""
+        if self.total() and not force and not asked and self.s["name"] == draft.DEFAULTS["name"]:
             return self.start_edit(("write", then), self.s["name"])
-        if self.write():
+        if self.write(force):
             if then == "quit":
                 self.quit = True
             elif then == "new":
@@ -49,17 +69,16 @@ class Files:
     def write_as(self, target, force=False):
         """:w NAME, :saveas NAME: the sheet goes by this name from now on (as the
         name setting; FOLDER/NAME sets out too), ready to be written under it.
-        Without !, a name that would write over another sheet's file is refused.
-        False (and an error shown, nothing changed) if it can't be."""
+        Without !, a name that would write over another sheet's file is refused
+        (see clash). False (and an error shown, nothing changed) if it can't be."""
         target = re.sub(r"(\.sheet)?\.json$", "", target.strip())
         folder, slash, name = target.rpartition("/")
         out = self.in_out(folder or "/") if slash else self.s["out"]
         if not re.fullmatch(r"[\w.-]+", name):
             return self.say("E: write as NAME or FOLDER/NAME: a name may use letters, digits, _ . - only", True) or False
-        here = lambda o, n: Path(o).expanduser().resolve() / f"{n}.sheet.json"
-        new = here(out, name)
-        if new != here(self.s["out"], self.s["name"]) and new.exists() and not force:
-            return self.say(f"E13: {dir_label(new.parent)}/{new.name} exists (add ! to write over it)", True) or False
+        err = self.clash(self.sheet_file(out, name), force)
+        if err:
+            return self.say(err, True) or False
         if (out, name) != (self.s["out"], self.s["name"]):
             self.change(lambda: self.s.update(out=dir_label(out) if slash else out, name=name))
         return True
@@ -78,7 +97,7 @@ class Files:
         keep = {k: self.sheet.get(k) for k in ("class_name", "course")}
         def go():
             self.s.update(sheet=sh.new_sheet(draft.DEFAULTS["title"], keep["class_name"]),
-                          name=draft.DEFAULTS["name"])
+                          name=draft.DEFAULTS["name"], sid=next(self._sids))
             self.sheet["course"] = keep["course"]
         self.end_visual()
         if not self.change(go):
@@ -200,12 +219,14 @@ class Files:
         out = dir_label(p.resolve().parent)
         sheet.setdefault("course", self.sheet.get("course"))
         def go():
-            self.s.update(sheet=sheet, out=out, name=name)
-        self.change(go)
+            self.s.update(sheet=sheet, out=out, name=name, sid=next(self._sids))
+        if not self.change(go):
+            return
         self.cur, self.version = SHEET, 0
         self.clamp()
         older = not str(p).endswith(".sheet.json")
         if not older:
+            self.own[self.s["sid"]] = p.resolve()
             self.written = self.snapshot()
             self.rev += 1
         gone = self.missing()

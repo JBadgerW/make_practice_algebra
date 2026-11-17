@@ -24,7 +24,7 @@ class Commands:
                 return self.say("usage: :saveas NAME  (or FOLDER/NAME)", True)
             if rest and not self.write_as(rest, bang):
                 return
-            self.write_cmd(then="quit" if cmd in ("wq", "x", "xit") else None, force=bang or bool(rest))
+            self.write_cmd(then="quit" if cmd in ("wq", "x", "xit") else None, force=bang, asked=bool(rest))
         elif cmd in ("q", "quit", "qa", "qall"):
             if self.dirty() and self.total() and not bang:
                 self.say("E37: No write since last change (add ! to override)", True)

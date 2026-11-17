@@ -307,7 +307,7 @@ class Keys:
                 err = self.set_value(buf, self.rows().index(("set", "name")))
                 if err:
                     return self.say(f"E: {err}; nothing written", True)
-            self.write_cmd(then=ref, force=True)
+            self.write_cmd(then=ref, asked=True)
         elif kind == "new":
             a = buf.strip().lower()
             if a in ("w", "write", "s", "save", "y", "yes"):

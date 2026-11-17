@@ -623,8 +623,8 @@ through earlier commands.
 
 | Command | Action |
 |---|---|
-| `:w` | Write the sheet and every version's worksheet (key appended) and slides. If *name* is still `untitled`, it asks first: the name is filled in, so Enter writes under it and typing changes it; Esc writes nothing. |
-| `:w!` | Write without asking about the name |
+| `:w` | Write the sheet and every version's worksheet (key appended) and slides. If *name* is still `untitled`, it asks first: the name is filled in, so Enter writes under it and typing changes it; Esc writes nothing. It never writes over another sheet's file: if *out* and *name* point to a `.sheet.json` that this sheet wasn't opened from or last written to, it refuses with *E13* and writes nothing. |
+| `:w!` | Write without asking about the name, and write over a file *E13* refused |
 | `:w NAME` `:saveas NAME` | Write under a new name: the *name* setting changes, then the sheet is written. `FOLDER/NAME` sets *out* too. A name that would write over another sheet's file is refused; `:w! NAME` writes over it. `Tab` completes paths. |
 | `:wq` `:x` `ZZ` | Write, then quit |
 | `:q` | Quit. If there are unwritten changes, it refuses with *E37*. |

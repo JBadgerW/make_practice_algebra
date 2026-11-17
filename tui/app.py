@@ -1,6 +1,6 @@
 """App: the state, the caches keyed by revision, change() and undo; the rest of its
 methods come from one mixin per part (see tui/__init__.py)."""
-import copy, random
+import copy, itertools, random
 from sheets import draft
 from sheets import sheet as sh, banks, library
 from .common import SHEET, log_error, start_out
@@ -19,9 +19,12 @@ from .find import Find
 class App(Tree, SheetEdits, Render, Files, Commands, Keys, Info, Find):
     def __init__(self, seed=None, sheet=None, out=None, name=None):
         self.rng = random.Random(seed)
+        self._sids = itertools.count(1)
         self.s = dict(sheet=sheet or sh.new_sheet(draft.DEFAULTS["title"], None),
                       out=out or start_out(),
-                      name=name or draft.DEFAULTS["name"])
+                      name=name or draft.DEFAULTS["name"],
+                      sid=next(self._sids))      # which sheet this is: :new and :e give a new one
+        self.own = {}                   # sid -> the .sheet.json that sheet was last opened from or written to
         self.sheet.setdefault("course", library.config().get("course"))     # the course used last
         if not self.sheet.get("class_name"):                                # no --class: the course's
             self.sheet["class_name"] = self.course or draft.DEFAULTS["class_name"]
