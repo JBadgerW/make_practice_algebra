@@ -27,10 +27,12 @@ COURSES = {"Advanced Math": "Additional Practice"}
 TYPES = [
     dict(key="1", title="Volume to Surface Area",
          look="A sphere's volume; its surface area is asked for.",
-         move="V = (4/3) π r^3: solve for r (multiply by 3/(4π), then take the cube root). Then S = 4 π r^2."),
+         move="$V = 4/3 pi r^3$: solve for $r$ (multiply by $3/(4 pi)$, then take the cube root). Then $S = 4 "
+              "pi r^2$."),
     dict(key="2", title="Surface Area to Volume",
          look="A sphere's surface area; its volume is asked for.",
-         move="S = 4 π r^2: solve for r (divide by 4π, then take the square root). Then V = (4/3) π r^3."),
+         move="$S = 4 pi r^2$: solve for $r$ (divide by $4 pi$, then take the square root). Then $V = 4/3 pi "
+              "r^3$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.5in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
