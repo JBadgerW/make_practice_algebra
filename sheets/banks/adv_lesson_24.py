@@ -70,28 +70,32 @@ COURSES = {"Advanced Math": "Lessons"}
 
 TYPES = [
     dict(key="1", title="A Sum of Trig Values",
-         look="Sines, cosines, and tangents of 30°, 45°, and 60° added, maybe with whole-number coefficients.",
-         move="Find each value from its triangle (cos 60° = 1/2, sin 45° = 1/sqrt(2), tan 30° = 1/sqrt(3)). "
-              "Write the terms over a common denominator, add, and rationalize: multiply the top and the bottom "
-              "by the radical below."),
+         look="Sines, cosines, and tangents of $30 degree$, $45 degree$, and $60 degree$ added, maybe with "
+              "whole-number coefficients.",
+         move="Find each value from its triangle ($cos 60 degree = 1/2$, $sin 45 degree = 1/sqrt(2)$, $tan 30 "
+              "degree = 1/sqrt(3)$). Write the terms over a common denominator, add, and rationalize: multiply "
+              "the top and the bottom by the radical below."),
     dict(key="2", title="Radical Coefficients",
-         look="A coefficient with a radical, like sqrt(6) sin 30° or (1/sqrt(2)) tan 60°.",
-         move="Find each trig value and multiply it by its coefficient first: sqrt(6) (1/2) = sqrt(6)/2 and "
-              "(1/sqrt(2)) sqrt(3) = sqrt(3)/sqrt(2). Then add over a common denominator, rationalize, and reduce."),
+         look="A coefficient with a radical, like $sqrt(6) sin 30 degree$ or $(1/sqrt(2)) tan 60 degree$.",
+         move="Find each trig value and multiply it by its coefficient first: $sqrt(6) (1/2) = sqrt(6)/2$ and "
+              "$(1/sqrt(2)) sqrt(3) = sqrt(3)/sqrt(2)$. Then add over a common denominator, rationalize, and "
+              "reduce."),
     dict(key="3", title="Trig Values in Function Notation",
-         look="f(θ) = tan θ, and f of two angles.",
-         move="f(45°) is tan 45°: put each angle into the function. Then evaluate the sum as in Type 1."),
+         look="$f(theta) = tan theta$, and $f$ of two angles.",
+         move="$f(45 degree)$ is $tan 45 degree$: put each angle into the function. Then evaluate the sum as "
+              "in Type 1."),
     dict(key="4", title="A Composition of Functions",
-         look="(g ∘ f)(x): one function inside another.",
-         move="(g ∘ f)(x) = g(f(x)): put f(x) into the g machine. Replace every x in g's rule with f(x), in "
-              "parentheses where needed, and multiply out polynomials.", instructions="Solve each problem."),
+         look="$(g compose f)(x)$: one function inside another.",
+         move="$(g compose f)(x) = g(f(x))$: put $f(x)$ into the $g$ machine. Replace every $x$ in $g$'s rule "
+              "with $f(x)$, in parentheses where needed, and multiply out polynomials.", instructions="Solve each problem."),
     dict(key="5", title="Combining Functions at a Number",
-         look="(f + g)(6), (f - g)(6), (f g)(6), or (f/g)(6).",
-         move="Find f(6) and g(6) first. Then add, subtract, multiply, or divide them: (f - g)(6) = f(6) - g(6).",
+         look="$(f + g)(6)$, $(f - g)(6)$, $(f g)(6)$, or $(f/g)(6)$.",
+         move="Find $f(6)$ and $g(6)$ first. Then add, subtract, multiply, or divide them: $(f - g)(6) = f(6) "
+              "- g(6)$.",
          instructions="Solve each problem."),
     dict(key="6", title="A Composition at a Number",
-         look="(f ∘ g)(3): one function inside another, at a number.",
-         move="Work from the inside out: find g(3), then put that number into f.", instructions="Solve each problem."),
+         look="$(f compose g)(3)$: one function inside another, at a number.",
+         move="Work from the inside out: find $g(3)$, then put that number into $f$.", instructions="Solve each problem."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
