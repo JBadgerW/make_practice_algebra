@@ -99,19 +99,19 @@ PREAMBLE = fig.PREAMBLE
 TYPES = [
     dict(key="1", title="Measuring Angles with a Protractor",
          look="Rays from the center of a protractor's baseline; find the angles between them.",
-         move="The vertex is under the origin and one side lies along the baseline. Read where the other "
-              "ray crosses the scale that starts at 0 on the first ray's side: the inner scale from the "
-              "right, the outer from the left. Between two rays off the baseline, subtract their readings.",
+         move="The vertex is under the origin and one side lies along the baseline. Read where the other ray "
+              "crosses the scale that starts at $0$ on the first ray's side: the inner scale from the right, "
+              "the outer from the left. Between two rays off the baseline, subtract their readings.",
          instructions="Find each angle's measure.", width="full", space="0.3in"),
     dict(key="2", title="Copying a Line Segment",
          look="One segment to copy.",
-         move="Draw a ray XY. Open the compass from A to B. Without changing it, put the point on X and "
-              "draw an arc crossing the ray at P. Then XP = AB.", space="0.2in"),
+         move="Draw a ray $X Y$. Open the compass from $A$ to $B$. Without changing it, put the point on $X$ "
+              "and draw an arc crossing the ray at $P$. Then $X P = A B$.", space="0.2in"),
     dict(key="3", title="Copying an Angle",
          look="One angle to copy, its vertex in the middle of its name.",
-         move="Draw ray XY. An arc about the vertex crosses the sides at M and N; the same arc about X "
-              "crosses XY at Z. Set the compass to MN and swing it from Z to cross the arc at P'. Draw "
-              "ray XP'.", width="full", space="0.2in"),
+         move="Draw ray $X Y$. An arc about the vertex crosses the sides at $M$ and $N$; the same arc about "
+              "$X$ crosses $X Y$ at $Z$. Set the compass to $M N$ and swing it from $Z$ to cross the arc at "
+              "$P'$. Draw ray $X P'$.", width="full", space="0.2in"),
     dict(key="4", title="Bisecting an Angle",
          look="One angle to cut in half.",
          move="An arc about the vertex crosses both sides. Equal arcs about those two points meet inside "
@@ -122,13 +122,14 @@ TYPES = [
               "radius more than half the segment, or they won't meet). The line through the two "
               "crossings is the perpendicular bisector.", space="0.2in"),
     dict(key="6", title="A Perpendicular at a Point on a Line",
-         look="A segment or line with a point P on it.",
-         move="Equal arcs about P cross the line at M and N. Widen the compass: equal arcs about M and N "
-              "meet at D. Line PD is perpendicular to the line at P, because PM = PN.", space="0.2in"),
+         look="A segment or line with a point $P$ on it.",
+         move="Equal arcs about $P$ cross the line at $M$ and $N$. Widen the compass: equal arcs about $M$ and "
+              "$N$ meet at $D$. Line $P D$ is perpendicular to the line at $P$, because $P M = P N$.", space="0.2in"),
     dict(key="7", title="A Perpendicular from a Point to a Line",
-         look="A line and a point P off it.",
-         move="An arc about P crosses the line at R and S. Construct the perpendicular bisector of RS: "
-              "equal arcs about R and S meet on the far side. It passes through P, because PR = PS.",
+         look="A line and a point $P$ off it.",
+         move="An arc about $P$ crosses the line at $R$ and $S$. Construct the perpendicular bisector of $R "
+              "S$: equal arcs about $R$ and $S$ meet on the far side. It passes through $P$, because $P R = P "
+              "S$.",
          width="full", space="0.2in"),
     dict(key="8", title="A Triangle from Its Three Sides",
          look="Three segments: the sides of the triangle.",
@@ -137,15 +138,15 @@ TYPES = [
               "vertex. (They cross because the two shorter sides add to more than the longest.)",
          space="0.2in"),
     dict(key="9", title="A Parallel Through a Point",
-         look="A line and a point P off it.",
-         move="Draw a line from P to a point X on the line; it makes angle A with the line. Copy angle A "
-              "at P on the same side. The corresponding angles are equal, so the new line is parallel.",
+         look="A line and a point $P$ off it.",
+         move="Draw a line from $P$ to a point $X$ on the line; it makes angle $A$ with the line. Copy angle "
+              "$A$ at $P$ on the same side. The corresponding angles are equal, so the new line is parallel.",
          width="full", space="0.2in"),
     dict(key="10", title="Dividing a Segment into Equal Parts",
          look="A segment to divide into a given number of equal parts.",
-         move="Draw a ray from A at an angle. With the compass, step off equal lengths along it (R, S, T). "
-              "Connect the last mark to B and draw parallels to that segment through the other marks. "
-              "Parallels cut transversals proportionally, so the pieces of AB are equal.", space="0.2in"),
+         move="Draw a ray from $A$ at an angle. With the compass, step off equal lengths along it ($R$, $S$, "
+              "$T$). Connect the last mark to $B$ and draw parallels to that segment through the other marks. "
+              "Parallels cut transversals proportionally, so the pieces of $A B$ are equal.", space="0.2in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.2in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
