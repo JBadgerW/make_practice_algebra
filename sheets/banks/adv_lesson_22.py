@@ -87,42 +87,44 @@ PREAMBLE = GRAPH_PREAMBLE
 TYPES = [
     dict(key="1", title="Within k of a Number",
          instructions="Graph each set on the real number line.",
-         look="The absolute value of x minus a number is less than k.",
-         move="|x - a| is the distance from x to a. Less than k: the numbers within k of a, one piece from "
-              "a - k to a + k. |x - 5| < 2 gives 3 < x < 7. Open circles for <, solid circles for <=. "
-              "Rewrite |x + 2| as |x - (-2)|: the center is -2.",
+         look="The absolute value of $x$ minus a number is less than $k$.",
+         move="$|x - a|$ is the distance from $x$ to $a$. Less than $k$: the numbers within $k$ of $a$, one "
+              "piece from $a - k$ to $a + k$. $|x - 5| < 2$ gives $3 < x < 7$. Open circles for $<$, solid "
+              "circles for $<=$. Rewrite $|x + 2|$ as $|x - (-2)|$: the center is $-2$.",
          space="0.5in"),
     dict(key="2", title="Farther Than k from a Number",
          instructions="Graph each set on the real number line.",
-         look="The absolute value of x minus a number is greater than k.",
-         move="|x - a| is the distance from x to a. Greater than k: the numbers farther than k from a, two "
-              "rays pointing away from a. |x + 2| >= 3 is |x - (-2)| >= 3: x <= -5 or x >= 1. "
-              "Open circles for >, solid circles for >=.",
+         look="The absolute value of $x$ minus a number is greater than $k$.",
+         move="$|x - a|$ is the distance from $x$ to $a$. Greater than $k$: the numbers farther than $k$ from "
+              "$a$, two rays pointing away from $a$. $|x + 2| >= 3$ is $|x - (-2)| >= 3$: $x <= -5$ or $x >= "
+              "1$. Open circles for $>$, solid circles for $>=$.",
          space="0.5in"),
     dict(key="3", title="Isolate the Absolute Value First",
          instructions="Graph each inequality on the real number line.",
          look="A number added to or subtracted from the absolute value.",
-         move="Get the absolute value alone: |x| - 2 < 0 becomes |x| < 2. Then read it as a distance: "
-              "less than is one piece, greater than is two rays.",
+         move="Get the absolute value alone: $|x| - 2 < 0$ becomes $|x| < 2$. Then read it as a distance: less "
+              "than is one piece, greater than is two rays.",
          space="0.6in"),
     dict(key="4", title="Sketch an Absolute Value Function",
          instructions="Sketch the graph of each function.",
-         look="y is the absolute value of an expression in x.",
-         move="Make a table: the x where the inside is 0, and 2 to each side. An absolute value is never "
-              "negative, so the graph turns back up: a V with its vertex where the inside is 0.",
+         look="$y$ is the absolute value of an expression in $x$.",
+         move="Make a table: the $x$ where the inside is $0$, and $2$ to each side. An absolute value is never "
+              "negative, so the graph turns back up: a V with its vertex where the inside is $0$.",
          space="0.5in"),
     dict(key="5", title="Sketch the Reciprocal of a Square",
          instructions="Sketch the graph of each function.",
-         look="1 over a square, like 1/x^2.",
-         move="We can't divide by zero: a vertical asymptote where the bottom is 0. Make a table 0.5, 1, and "
-              "2 to each side of it. A square is positive, so the graph never goes below the x axis: a volcano.",
+         look="$1$ over a square, like $1/x^2$.",
+         move="We can't divide by zero: a vertical asymptote where the bottom is $0$. Make a table $0.5$, $1$, "
+              "and $2$ to each side of it. A square is positive, so the graph never goes below the $x$ axis: a "
+              "volcano.",
          space="0.9in"),
     dict(key="6", title="Sketch the Reciprocal of a Line",
          instructions="Each graph shows a function f, with dots where y is 1 or -1 and a dotted line where "
                       "f crosses the x axis. Sketch the graph of the reciprocal function g.",
-         look="The graph of a line f, and g(x) = 1/f(x).",
-         move="The reciprocal of 1 is 1 and of -1 is -1: g passes through the dots. Where f crosses the x "
-              "axis, g has a vertical asymptote. Where f is large, g is near zero; where f is near zero, g is large.",
+         look="The graph of a line $f$, and $g(x) = 1/f(x)$.",
+         move="The reciprocal of $1$ is $1$ and of $-1$ is $-1$: $g$ passes through the dots. Where $f$ "
+              "crosses the $x$ axis, $g$ has a vertical asymptote. Where $f$ is large, $g$ is near zero; where "
+              "$f$ is near zero, $g$ is large.",
          space="0.7in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
