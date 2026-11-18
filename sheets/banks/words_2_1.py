@@ -50,53 +50,55 @@ TYPES = [
     dict(key="11", title="Word Problems: A Card's Balance",
          instructions="Answer each part. Write each equation in the form y = mx + b.",
          look="A card's balance before the first ride and again some days later, with the same cost each way, twice a day.",
-         move="Count the rides between the two balances, 2 a day: Monday morning to Thursday evening is 8. The slope "
-              "is the change in balance over the rides: (23.15 − 45.15)/8 = −2.75. The y-intercept is the balance "
-              "before the first ride. For the rides it pays for, divide the starting balance by the cost of a ride "
-              "and round down.",
+         move="Count the rides between the two balances, 2 a day: Monday morning to Thursday evening is 8. The "
+              "slope is the change in balance over the rides: $(23.15 - 45.15)/8 = -2.75$. The $y$-intercept "
+              "is the balance before the first ride. For the rides it pays for, divide the starting balance by "
+              "the cost of a ride and round down.",
          width="full", space="1.6in"),
     dict(key="12", title="Word Problems: Balance from Two Readings",
          instructions="Answer each part. Write each equation in the form y = mx + b.",
          look="A gift card's balance after two different numbers of purchases, each the same price.",
-         move="The slope is the change in balance over the change in purchases: (13.40 − 19.70)/(4 − 2) = −3.15. "
-              "Put a reading into y = mx + b to find b, the card's starting balance.",
+         move="The slope is the change in balance over the change in purchases: $(13.40 - 19.70)/(4 - 2) = "
+              "-3.15$. Put a reading into $y = m x + b$ to find $b$, the card's starting balance.",
          width="full", space="1.4in"),
     dict(key="13", title="Word Problems: Distance Left to Go",
          instructions="Answer each part. Write each equation in the form y = mx + b.",
-         look="A route of a given length, traveled at a steady rate; y is the distance still to go.",
-         move="The distance left starts at the route's length (the y-intercept) and goes down by the rate each hour "
-              "(the slope is the rate, negative): y = −4x + 25.",
+         look="A route of a given length, traveled at a steady rate; $y$ is the distance still to go.",
+         move="The distance left starts at the route's length (the $y$-intercept) and goes down by the rate "
+              "each hour (the slope is the rate, negative): $y = -4 x + 25$.",
          width="full", space="1.2in"),
     dict(key="14", title="Word Problems: Payment Plans",
          instructions="Answer each question. Write each equation in the form y = mx + b, then explain.",
          look="A price, and two plans: a down payment and then the same payment each week.",
-         move="The amount paid is y = (weekly payment)x + (down payment). Set each plan's y equal to the price and "
-              "solve for x, the weeks; the plan with fewer weeks pays it off first.",
+         move="The amount paid is $y = (\"weekly payment\") x + (\"down payment\")$. Set each plan's $y$ equal "
+              "to the price and solve for $x$, the weeks; the plan with fewer weeks pays it off first.",
          width="full", space="1.6in"),
     dict(key="15", title="Word Problems: Distance Left in a Race",
          instructions="Write each equation in the form y = mx + b.",
-         look="A race of a given length, at a steady average speed; y is the distance left.",
-         move="The distance left starts at the race's length and goes down by the speed each hour: y = −6x + 8.",
+         look="A race of a given length, at a steady average speed; $y$ is the distance left.",
+         move="The distance left starts at the race's length and goes down by the speed each hour: $y = -6 x + "
+              "8$.",
          width="full", space="0.8in"),
     dict(key="16", title="Word Problems: Arriving Together",
          instructions="Answer each part. Write each equation in the form y = mx + b.",
          look="Two readings of the distance one person has left, and a second person who lives closer "
               "and must arrive at the same time.",
-         move="The slope is the change in distance left over the change in time; b is the whole distance. "
-              "The first person arrives when y = 0. The second person's speed is their distance over that same time.",
+         move="The slope is the change in distance left over the change in time; $b$ is the whole distance. "
+              "The first person arrives when $y = 0$. The second person's speed is their distance over that "
+              "same time.",
          width="full", space="1.8in"),
     dict(key="17", title="Word Problems: A Model from a Table",
          instructions="Select all the statements that describe a model for the data.",
-         look="A table starting at x = 0, going up by the same amount each step, and statements about the slope and "
-              "the y-intercept.",
-         move="The y-intercept is the value at x = 0, the starting amount. The slope is the change each step, "
-              "the rate. A statement is true only when both its number and its meaning fit.",
+         look="A table starting at $x = 0$, going up by the same amount each step, and statements about the "
+              "slope and the $y$-intercept.",
+         move="The $y$-intercept is the value at $x = 0$, the starting amount. The slope is the change each "
+              "step, the rate. A statement is true only when both its number and its meaning fit.",
          width="full", space="0.3in"),
     dict(key="18", title="Word Problems: Constant Rate from Readings",
          instructions="Answer each part. Write each equation in the form y = mx + b.",
          look="Three readings of a level going down at a constant rate, and a question about when it runs out.",
-         move="The slope is the change in level over the change in hours: (10 − 11 7/8)/(8 − 5) = −5/8. Put a "
-              "reading into y = mx + b to find b, the full level (x = 0). It runs out when y = 0.",
+         move="The slope is the change in level over the change in hours: $(10 - 11 7/8)/(8 - 5) = -5/8$. Put "
+              "a reading into $y = m x + b$ to find $b$, the full level ($x = 0$). It runs out when $y = 0$.",
          width="full", space="1.8in"),
 ]
 
