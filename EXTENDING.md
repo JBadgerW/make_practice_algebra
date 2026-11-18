@@ -253,6 +253,7 @@ python3 tests/test_adv_lesson_20.py         # Advanced Math Lesson 20: the deck'
 python3 tests/test_adv_lesson_21.py         # Advanced Math Lesson 21: every source is reachable and checks; domains tested at every critical point; graphs by line tests
 python3 tests/test_adv_lesson_22.py         # Advanced Math Lesson 22: every source is reachable and checks; inequalities tested at every boundary; sketches by their marked points
 python3 tests/test_adv_lesson_23.py         # Advanced Math Lesson 23: every source is reachable and checks; sketches by their marked points, none skipped, none off the graph
+python3 tests/test_adv_lesson_24.py         # Advanced Math Lesson 24: every source is reachable and checks; exact sums by their form, combinations named and worked again
 python3 tests/test_adv_lesson_1.py          # Advanced Math Lesson 1: every source is reachable and checks; the figures are drawn from the data
 python3 tests/test_adv_lesson_2.py          # Advanced Math Lesson 2: every source is reachable and checks; decimal keys within the deck's rounding
 python3 tests/test_adv_lesson_3.py          # Advanced Math Lesson 3: every source is reachable and checks; similar triangles checked by their ratios, right ones by Pythagoras
