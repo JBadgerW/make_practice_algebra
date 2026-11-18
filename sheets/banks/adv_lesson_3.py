@@ -84,30 +84,30 @@ TYPES = [
     dict(key="1", title="Right, Acute, or Obtuse from the Sides",
          look="The three side lengths of a triangle, in no particular order.",
          move="Square the longest side and compare it with the sum of the squares of the other two. Equal: "
-              "right; less: acute; greater: obtuse (7^2 = 49 > 5^2 + 4^2 = 41).",
+              "right; less: acute; greater: obtuse ($7^2 = 49 > 5^2 + 4^2 = 41$).",
          instructions="Compare the square of the longest side with the sum of the squares of the other two sides.",
          space="0.8in"),
     dict(key="2", title="Similar Triangles and Scale Factors",
          look="Two triangles with matching angle marks; one pair of matching sides is given in both.",
-         move="Sides opposite equal angles correspond. The known pair gives the scale factor (7/5 from left to "
-              "right, 5/7 back). Multiply a side by the factor to get its partner in the other triangle.",
+         move="Sides opposite equal angles correspond. The known pair gives the scale factor ($7/5$ from left "
+              "to right, $5/7$ back). Multiply a side by the factor to get its partner in the other triangle.",
          instructions=EXACT, space="1.6in"),
     dict(key="3", title="Similar Right Triangles at Vertical Angles",
          look="Two right triangles crossing at a point; one has two sides given, the other one.",
          move="Vertical angles are equal and both have a right angle, so the triangles are similar. Find the "
-              "third side of the triangle with two sides given (10^2 = 8^2 + z^2), then use the ratio of the "
+              "third side of the triangle with two sides given ($10^2 = 8^2 + z^2$), then use the ratio of the "
               "hypotenuses for the other triangle's sides.",
          instructions=EXACT, space="1.6in"),
     dict(key="4", title="A Right Triangle Inside a Right Triangle",
          look="A perpendicular cuts a small right triangle off a big one; they share the marked angle.",
          move="Draw the two triangles separately. The Pythagorean theorem finds the small triangle's third "
-              "side; the ratio of matching sides (small/big) finds the big triangle's sides; subtract to get "
-              "a piece (B = (A + B) - A).",
+              "side; the ratio of matching sides (small/big) finds the big triangle's sides; subtract to get a "
+              "piece ($B = (A + B) - A$).",
          instructions=EXACT, space="1.6in"),
     dict(key="5", title="The Altitude to the Hypotenuse",
          look="A right triangle with the altitude from its right angle; the hypotenuse is cut into two pieces.",
          move="The altitude makes three similar right triangles. Each leg is the geometric mean of the whole "
-              "hypotenuse and its own piece (a/4 = 12/a), and the altitude of the two pieces (4/h = h/8). "
+              "hypotenuse and its own piece ($a/4 = 12/a$), and the altitude of the two pieces ($4/h = h/8$). "
               "Simplify each radical.",
          instructions=EXACT, space="1.6in"),
 ]
