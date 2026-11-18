@@ -25,7 +25,8 @@ COURSES = courses(13)
 TYPES = [
     dict(key="1", title="Two Binomials",
          look="Two binomials with any coefficients.",
-         move="Multiply each term of the first by each term of the second, then combine like terms. Write the x^2 term first."),
+         move="Multiply each term of the first by each term of the second, then combine like terms. Write the "
+              "$x^2$ term first."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

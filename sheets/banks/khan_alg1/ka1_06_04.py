@@ -37,8 +37,8 @@ COURSES = courses(6)
 TYPES = [
     dict(key="1", title="What Does the Point Mean?",
          look="A story, the graph of its two equations, and a point.",
-         move="Is the point on line a, on line b, on both (the crossing), or on neither? Above a line means more "
-              "than that equation allows; below means less. Then say it in the story's words.", width="full"),
+         move="Is the point on line $a$, on line $b$, on both (the crossing), or on neither? Above a line "
+              "means more than that equation allows; below means less. Then say it in the story's words.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

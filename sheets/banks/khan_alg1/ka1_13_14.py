@@ -24,11 +24,11 @@ COURSES = courses(13)
 
 TYPES = [
     dict(key="1", title="Factor a Perfect Square", instructions="Factor as the product of two binomials.",
-         look="x^2, a perfect square, and a middle term twice the product of their roots.",
-         move="x^2 + 2 r x + r^2 = (x + r)^2. Find r from the constant, and check the middle term."),
+         look="$x^2$, a perfect square, and a middle term twice the product of their roots.",
+         move="$x^2 + 2 r x + r^2 = (x + r)^2$. Find $r$ from the constant, and check the middle term."),
     dict(key="2", title="The Side of a Square", instructions="Answer each question.",
          look="A square whose area is a perfect square trinomial.",
-         move="Factor the area as (x + r)^2. Each side is x + r.", width="full"),
+         move="Factor the area as $(x + r)^2$. Each side is $x + r$.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

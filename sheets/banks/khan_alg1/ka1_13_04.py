@@ -22,8 +22,9 @@ COURSES = courses(13)
 
 TYPES = [
     dict(key="1", title="Two Binomials",
-         look="Two binomials, each x plus or minus a number.",
-         move="Multiply each term of the first by each term of the second (or use an area model), then combine the x terms."),
+         look="Two binomials, each $x$ plus or minus a number.",
+         move="Multiply each term of the first by each term of the second (or use an area model), then combine "
+              "the $x$ terms."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

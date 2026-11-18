@@ -25,11 +25,11 @@ COURSES = courses(6)
 
 TYPES = [
     dict(key="1", title="Solved for y",
-         look="One equation is y = ... .",
-         move="Put that expression in for y in the other equation. Solve for x, then find y."),
+         look="One equation is $y = ...$ .",
+         move="Put that expression in for $y$ in the other equation. Solve for $x$, then find $y$."),
     dict(key="2", title="Solved for x",
-         look="One equation is x = ... .",
-         move="Put that expression in for x in the other equation. Solve for y, then find x."),
+         look="One equation is $x = ...$ .",
+         move="Put that expression in for $x$ in the other equation. Solve for $y$, then find $x$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

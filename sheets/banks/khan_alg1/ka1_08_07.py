@@ -30,11 +30,13 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="An Input and Its Output",
-         look="A statement like H(13) = 82: the function at one input.",
-         move="The number in the parentheses is the input; the number after = is the output. Say each in the story's words."),
+         look="A statement like $H(13) = 82$: the function at one input.",
+         move="The number in the parentheses is the input; the number after $=$ is the output. Say each in the "
+              "story's words."),
     dict(key="2", title="Comparing Outputs",
-         look="A statement comparing the function at two inputs: H(13) > H(11), T(40) = T(20) + 15.",
-         move="Each F( ) is an output at its input. Say which output is greater (or by how much), at which input.",
+         look="A statement comparing the function at two inputs: $H(13) > H(11)$, $T(40) = T(20) + 15$.",
+         move="Each $F(quad)$ is an output at its input. Say which output is greater (or by how much), at "
+              "which input.",
          width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")

@@ -34,14 +34,14 @@ WORDS_OF = {w: k for k, w in WORDS.items()}
 TYPES = [
     dict(key="1", title="Older By, and Years Ago",
          look="How much older one person is, and a multiple some years ago.",
-         move="Let a letter stand for each age now. One equation: the difference. The other: subtract the years "
-              "from both ages, then one is k times the other.", width="full"),
+         move="Let a letter stand for each age now. One equation: the difference. The other: subtract the "
+              "years from both ages, then one is $k$ times the other.", width="full"),
     dict(key="2", title="Times as Old, and Older By",
-         look="One person is k times as old as the other and also d years older.",
-         move="Two equations, both about ages now: a = k b and a = b + d.", width="full"),
+         look="One person is $k$ times as old as the other and also $d$ years older.",
+         move="Two equations, both about ages now: $a = k b$ and $a = b + d$.", width="full"),
     dict(key="3", title="Times as Old, Now and Years Ago",
          look="A multiple now, and a different multiple some years ago.",
-         move="a = k b now; (a - t) = m (b - t) years ago. Substitute the first into the second.", width="full"),
+         move="$a = k b$ now; $(a - t) = m (b - t)$ years ago. Substitute the first into the second.", width="full"),
     dict(key="4", title="Into the Future",
          look="What will be true some years from now.",
          move="Add the years to every age that changes. Write the equation, then solve.", width="full"),

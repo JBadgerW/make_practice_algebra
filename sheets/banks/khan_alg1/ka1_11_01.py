@@ -30,10 +30,10 @@ COURSES = courses(11)
 TYPES = [
     dict(key="1", title="Multiply Powers",
          look="Two powers of the same base multiplied.",
-         move="Keep the base and add the exponents: b^m · b^n = b^(m + n)."),
+         move="Keep the base and add the exponents: $b^m dot b^n = b^(m + n)$."),
     dict(key="2", title="Divide Powers",
          look="A power over a power of the same base.",
-         move="Keep the base and subtract the exponents: b^m / b^n = b^(m - n)."),
+         move="Keep the base and subtract the exponents: $b^m / b^n = b^(m - n)$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

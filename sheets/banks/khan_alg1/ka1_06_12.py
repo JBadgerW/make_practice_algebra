@@ -28,12 +28,12 @@ COUNT = {"one": CHOICES[0], "none": CHOICES[1], "many": CHOICES[2]}
 
 TYPES = [
     dict(key="1", title="Slope-Intercept Form",
-         look="Both equations are y = m x + b.",
+         look="Both equations are $y = m x + b$.",
          move="Different slopes: one solution. The same slope: no solution if the intercepts differ, "
               "infinitely many if they match."),
     dict(key="2", title="A Multiple of an Equation",
-         look="One equation is like 3 y = 6 x + 9: a multiple of y = m x + b.",
-         move="Divide that equation by its number to get y = m x + b. Then compare slopes and intercepts."),
+         look="One equation is like $3 y = 6 x + 9$: a multiple of $y = m x + b$.",
+         move="Divide that equation by its number to get $y = m x + b$. Then compare slopes and intercepts."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

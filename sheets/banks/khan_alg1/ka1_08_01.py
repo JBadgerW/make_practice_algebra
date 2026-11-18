@@ -26,10 +26,10 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="Linear Functions",
-         look="A function like f(x) = 3 x + 4, and an input.",
+         look="A function like $f(x) = 3 x + 4$, and an input.",
          move="Put the input in for the letter everywhere it appears, then compute."),
     dict(key="2", title="With a Fraction or a Decimal",
-         look="A function with x/4 or 0.5 x in it.",
+         look="A function with $x/4$ or $0.5 x$ in it.",
          move="Put the input in and compute; the input is chosen so the fraction comes out whole."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")

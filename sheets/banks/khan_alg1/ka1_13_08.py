@@ -41,8 +41,8 @@ TYPES = [
          width="full", space="0.75in"),
     dict(key="2", title="Factor Out the GCF", instructions="Which expression is the result of factoring out the greatest common factor?",
          look="A polynomial whose terms share a factor.",
-         move="Find the greatest number (and the highest power of x) that divides every term. Write it in front, "
-              "and each term divided by it inside the parentheses.", space="0.5in"),
+         move="Find the greatest number (and the highest power of $x$) that divides every term. Write it in "
+              "front, and each term divided by it inside the parentheses.", space="0.5in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

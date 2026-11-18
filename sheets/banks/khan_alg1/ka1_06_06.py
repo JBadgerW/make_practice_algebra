@@ -26,7 +26,7 @@ COURSES = courses(6)
 TYPES = [
     dict(key="1", title="Add the Equations", instructions="What is the result of adding the two equations?",
          look="Two equations in standard form.",
-         move="Add the x terms, add the y terms, and add the numbers on the right."),
+         move="Add the $x$ terms, add the $y$ terms, and add the numbers on the right."),
     dict(key="2", title="Subtract the Equations",
          instructions="What is the result of subtracting the second equation from the first?",
          look="Two equations in standard form.",

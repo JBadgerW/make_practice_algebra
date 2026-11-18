@@ -29,7 +29,8 @@ TYPES = [
          move="Take the square root of the top and of the bottom."),
     dict(key="2", title="Decimals",
          look="The square root of a decimal.",
-         move="Think of the decimal as a fraction over 100 (0.36 = 36/100), or ask which tenth, times itself, makes it."),
+         move="Think of the decimal as a fraction over $100$ ($0.36 = 36/100$), or ask which tenth, times "
+              "itself, makes it."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

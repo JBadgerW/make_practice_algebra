@@ -25,7 +25,7 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="Input from an Output",
-         look="A function and the value it outputs: f( ) = 26.",
+         look="A function and the value it outputs: $f(quad) = 26$.",
          move="Set the function's rule equal to the output, and solve for the letter."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")

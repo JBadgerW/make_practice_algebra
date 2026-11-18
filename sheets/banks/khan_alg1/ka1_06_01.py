@@ -26,8 +26,9 @@ CHOICES = ["Yes", "No"]
 
 TYPES = [
     dict(key="1", title="Check a Point",
-         look="A system and a point (x, y).",
-         move="Put x and y into each equation. The point is a solution only if both equations come out true."),
+         look="A system and a point $(x, y)$.",
+         move="Put $x$ and $y$ into each equation. The point is a solution only if both equations come out "
+              "true."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

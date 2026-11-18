@@ -31,11 +31,11 @@ COURSES = courses(2)
 
 TYPES = [
     dict(key="1", title="Distribute First",
-         look="A number times a sum on one side, like -6(x + 7).",
-         move="Distribute and simplify. Different coefficients of x: exactly one solution. The same coefficient: "
-              "no solution if the numbers differ, infinitely many if they match."),
+         look="A number times a sum on one side, like $-6(x + 7)$.",
+         move="Distribute and simplify. Different coefficients of $x$: exactly one solution. The same "
+              "coefficient: no solution if the numbers differ, infinitely many if they match."),
     dict(key="2", title="Combine Like Terms First",
-         look="Two x terms on one side, like 5x + 8 - 7x.",
+         look="Two $x$ terms on one side, like $5 x + 8 - 7 x$.",
          move="Combine like terms on each side, then compare as in Type 1."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")

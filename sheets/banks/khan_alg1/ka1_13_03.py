@@ -22,8 +22,8 @@ COURSES = courses(13)
 
 TYPES = [
     dict(key="1", title="Two Binomials",
-         look="An area model with x and a number on each side.",
-         move="Find the area of each of the four boxes, then add them and combine the two x terms."),
+         look="An area model with $x$ and a number on each side.",
+         move="Find the area of each of the four boxes, then add them and combine the two $x$ terms."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

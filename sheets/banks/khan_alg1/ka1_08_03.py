@@ -25,8 +25,8 @@ X0, X1 = -10, 10
 
 TYPES = [
     dict(key="1", title="Combine Two Functions' Values",
-         look="An expression like a f(b) + c g(d), and the graphs of f and g.",
-         move="Read f(b) off f's graph and g(d) off g's. Then multiply and add, minding the signs.", width="full"),
+         look="An expression like $a f(b) + c g(d)$, and the graphs of $f$ and $g$.",
+         move="Read $f(b)$ off $f$'s graph and $g(d)$ off $g$'s. Then multiply and add, minding the signs.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

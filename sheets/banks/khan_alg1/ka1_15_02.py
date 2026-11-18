@@ -38,11 +38,12 @@ CHOICES = ["Rational", "Irrational", EITHER]
 TYPES = [
     dict(key="1", title="Numbers",
          look="Sums, products, and quotients of particular numbers: fractions and square roots.",
-         move="Simplify first: sqrt(12) · sqrt(3) = sqrt(36) = 6. Rational if it's a fraction of integers in the end."),
+         move="Simplify first: $sqrt(12) dot sqrt(3) = sqrt(36) = 6$. Rational if it's a fraction of integers "
+              "in the end."),
     dict(key="2", title="Rational and Irrational Letters",
          look="Letters that stand for rational or irrational numbers.",
-         move="Rational with rational stays rational. Rational (not zero) with irrational, by +, -, ·, or ÷, is "
-              "irrational. Two irrationals can give either: sqrt(2) · sqrt(2) = 2.", width="full"),
+         move="Rational with rational stays rational. Rational (not zero) with irrational, by $+$, $-$, $dot$, "
+              "or $div$, is irrational. Two irrationals can give either: $sqrt(2) dot sqrt(2) = 2$.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

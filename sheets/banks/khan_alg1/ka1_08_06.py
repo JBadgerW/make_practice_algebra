@@ -30,16 +30,16 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="Output and Input Terms",
-         look="A a + B b = C: one output term and one input term.",
+         look="$A a + B b = C$: one output term and one input term.",
          move="Solve for the output: move the input term across, then divide by the output's coefficient."),
     dict(key="2", title="Both Letters on Both Sides",
-         look="A b + B a = C b + D a.",
+         look="$A b + B a = C b + D a$.",
          move="Gather the output terms on one side and the input terms on the other, then divide."),
     dict(key="3", title="Distribute First",
-         look="a + B = C (b + E).",
+         look="$a + B = C (b + E)$.",
          move="Distribute, then move the number across to get the output alone."),
     dict(key="4", title="A Number with Each Letter",
-         look="A b + B = C a + D.",
+         look="$A b + B = C a + D$.",
          move="Move the number on the output's side across, then divide by the output's coefficient."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in", width="full")     # the sentence and its equation on one line

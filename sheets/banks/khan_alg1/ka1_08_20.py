@@ -57,7 +57,8 @@ TYPES = [
               "the same rate means the graph is one straight line there.", width="full"),
     dict(key="2", title="The Average Rate",
          look="A story's graph and an interval.",
-         move="Read the values at both ends. Rate = (change in output)/(change in input), in the story's units.",
+         move='Read the values at both ends. Rate $= ("change in output")/("change in input")$, in the '
+              "story's units.",
          width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")

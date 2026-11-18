@@ -24,8 +24,8 @@ COURSES = courses(13)
 
 TYPES = [
     dict(key="1", title="Factor a Difference of Squares", instructions="Factor as the product of two binomials.",
-         look="x^2 minus a perfect square, or a perfect square minus x^2.",
-         move="a^2 - b^2 = (a - b)(a + b). The middle terms cancel when you multiply back."),
+         look="$x^2$ minus a perfect square, or a perfect square minus $x^2$.",
+         move="$a^2 - b^2 = (a - b)(a + b)$. The middle terms cancel when you multiply back."),
     dict(key="2", title="A Missing Side", instructions="Answer each question.",
          look="A rectangle whose area is a difference of squares, and one of its sides.",
          move="Factor the area. One factor is the side you know; the other is the side you want.", width="full"),

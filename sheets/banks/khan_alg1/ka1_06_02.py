@@ -35,11 +35,11 @@ COLORS = ("blue", "red")
 TYPES = [
     dict(key="1", title="Read the Solution",
          look="A system of two equations and the graph of its two lines.",
-         move="The solution is where the lines cross. Read its x and y, then check it in both equations.",
+         move="The solution is where the lines cross. Read its $x$ and $y$, then check it in both equations.",
          width="full"),
     dict(key="2", title="Choose the Solution",
          look="A system, its graph, and four points.",
-         move="Find where the lines cross. The order matters: (x, y). Check the point in both equations.",
+         move="Find where the lines cross. The order matters: $(x, y)$. Check the point in both equations.",
          width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")

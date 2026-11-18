@@ -31,7 +31,7 @@ TYPES = [
          move="Distribute, then combine like terms on that side. Then solve."),
     dict(key="3", title="A Minus Sign Before Parentheses",
          look="-( ... ): a minus sign in front of the parentheses.",
-         move="The minus sign is -1 times the parentheses: change the sign of every term inside. Then solve."),
+         move="The minus sign is $-1$ times the parentheses: change the sign of every term inside. Then solve."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

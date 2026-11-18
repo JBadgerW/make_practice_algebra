@@ -29,7 +29,7 @@ COURSES = courses(13)
 TYPES = [
     dict(key="1", title="Perfect Square Trinomials",
          look="A trinomial whose first and last terms are squares, its middle term twice their product.",
-         move="a^2 + 2 a b + b^2 = (a + b)^2: find a and b, and check the middle term."),
+         move="$a^2 + 2 a b + b^2 = (a + b)^2$: find $a$ and $b$, and check the middle term."),
     dict(key="2", title="A Common Factor First",
          look="A perfect square trinomial times a number.",
          move="Take out the greatest common factor first. What's left is a perfect square trinomial."),

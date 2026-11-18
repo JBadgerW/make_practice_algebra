@@ -27,8 +27,9 @@ COURSES = courses(13)
 
 TYPES = [
     dict(key="1", title="Leading Coefficient Not 1",
-         look="A quadratic a x^2 + b x + c whose a isn't 1, with no common factor.",
-         move="Find two numbers that multiply to a c and add to b. Split the middle term with them, then factor by grouping."),
+         look="A quadratic $a x^2 + b x + c$ whose $a$ isn't $1$, with no common factor.",
+         move="Find two numbers that multiply to $a c$ and add to $b$. Split the middle term with them, then "
+              "factor by grouping."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

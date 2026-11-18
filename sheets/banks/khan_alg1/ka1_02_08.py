@@ -36,7 +36,7 @@ TYPES = [
          move="Gather the terms with the variable on one side and the rest on the other. Factor the "
               "variable out of its terms, then divide by what's left."),
     dict(key="2", title="Like Terms to Combine",
-         look="Two variable terms on one side, like a x + 3 x.",
+         look="Two variable terms on one side, like $a x + 3 x$.",
          move="Gather every variable term on one side, factor the variable out, and divide."),
     dict(key="3", title="Distribute First",
          look="A letter or number times parentheses that hold the variable.",

@@ -29,7 +29,7 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="In the Domain or Not?",
-         look="A function and three x-values.",
+         look="A function and three $x$-values.",
          move="Put each value in. If it makes a denominator 0, or the inside of a square root negative, it isn't in the domain."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in")

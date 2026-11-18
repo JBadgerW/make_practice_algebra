@@ -28,8 +28,8 @@ COURSES = courses(8)
 TYPES = [
     dict(key="1", title="Where Is It Positive or Negative?",
          look="The graph of a function and three intervals.",
-         move="Positive means above the x-axis; negative, below. The graph must stay on that side for the whole "
-              "interval, without crossing.", width="full"),
+         move="Positive means above the $x$-axis; negative, below. The graph must stay on that side for the "
+              "whole interval, without crossing.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

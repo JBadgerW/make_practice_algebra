@@ -32,17 +32,18 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="From a Table", instructions="Find each value.",
-         look="A table of inputs and outputs of f, and expressions with f and f^(-1).",
-         move="f^(-1)(a) is the input that gives the output a: find a in the outputs column. f^(-1)(f(c)) undoes f: "
-              "it's c.", width="full"),
+         look="A table of inputs and outputs of $f$, and expressions with $f$ and $f^(-1)$.",
+         move="$f^(-1)(a)$ is the input that gives the output $a$: find $a$ in the outputs column. "
+              "$f^(-1)(f(c))$ undoes $f$: it's $c$.", width="full"),
     dict(key="2", title="From a Graph", instructions="Find each value.",
-         look="The graph of f and a value of its inverse to find.",
-         move="f^(-1)(k) is the x where f(x) = k: find k on the y-axis, go across to the graph, read its x.",
+         look="The graph of $f$ and a value of its inverse to find.",
+         move="$f^(-1)(k)$ is the $x$ where $f(x) = k$: find $k$ on the $y$-axis, go across to the graph, read "
+              "its $x$.",
          width="full"),
     dict(key="3", title="Graph the Inverse", instructions="Graph each inverse on the grid.",
-         look="The graph of y = h(x), a line segment.",
-         move="Trade x and y in each endpoint: (a, b) becomes (b, a). Connect the new endpoints; it's the mirror "
-              "image across y = x.", width="full"),
+         look="The graph of $y = h(x)$, a line segment.",
+         move="Trade $x$ and $y$ in each endpoint: $(a, b)$ becomes $(b, a)$. Connect the new endpoints; it's "
+              "the mirror image across $y = x$.", width="full"),
 ]
 T = gen.Types(TYPES, "", space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

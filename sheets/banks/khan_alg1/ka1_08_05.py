@@ -31,14 +31,14 @@ NONE = "None of the above"
 
 TYPES = [
     dict(key="1", title="The One Input",
-         look="An output of g, reached at one input.",
-         move="Find the output on the y-axis, go across to the graph, then down or up to the x-axis.", width="full"),
+         look="An output of $g$, reached at one input.",
+         move="Find the output on the $y$-axis, go across to the graph, then down or up to the $x$-axis.", width="full"),
     dict(key="2", title="The Other Input",
-         look="An output of g reached at two inputs, one of them given.",
+         look="An output of $g$ reached at two inputs, one of them given.",
          move="Go across from the output: the graph meets that height twice. The answer is the other crossing.",
          width="full"),
     dict(key="3", title="Select All the Inputs",
-         look="An output of g and three inputs to test.",
+         look="An output of $g$ and three inputs to test.",
          move="Check each input: go up or down to the graph and read its output. If none gives the output, choose "
               "None of the above.", width="full"),
 ]

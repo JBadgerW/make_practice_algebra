@@ -28,7 +28,7 @@ COURSES = courses(13)
 TYPES = [
     dict(key="1", title="Difference of Squares",
          look="A square minus a square.",
-         move="a^2 - b^2 = (a - b)(a + b): find what was squared, then write the two binomials."),
+         move="$a^2 - b^2 = (a - b)(a + b)$: find what was squared, then write the two binomials."),
     dict(key="2", title="A Common Factor First",
          look="A difference of squares times a number.",
          move="Take out the greatest common factor first. What's left is a difference of squares."),

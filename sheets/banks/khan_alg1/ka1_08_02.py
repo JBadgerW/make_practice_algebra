@@ -26,9 +26,9 @@ X0, X1 = -8, 8
 
 TYPES = [
     dict(key="1", title="Read f(a) off the Graph",
-         look="The graph of f and an input.",
-         move="Go to the input on the x-axis, straight up or down to the graph, then across to the y-axis: that's "
-              "the output.", width="full"),
+         look="The graph of $f$ and an input.",
+         move="Go to the input on the $x$-axis, straight up or down to the graph, then across to the $y$-axis: "
+              "that's the output.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

@@ -37,8 +37,8 @@ COURSES = courses(2)
 TYPES = [
     dict(key="1", title="How Many?",
          look="A starting amount, a rate per item, and a limit; the question asks for the number of items.",
-         move="Write start + rate · n with ≤ (at most, no more than) or ≥ (at least). Solve, then round to a "
-              "whole number the way the story allows: down for at most, up for at least.", width="full"),
+         move='Write $"start" + "rate" dot n$ with $<=$ (at most, no more than) or $>=$ (at least). Solve, '
+              "then round to a whole number the way the story allows: down for at most, up for at least.", width="full"),
     dict(key="2", title="One More Step",
          look="The same model, but the question asks for something that comes from the count: slices, "
               "pancakes, dollars.",

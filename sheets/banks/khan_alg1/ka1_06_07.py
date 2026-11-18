@@ -36,7 +36,8 @@ COURSES = courses(6)
 TYPES = [
     dict(key="1", title="Which Strategies Work?",
          look="A system, and strategies that multiply the equations and add or subtract them.",
-         move="For each strategy, work out just the x terms and just the y terms. It works if either comes to 0.",
+         move="For each strategy, work out just the $x$ terms and just the $y$ terms. It works if either comes "
+              "to $0$.",
          width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")

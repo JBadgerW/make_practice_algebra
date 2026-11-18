@@ -33,7 +33,7 @@ TYPES = [
          look="The rectangle's height is a number.",
          move="Multiply the height by each term of the width: one box at a time. Add the boxes."),
     dict(key="2", title="An x Term Times a Polynomial",
-         look="The rectangle's height is a number times x.",
+         look="The rectangle's height is a number times $x$.",
          move="Multiply the height by each term of the width: the x's add to the exponents. Add the boxes."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")

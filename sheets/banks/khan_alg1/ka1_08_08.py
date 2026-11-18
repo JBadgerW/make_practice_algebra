@@ -30,11 +30,11 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="The Domain",
-         look="The whole graph of f: a curve or separate points.",
-         move="The domain is every x the graph covers: read left to right. A curve covers an interval; separate "
-              "points cover just their x-values.", width="full"),
+         look="The whole graph of $f$: a curve or separate points.",
+         move="The domain is every $x$ the graph covers: read left to right. A curve covers an interval; "
+              "separate points cover just their $x$-values.", width="full"),
     dict(key="2", title="The Range",
-         look="The whole graph of f: a curve or separate points.",
+         look="The whole graph of $f$: a curve or separate points.",
          move="The range is every output the graph reaches: read bottom to top, from the lowest point to the highest.",
          width="full"),
 ]

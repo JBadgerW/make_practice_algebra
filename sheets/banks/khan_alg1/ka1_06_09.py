@@ -25,7 +25,7 @@ COURSES = courses(6)
 
 TYPES = [
     dict(key="1", title="Multiply One Equation",
-         look="One coefficient is a multiple of the other equation's, like 2x and 6x.",
+         look="One coefficient is a multiple of the other equation's, like $2 x$ and $6 x$.",
          move="Multiply that equation so the coefficients are opposites. Then add, solve, and put the value back."),
     dict(key="2", title="Multiply Both Equations",
          look="No coefficient is a multiple of the other equation's.",

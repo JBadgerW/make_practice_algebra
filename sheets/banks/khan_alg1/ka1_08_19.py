@@ -33,11 +33,11 @@ SIGN = {"positive": lambda v: v > 0, "negative": lambda v: v < 0, "zero": lambda
 TYPES = [
     dict(key="1", title="Over an Interval", instructions="Give an exact number.",
          look="A graph and an interval of inputs.",
-         move="Read f at both ends of the interval. Average rate of change = (f(b) - f(a))/(b - a).", width="full"),
+         move="Read $f$ at both ends of the interval. Average rate of change $= (f(b) - f(a))/(b - a)$.", width="full"),
     dict(key="2", title="Which Interval?", instructions="Choose 1 answer.",
          look="A graph and four intervals: on which is the average rate of change positive (negative, zero)?",
-         move="Compare f at the two ends of each interval: higher at the right end is positive, lower is negative, "
-              "the same is zero.", width="full"),
+         move="Compare $f$ at the two ends of each interval: higher at the right end is positive, lower is "
+              "negative, the same is zero.", width="full"),
 ]
 T = gen.Types(TYPES, "", space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

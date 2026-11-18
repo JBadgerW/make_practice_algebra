@@ -25,7 +25,7 @@ COURSES = courses(6)
 
 TYPES = [
     dict(key="1", title="Opposite Coefficients",
-         look="The x terms (or the y terms) are opposites, like 2x and -2x.",
+         look="The $x$ terms (or the $y$ terms) are opposites, like $2 x$ and $-2 x$.",
          move="Add the equations: that letter drops out. Solve for the other letter, then put it back into either equation."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in")

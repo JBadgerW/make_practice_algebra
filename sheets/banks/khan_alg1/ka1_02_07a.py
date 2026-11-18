@@ -30,7 +30,7 @@ COURSES = courses(2)
 TYPES = [
     dict(key="1", title="Which Equations?",
          look="Four equations that look alike, built from the same two numbers.",
-         move="Compare the x coefficients first: different, exactly one solution. The same: compare the "
+         move="Compare the $x$ coefficients first: different, exactly one solution. The same: compare the "
               "constants: different, no solution; the same, infinitely many."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")

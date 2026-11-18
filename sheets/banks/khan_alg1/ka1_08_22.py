@@ -31,14 +31,14 @@ DEF = re.compile(r"\s*(\w)\(x\)\s*=\s*(.+)")
 
 TYPES = [
     dict(key="1", title="Whole-Number Coefficients",
-         look="f(x) = a x + b.",
-         move="Write y = a x + b, swap x and y, and solve for y: subtract b, then divide by a."),
+         look="$f(x) = a x + b$.",
+         move="Write $y = a x + b$, swap $x$ and $y$, and solve for $y$: subtract $b$, then divide by $a$."),
     dict(key="2", title="A Fraction Coefficient",
-         look="f(x) = (p/q) x + b.",
-         move="Swap x and y, subtract b, then multiply by the reciprocal q/p."),
+         look="$f(x) = (p/q) x + b$.",
+         move="Swap $x$ and $y$, subtract $b$, then multiply by the reciprocal $q/p$."),
     dict(key="3", title="A Number Times a Sum",
-         look="f(x) = k (x + c).",
-         move="Swap x and y, divide by k, then subtract c."),
+         look="$f(x) = k (x + c)$.",
+         move="Swap $x$ and $y$, divide by $k$, then subtract $c$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

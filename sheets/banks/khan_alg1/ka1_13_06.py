@@ -23,7 +23,8 @@ COURSES = courses(13)
 TYPES = [
     dict(key="1", title="Sum Times Difference",
          look="Two binomials alike but for one sign.",
-         move="The middle terms cancel: (a + b)(a - b) = a^2 - b^2. Square the first term, subtract the square of the second."),
+         move="The middle terms cancel: $(a + b)(a - b) = a^2 - b^2$. Square the first term, subtract the "
+              "square of the second."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

@@ -33,11 +33,11 @@ COURSES = courses(11)
 
 TYPES = [
     dict(key="1", title="Power of a Product",
-         look="A product of powers, raised to a power: (a^m · b^n)^k.",
-         move="Raise each factor to the outside power by multiplying exponents: a^(m k) · b^(n k). "
-              "A negative exponent means the factor belongs on the other side of a fraction bar."),
+         look="A product of powers, raised to a power: $(a^m dot b^n)^k$.",
+         move="Raise each factor to the outside power by multiplying exponents: $a^(m k) dot b^(n k)$. A "
+              "negative exponent means the factor belongs on the other side of a fraction bar."),
     dict(key="2", title="Power of a Quotient",
-         look="A quotient of powers, raised to a power: (a^m / b^n)^k.",
+         look="A quotient of powers, raised to a power: $(a^m / b^n)^k$.",
          move="Raise the top and the bottom to the outside power by multiplying exponents. "
               "Then move any factor with a negative exponent across the fraction bar."),
 ]

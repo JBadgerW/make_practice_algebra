@@ -30,9 +30,9 @@ CHOICES = ["Rational", "Irrational"]
 
 TYPES = [
     dict(key="1", title="Rational or Irrational?",
-         look="A decimal, a fraction, a square root, or a number with pi.",
+         look="A decimal, a fraction, a square root, or a number with $pi$.",
          move="Rational: it can be written as a fraction of integers (terminating and repeating decimals, "
-              "square roots of perfect squares). Irrational: it can't (square roots of other numbers, pi)."),
+              "square roots of perfect squares). Irrational: it can't (square roots of other numbers, $pi$)."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
