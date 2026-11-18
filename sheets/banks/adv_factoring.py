@@ -34,21 +34,21 @@ COURSES = {"Advanced Math": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Simplify by the Difference of Two Squares", instructions="Simplify.",
-         look="A fraction whose top is a difference of two squares, like y^(4 m) - x^(2 n), and whose "
-              "bottom is the sum or the difference of their square roots.",
-         move="Factor the top: A^2 - B^2 = (A + B)(A - B). Cancel the factor that matches the bottom."),
+         look="A fraction whose top is a difference of two squares, like $y^(4 m) - x^(2 n)$, and whose bottom "
+              "is the sum or the difference of their square roots.",
+         move="Factor the top: $A^2 - B^2 = (A + B)(A - B)$. Cancel the factor that matches the bottom."),
     dict(key="2", title="A Difference of Two Squares",
          look="Two squares subtracted; the exponents are even multiples of a letter.",
-         move="A^2 - B^2 = (A + B)(A - B), with A and B the square roots: the square root of x^(6 n) "
-              "is x^(3 n). If a factor is still a difference of squares, factor it again."),
+         move="$A^2 - B^2 = (A + B)(A - B)$, with $A$ and $B$ the square roots: the square root of $x^(6 n)$ "
+              "is $x^(3 n)$. If a factor is still a difference of squares, factor it again."),
     dict(key="3", title="A Sum or Difference of Cubes",
          look="Two cubes added or subtracted: the numbers are cubes and the exponents multiples of 3.",
-         move="A^3 + B^3 = (A + B)(A^2 - A B + B^2) and A^3 - B^3 = (A - B)(A^2 + A B + B^2). "
-              "Find A and B by taking cube roots.", space="1.25in"),
+         move="$A^3 + B^3 = (A + B)(A^2 - A B + B^2)$ and $A^3 - B^3 = (A - B)(A^2 + A B + B^2)$. Find $A$ and "
+              "$B$ by taking cube roots.", space="1.25in"),
     dict(key="4", title="A Greatest Common Factor with Letter Exponents",
-         look="Terms with the same letter, its exponents written with another letter, like y^(2 n + 1).",
+         look="Terms with the same letter, its exponents written with another letter, like $y^(2 n + 1)$.",
          move="Take out the largest number that divides every coefficient and each letter to its smallest "
-              "power. Subtract exponents to find what is left: y^(3 n + 2) ÷ y^(2 n + 1) = y^(n + 1)."),
+              "power. Subtract exponents to find what is left: $y^(3 n + 2) div y^(2 n + 1) = y^(n + 1)$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
