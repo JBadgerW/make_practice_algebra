@@ -29,20 +29,21 @@ TYPES = [
          look="One equation has only two of the variables.",
          move="Eliminate that same variable from the other two equations; then solve the two equations in the same two variables."),
     dict(key="4", title="Eliminate",
-         look="Every variable in every equation, and some coefficients are 1 or −1.",
-         move="Pick the variable with a coefficient of 1 or −1 and eliminate it from two pairs of equations."),
+         look="Every variable in every equation, and some coefficients are $1$ or $-1$.",
+         move="Pick the variable with a coefficient of $1$ or $-1$ and eliminate it from two pairs of "
+              "equations."),
     dict(key="5", title="Eliminate and Scale",
-         look="Every variable in every equation, and no coefficient is 1 or −1.",
+         look="Every variable in every equation, and no coefficient is $1$ or $-1$.",
          move="Multiply one or both equations so a variable's coefficients are opposites, then add; do it for two pairs."),
     dict(key="6", title="Clear Fractions and Decimals", courses=["Advanced Math"],
          look="Fractions and decimals for coefficients, and each equation is missing a variable.",
          move="Multiply each equation by the LCD or a power of 10 to clear it; then solve the integer system."),
     dict(key="A", title="No Solution", special=True,
          look="Two equations' left sides combine to make the third's, but the constants don't.",
-         move="Eliminate as usual. A false statement such as 0 = 7 means there is no solution."),
+         move="Eliminate as usual. A false statement such as $0 = 7$ means there is no solution."),
     dict(key="B", title="Infinitely Many Solutions", special=True,
          look="One equation is a combination of the other two, constants included.",
-         move="Eliminate as usual. A true statement such as 0 = 0 means infinitely many solutions."),
+         move="Eliminate as usual. A true statement such as $0 = 0$ means infinitely many solutions."),
 ]
 TYPE = {t["key"]: t for t in TYPES}
 KEYS = [t["key"] for t in TYPES]
