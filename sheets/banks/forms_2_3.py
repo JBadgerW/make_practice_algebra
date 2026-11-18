@@ -49,23 +49,25 @@ COURSES = {"Algebra 1": "Lessons"}
 
 TYPES = [
     dict(key="1", title="To Slope-Intercept Form", instructions="Write each equation in slope-intercept form.",
-         look="A line in another form, like 2 x - 3 y = 12, and slope-intercept form, y = m x + b, asked for.",
-         move="Get y alone. Move the x term to the other side (-3 y = -2 x + 12), then divide every "
-              "term by y's coefficient: y = 2/3 x - 4."),
+         look="A line in another form, like $2 x - 3 y = 12$, and slope-intercept form, $y = m x + b$, asked "
+              "for.",
+         move="Get $y$ alone. Move the $x$ term to the other side ($-3 y = -2 x + 12$), then divide every term "
+              "by $y$'s coefficient: $y = 2/3 x - 4$."),
     dict(key="2", title="To Standard Form", instructions="Write each equation in standard form.",
-         look="A line in another form, like y + 3 = 2/3 (x - 4), and standard form, A x + B y = C, asked for.",
-         move="Clear fractions by multiplying both sides by the denominator: 3 y + 9 = 2 (x - 4). "
-              "Put x and y on the left and the number on the right: -2 x + 3 y = -17. "
-              "Make A positive (multiply by -1) and divide out any common factor: 2 x - 3 y = 17."),
+         look="A line in another form, like $y + 3 = 2/3 (x - 4)$, and standard form, $A x + B y = C$, asked "
+              "for.",
+         move="Clear fractions by multiplying both sides by the denominator: $3 y + 9 = 2 (x - 4)$. Put $x$ "
+              "and $y$ on the left and the number on the right: $-2 x + 3 y = -17$. Make $A$ positive "
+              "(multiply by $-1$) and divide out any common factor: $2 x - 3 y = 17$."),
     dict(key="3", title="To General Form", instructions="Write each equation in general form.",
-         look="A line in another form, like x/6 - y/4 = 1, and general form, A x + B y + C = 0, asked for.",
-         move="Clear fractions (multiply by 12: 2 x - 3 y = 12), then move everything to the left so "
-              "the right side is 0: 2 x - 3 y - 12 = 0. A is positive, with no common factor."),
+         look="A line in another form, like $x/6 - y/4 = 1$, and general form, $A x + B y + C = 0$, asked for.",
+         move="Clear fractions (multiply by $12$: $2 x - 3 y = 12$), then move everything to the left so the "
+              "right side is $0$: $2 x - 3 y - 12 = 0$. $A$ is positive, with no common factor."),
     dict(key="4", title="To Intercept Form", instructions="Write each equation in intercept form.",
-         look="A line in another form, like y = 2/3 x - 4, and intercept form, x/a + y/b = 1, asked for.",
-         move="Find the intercepts: y = 0 gives x = 6, and x = 0 gives y = -4. Then write "
-              "x/6 + y/(-4) = 1, with the sign out front: x/6 - y/4 = 1. Or: get the number alone "
-              "on the right, 2 x - 3 y = 12, and divide every term by it."),
+         look="A line in another form, like $y = 2/3 x - 4$, and intercept form, $x/a + y/b = 1$, asked for.",
+         move="Find the intercepts: $y = 0$ gives $x = 6$, and $x = 0$ gives $y = -4$. Then write $x/6 + "
+              "y/(-4) = 1$, with the sign out front: $x/6 - y/4 = 1$. Or: get the number alone on the right, "
+              "$2 x - 3 y = 12$, and divide every term by it."),
 ]
 
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in")
