@@ -25,15 +25,16 @@ COURSES = {"Advanced Math": "Additional Practice"}
 TYPES = [
     dict(key="1", title="Digit Problems",
          look="A two-digit number and the number with its digits reversed.",
-         move="Let t be the tens digit and u the units digit. The number is 10t + u, and reversed it is "
-              "10u + t. Write two equations from the facts and solve the system."),
+         move="Let $t$ be the tens digit and $u$ the units digit. The number is $10 t + u$, and reversed it is "
+              "$10 u + t$. Write two equations from the facts and solve the system."),
     dict(key="2", title="Coin Problems",
          look="A number of coins, their total value, and how the kinds compare.",
          move="Let a letter stand for each kind of coin. Write one equation for the number of coins, one for "
               "their value in cents (5, 10, 25), and one for each comparison. Solve the system."),
     dict(key="3", title="Averages",
          look="Scores and an average, with one score missing.",
-         move="average × number of scores = sum of the scores. Write that sum with x for the missing score and solve."),
+         move='$"average" times "number of scores" = "sum of the scores"$. Write that sum with $x$ for the '
+              "missing score and solve."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.5in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
