@@ -40,11 +40,11 @@ TYPES = [
          move="Multiply the top and the bottom by the powers that clear every negative exponent. "
               "Simplify to one fraction."),
     dict(key="3", title="A Sum over a Power of a Product",
-         look="Two terms over a product raised to a power, like (x y)^(-2).",
-         move="Rewrite the power of the product first: (x y)^(-2) is x^(-2) y^(-2). Then clear the "
+         look="Two terms over a product raised to a power, like $(x y)^(-2)$.",
+         move="Rewrite the power of the product first: $(x y)^(-2)$ is $x^(-2) y^(-2)$. Then clear the "
               "negative exponents as in Type 2."),
     dict(key="4", title="Letters in the Exponents",
-         look="Exponents with letters in them, like x^(2n + 1).",
+         look="Exponents with letters in them, like $x^(2 n + 1)$.",
          move="The same rules: add exponents to multiply, subtract to divide, multiply for a power of a "
               "power. Combine like terms in each exponent.", space="1in"),
 ]
