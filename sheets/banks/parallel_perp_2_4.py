@@ -68,31 +68,35 @@ COURSES = {"Algebra 1": "Lessons"}
 ASKED = "Write each equation in slope-intercept form."
 TYPES = [
     dict(key="1", title="Parallel, From Slope-Intercept Form", instructions=ASKED,
-         look="A line in slope-intercept form, y = 2/3 x - 4, a point, (3, 5), and the parallel line asked for.",
-         move="Parallel lines have the same slope: m = 2/3. Put it and the point into y = m x + b: "
-              "5 = 2/3 (3) + b, so 5 = 2 + b and b = 3. The line is y = 2/3 x + 3."),
+         look="A line in slope-intercept form, $y = 2/3 x - 4$, a point, $(3, 5)$, and the parallel line asked "
+              "for.",
+         move="Parallel lines have the same slope: $m = 2/3$. Put it and the point into $y = m x + b$: $5 = "
+              "2/3 (3) + b$, so $5 = 2 + b$ and $b = 3$. The line is $y = 2/3 x + 3$."),
     dict(key="2", title="Perpendicular, From Slope-Intercept Form", instructions=ASKED,
-         look="A line in slope-intercept form, y = 2/3 x - 4, a point, (4, -1), and the perpendicular line asked for.",
-         move="A perpendicular slope is the opposite reciprocal: flip 2/3 and change its sign, m = -3/2. "
-              "Put it and the point into y = m x + b: -1 = -3/2 (4) + b, so -1 = -6 + b and b = 5. "
-              "The line is y = -3/2 x + 5."),
+         look="A line in slope-intercept form, $y = 2/3 x - 4$, a point, $(4, -1)$, and the perpendicular line "
+              "asked for.",
+         move="A perpendicular slope is the opposite reciprocal: flip $2/3$ and change its sign, $m = -3/2$. "
+              "Put it and the point into $y = m x + b$: $-1 = -3/2 (4) + b$, so $-1 = -6 + b$ and $b = 5$. The "
+              "line is $y = -3/2 x + 5$."),
     dict(key="3", title="Parallel, From Another Form", instructions=ASKED,
-         look="A line in another form, like 3 x - 2 y = 20, a point, (-2, 5), and the parallel line asked for.",
-         move="Find the given line's slope: solve it for y (-2 y = -3 x + 20, so y = 3/2 x - 10) and read "
-              "m = 3/2. The parallel line has the same slope. Put it and the point into y = m x + b: "
-              "5 = 3/2 (-2) + b, so 5 = -3 + b and b = 8. The line is y = 3/2 x + 8."),
+         look="A line in another form, like $3 x - 2 y = 20$, a point, $(-2, 5)$, and the parallel line asked "
+              "for.",
+         move="Find the given line's slope: solve it for $y$ ($-2 y = -3 x + 20$, so $y = 3/2 x - 10$) and "
+              "read $m = 3/2$. The parallel line has the same slope. Put it and the point into $y = m x + b$: "
+              "$5 = 3/2 (-2) + b$, so $5 = -3 + b$ and $b = 8$. The line is $y = 3/2 x + 8$."),
     dict(key="4", title="Perpendicular, From Another Form", instructions=ASKED,
-         look="A line in another form, like 3 x - 2 y = 20, a point, (6, -1), and the perpendicular line asked for.",
-         move="Find the given line's slope: solve it for y (y = 3/2 x - 10) and read m = 3/2. The "
-              "perpendicular slope is its opposite reciprocal, -2/3. Put it and the point into "
-              "y = m x + b: -1 = -2/3 (6) + b, so -1 = -4 + b and b = 3. The line is y = -2/3 x + 3."),
+         look="A line in another form, like $3 x - 2 y = 20$, a point, $(6, -1)$, and the perpendicular line "
+              "asked for.",
+         move="Find the given line's slope: solve it for $y$ ($y = 3/2 x - 10$) and read $m = 3/2$. The "
+              "perpendicular slope is its opposite reciprocal, $-2/3$. Put it and the point into $y = m x + "
+              "b$: $-1 = -2/3 (6) + b$, so $-1 = -4 + b$ and $b = 3$. The line is $y = -2/3 x + 3$."),
     dict(key="5", title="Parallel, Perpendicular, or Neither",
          instructions="Tell whether each pair of lines is parallel, perpendicular, or neither.",
-         look="Two lines, each in any of the five forms, like y = 2 x + 6 and x - 2 y = -6.",
-         move="Find each line's slope: y = 2 x + 6 has m = 2; solve x - 2 y = -6 for y (y = 1/2 x + 3) "
-              "and read m = 1/2. The same slope is parallel; opposite reciprocals (flipped, the sign "
-              "changed) are perpendicular; anything else is neither. 2 and 1/2 are reciprocals, but "
-              "the sign is the same, so the lines are neither."),
+         look="Two lines, each in any of the five forms, like $y = 2 x + 6$ and $x - 2 y = -6$.",
+         move="Find each line's slope: $y = 2 x + 6$ has $m = 2$; solve $x - 2 y = -6$ for $y$ ($y = 1/2 x + "
+              "3$) and read $m = 1/2$. The same slope is parallel; opposite reciprocals (flipped, the sign "
+              "changed) are perpendicular; anything else is neither. $2$ and $1/2$ are reciprocals, but the "
+              "sign is the same, so the lines are neither."),
 ]
 
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in", width="full")
