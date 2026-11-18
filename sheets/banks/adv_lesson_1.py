@@ -74,35 +74,35 @@ SECTOR = "Leave each area in terms of π."
 TYPES = [
     dict(key="1", title="The Area of a Shaded Sector",
          look="A circle with one sector shaded; its central angle and the circle's radius are given.",
-         move="The sector is its angle's share of the circle: (angle/360) pi r^2. Square the radius "
-              "(a radical squares to a whole number: (3 sqrt(3))^2 = 27) and reduce.",
+         move="The sector is its angle's share of the circle: $(\"angle\"/360) pi r^2$. Square the radius (a "
+              "radical squares to a whole number: $(3 sqrt(3))^2 = 27$) and reduce.",
          instructions=SECTOR, space="1.5in"),
     dict(key="2", title="The Shaded Rest of a Circle",
          look="The labeled sector is the unshaded one; the shaded region is the rest of the circle.",
-         move="The shaded region's central angle is 360° less the labeled one (360 - 126 = 234). Then "
-              "(angle/360) pi r^2, as for a sector.",
+         move="The shaded region's central angle is $360 degree$ less the labeled one ($360 - 126 = 234$). "
+              'Then $("angle"/360) pi r^2$, as for a sector.',
          instructions=SECTOR, space="1.5in"),
     dict(key="3", title="Comparing Expressions Under Conditions",
-         look="Two expressions in x and y, with the signs of x and y or the intervals they lie in.",
-         move="Subtract B from A and simplify. If the difference is positive for every allowed x and y, "
-              "the answer is A; negative, B; zero, C. If it can be either (try the cases x < y, x > y, "
-              "x = y), the answer is D.",
+         look="Two expressions in $x$ and $y$, with the signs of $x$ and $y$ or the intervals they lie in.",
+         move="Subtract $B$ from $A$ and simplify. If the difference is positive for every allowed $x$ and "
+              "$y$, the answer is A; negative, B; zero, C. If it can be either (try the cases $x < y$, $x > "
+              "y$, $x = y$), the answer is D.",
          instructions=COMPARE, space="1.25in"),
     dict(key="4", title="Finding the Angles at Crossing Lines",
          look="Two crossing lines; one angle is a number, the others are letters times a number.",
-         move="Vertical (opposite) angles are equal, and angles side by side on a line add to 180°. "
-              "Find each angle, then divide by the letter's number: 3C = 120, so C = 40.",
+         move="Vertical (opposite) angles are equal, and angles side by side on a line add to $180 degree$. "
+              "Find each angle, then divide by the letter's number: $3 C = 120$, so $C = 40$.",
          instructions="Find the unknowns.", space="1.25in"),
     dict(key="5", title="Comparing Angles at Crossing Lines",
          look="Two crossing lines with angles named by letters, and two sums of them to compare.",
-         move="Angles side by side on a line add to 180 (a straight angle); vertical angles are equal; "
-              "all four add to 360. Rewrite A and B with these, then compare. Nothing tells a single "
-              "angle's size.",
+         move="Angles side by side on a line add to $180 degree$ (a straight angle); vertical angles are "
+              "equal; all four add to $360 degree$. Rewrite $A$ and $B$ with these, then compare. Nothing "
+              "tells a single angle's size.",
          instructions=COMPARE, space="1.25in"),
     dict(key="6", title="Triangles Between Parallel Lines",
          look="Triangles with their bases on one line and their tops on a parallel line.",
-         move="A triangle's area is (1/2) base times altitude. Between parallel lines every altitude is "
-              "the same, so the triangles compare as their bases do; on the same base they are equal.",
+         move="A triangle's area is $1/2$ base times altitude. Between parallel lines every altitude is the "
+              "same, so the triangles compare as their bases do; on the same base they are equal.",
          instructions=COMPARE, space="1.25in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in")
