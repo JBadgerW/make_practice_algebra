@@ -29,15 +29,17 @@ COURSES = {"Advanced Math": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Directly as a Square, Inversely as Another",
-         look="\"... varied directly as B squared and inversely as G.\"",
-         move="Write R = k B^2/G. Put in the first situation's numbers to find k. Then use k with the second "
-              "situation's numbers and solve for what's asked."),
+         look='"... varied directly as $B$ squared and inversely as $G$."',
+         move="Write $R = (k B^2)/G$. Put in the first situation's numbers to find $k$. Then use $k$ with the "
+              "second situation's numbers and solve for what's asked."),
     dict(key="2", title="Directly as a Cube, Inversely as Another",
-         look="\"... varied directly as B cubed and inversely as G.\"",
-         move="Write R = k B^3/G. Find k from the first situation, then solve the second for what's asked."),
+         look='"... varied directly as $B$ cubed and inversely as $G$."',
+         move="Write $R = (k B^3)/G$. Find $k$ from the first situation, then solve the second for what's "
+              "asked."),
     dict(key="3", title="Directly as One, Inversely as a Square",
-         look="\"... varied directly as B and inversely as G squared.\"",
-         move="Write R = k B/G^2. Find k from the first situation, then solve the second for what's asked."),
+         look='"... varied directly as $B$ and inversely as $G$ squared."',
+         move="Write $R = (k B)/G^2$. Find $k$ from the first situation, then solve the second for what's "
+              "asked."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.5in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
