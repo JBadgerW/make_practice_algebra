@@ -31,9 +31,10 @@ COURSES = courses(8)
 
 TYPES = [
     dict(key="1", title="Percent Change Expressions",
-         look="A quantity v that goes up or down by a percent (or becomes a percent of itself), and five expressions.",
-         move="p% more is v + (p/100) v = (1 + p/100) v; p% less is (1 - p/100) v; p% of v is (p/100) v. "
-              "Two of the choices are the same amount written two ways.", width="full"),
+         look="A quantity $v$ that goes up or down by a percent (or becomes a percent of itself), and five "
+              "expressions.",
+         move="$p%$ more is $v + (p/100) v = (1 + p/100) v$; $p%$ less is $(1 - p/100) v$; $p%$ of $v$ is "
+              "$(p/100) v$. Two of the choices are the same amount written two ways.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

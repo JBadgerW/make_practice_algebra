@@ -35,17 +35,17 @@ COURSES = courses(8)
 TYPES = [
     dict(key="1", title="The New Amount or the Change",
          look="An amount and a percent more or less.",
-         move="p% of the amount is the change. Add it (more) or subtract it (less) for the new amount.", width="full"),
+         move="$p%$ of the amount is the change. Add it (more) or subtract it (less) for the new amount.", width="full"),
     dict(key="2", title="The Original Amount",
          look="The amount after a percent change; the amount before is unknown.",
-         move="p% more means the new amount is (100 + p)% of the original: divide by 1 + p/100 (or 1 - p/100 "
-              "for less).", width="full"),
+         move="$p%$ more means the new amount is $(100 + p)%$ of the original: divide by $1 + p/100$ (or $1 - "
+              "p/100$ for less).", width="full"),
     dict(key="3", title="The Percent Change",
          look="An amount before and after.",
-         move="Percent change = (the change ÷ the original) × 100.", width="full"),
+         move='$"percent change" = ("the change" div "the original") times 100$.', width="full"),
     dict(key="4", title="Did They Meet the Goal?",
-         look="A goal of at least p% of a whole, and what was done.",
-         move="Find p% of the whole, then compare: more or less than the goal, and by how much.", width="full"),
+         look="A goal of at least $p%$ of a whole, and what was done.",
+         move="Find $p%$ of the whole, then compare: more or less than the goal, and by how much.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

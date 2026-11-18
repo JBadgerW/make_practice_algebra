@@ -31,8 +31,8 @@ TYPES = [
          move="Find the factor pairs, starting with 1. Every number in the list must divide evenly, and none may be missing."),
     dict(key="2", title="Which Equation Shows a Factor?",
          look="Four equations with the number and a possible factor.",
-         move="a is a factor of n when n = a × (a whole number), or n ÷ a is a whole number. Adding or subtracting "
-              "shows nothing about factors.", width="full"),
+         move='$a$ is a factor of $n$ when $n = a times ("a whole number")$, or $n div a$ is a whole number. '
+              "Adding or subtracting shows nothing about factors.", width="full"),
     dict(key="3", title="Which Number Is a Factor?",
          look="A number and four smaller numbers.",
          move="Divide: a factor goes in evenly, with no remainder."),

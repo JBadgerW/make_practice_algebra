@@ -34,13 +34,14 @@ COURSES = courses(1)
 TYPES = [
     dict(key="1", title="Factors and Multiples from a Product", instructions="Choose 2 answers.",
          look="A multiplication fact and three statements.",
-         move="In a × b = n, a and b are factors of n, and n is a multiple of a and of b."),
+         move="In $a times b = n$, $a$ and $b$ are factors of $n$, and $n$ is a multiple of $a$ and of $b$."),
     dict(key="2", title="What Is Shaded?", instructions="Choose 1 answer.",
          look="A hundred chart with some numbers shaded.",
-         move="Factors of n divide n: few, all at most n. Multiples of k are k, 2k, 3k, ...: they go on to 100.",
+         move="Factors of $n$ divide $n$: few, all at most $n$. Multiples of $k$ are $k$, $2 k$, $3 k$, $...$: "
+              "they go on to $100$.",
          width="full"),
     dict(key="3", title="Find the Mistake", instructions="Choose 1 answer.",
-         look="A student's hundred chart, meant to show the multiples of k or the factors of n.",
+         look="A student's hundred chart, meant to show the multiples of $k$ or the factors of $n$.",
          move="Work out what should be shaded, compare, and name the difference.", width="full"),
 ]
 T = gen.Types(TYPES, "", space="0.25in")

@@ -17,9 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from sheets import banks
 from tui.common import hint_search_text, prose
 
-NOT_YET = {
-    "kpa_01_01", "kpa_01_02", "kpa_01_03", "kpa_08_02",
-}
+NOT_YET = set()
 
 MARKUP = re.compile(r"[*_#@`\\]|<[A-Za-z]")              # strong, emphasis, code, ref, escape, label
 UNICODE_MATH = re.compile(r"[⁰¹²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉−·×÷√π≤≥≠±θ∞≈°]")

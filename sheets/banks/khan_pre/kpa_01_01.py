@@ -34,7 +34,7 @@ TYPES = [
          move="A factor pair multiplies to the number. Multiply each pair and check.", width="full"),
     dict(key="2", title="A Rectangle's Sides", instructions="Choose all answers that apply.",
          look="A rectangle's area and four length-and-width pairs.",
-         move="Area = length × width, so the sides are a factor pair of the area."),
+         move='$"area" = "length" times "width"$, so the sides are a factor pair of the area.'),
     dict(key="3", title="Complete the Table", instructions="Use what you know about factor pairs to complete each table.",
          look="A table of factor pairs with some cells blank.",
          move="Each row multiplies to the number. Divide the number by the factor you have to find the other."),
