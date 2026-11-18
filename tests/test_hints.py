@@ -7,9 +7,9 @@ Typst markup, so their math must be in $...$ (see EXTENDING.md).
   - Every hint and type title compiles as slide content (when typst is on the PATH).
   - prose(), the terminal's view of a hint, reads the math back without the $ signs.
 
-NOT_YET is the families whose hints are still being converted: each one must
-still break a rule (take it off the list once its hints are fixed), and no
-other family may.
+Every bank follows the rule now, so NOT_YET is empty. A family put on it is
+excused while its hints are converted: it must still break a rule (take it
+off once its hints are fixed), and no other family may.
 """
 import re, shutil, subprocess, sys, tempfile
 from pathlib import Path
