@@ -37,18 +37,18 @@ COURSES = {"Advanced Math": "Lessons"}
 
 TYPES = [
     dict(key="1", title="A Whole Number Times a Trig Value",
-         look="sin, cos, or tan of 30°, 45°, or 60°, alone or times a whole number.",
-         move="Draw the triangle: 45° uses the 45-45-90 triangle (sides 1, 1, sqrt(2)); 30° and 60° use the "
-              "30-60-90 triangle (sides 1, sqrt(3), 2). Read opp/hyp, adj/hyp, or opp/adj, rationalize "
-              "(1/sqrt(3) = sqrt(3)/3), and multiply."),
+         look="sin, cos, or tan of $30 degree$, $45 degree$, or $60 degree$, alone or times a whole number.",
+         move="Draw the triangle: $45 degree$ uses the 45-45-90 triangle (sides $1$, $1$, $sqrt(2)$); $30 "
+              "degree$ and $60 degree$ use the 30-60-90 triangle (sides $1$, $sqrt(3)$, $2$). Read opp/hyp, "
+              "adj/hyp, or opp/adj, rationalize ($1/sqrt(3) = sqrt(3)/3$), and multiply."),
     dict(key="2", title="A Radical Times a Trig Value",
-         look="A coefficient with a square root, like 6 sqrt(2) cos 30°.",
+         look="A coefficient with a square root, like $6 sqrt(2) cos 30 degree$.",
          move="Find the trig value from the triangle. Multiply the whole numbers together and the radicals "
-              "together (sqrt(2) sqrt(3) = sqrt(6)), then simplify the fraction."),
+              "together ($sqrt(2) sqrt(3) = sqrt(6)$), then simplify the fraction."),
     dict(key="3", title="A Fraction with a Radical Below",
-         look="A coefficient like 10/sqrt(5).",
+         look="A coefficient like $10/sqrt(5)$.",
          move="Find the trig value from the triangle and multiply. Rationalize: multiply top and bottom by the "
-              "radical below, then reduce: (10 sqrt(5))/5 = 2 sqrt(5).", space="1.25in"),
+              "radical below, then reduce: $(10 sqrt(5))/5 = 2 sqrt(5)$.", space="1.25in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
