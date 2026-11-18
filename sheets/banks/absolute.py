@@ -31,16 +31,16 @@ COURSES = {"Algebra 1": "Lessons"}
 SOLVE_EQ, SOLVE_INEQ = "Solve each equation.", "Solve each inequality."
 TYPES = [
     dict(key="1", title="Absolute Value of x", instructions=SOLVE_EQ,
-         look="|x| equals a number.",
-         move="x is that far from 0 in either direction: x equals the number or its opposite."),
+         look="$|x|$ equals a number.",
+         move="$x$ is that far from $0$ in either direction: $x$ equals the number or its opposite."),
     dict(key="2", title="One Step Outside", instructions=SOLVE_EQ,
-         look="|x| with a number added, subtracted, multiplied, or divided outside the bars.",
-         move="Undo that step to get |x| alone. Then x equals the number or its opposite."),
+         look="$|x|$ with a number added, subtracted, multiplied, or divided outside the bars.",
+         move="Undo that step to get $|x|$ alone. Then $x$ equals the number or its opposite."),
     dict(key="3", title="One Step Inside", instructions=SOLVE_EQ,
-         look="The bars are alone, with one step on x inside them.",
+         look="The bars are alone, with one step on $x$ inside them.",
          move="Split into two equations: the inside equals the number, or the inside equals its opposite. Solve each with one step."),
     dict(key="4", title="Two Steps Inside", instructions=SOLVE_EQ,
-         look="The bars are alone, with two steps on x inside them.",
+         look="The bars are alone, with two steps on $x$ inside them.",
          move="Split into two equations, the inside equal to the number and to its opposite. Solve each with two steps."),
     dict(key="5", title="Steps Inside and Outside", instructions=SOLVE_EQ,
          look="Steps outside the bars and inside them.",
@@ -49,11 +49,14 @@ TYPES = [
          look="Any of types 1-5, but getting the absolute value alone leaves it equal to a negative number.",
          move="Get the absolute value alone. An absolute value is never negative, so there is no solution. Stop there."),
     dict(key="7", title="Inequalities with |x|", instructions=SOLVE_INEQ,
-         look="|x| compared with a number.",
-         move="|x| < 5 means x is within 5 of 0: -5 < x < 5. |x| > 5 means x is farther than 5 from 0: x < -5 or x > 5. ≤ and ≥ include the ends."),
+         look="$|x|$ compared with a number.",
+         move="$|x| < 5$ means $x$ is within $5$ of $0$: $-5 < x < 5$. $|x| > 5$ means $x$ is farther than $5$ "
+              "from $0$: $x < -5$ or $x > 5$. $<=$ and $>=$ include the ends."),
     dict(key="8", title="Solving Absolute Value Inequalities", instructions=SOLVE_INEQ,
-         look="Steps outside the bars and inside them, with <, >, ≤, or ≥.",
-         move="Get the absolute value alone, flipping the sign if you multiply or divide by a negative. Less than: write one compound inequality, -k < inside < k. Greater than: write two, inside < -k or inside > k. Solve."),
+         look="Steps outside the bars and inside them, with $<$, $>$, $<=$, or $>=$.",
+         move="Get the absolute value alone, flipping the sign if you multiply or divide by a negative. Less "
+              'than: write one compound inequality, $-k < "inside" < k$. Greater than: write two, $"inside" < '
+              '-k$ or $"inside" > k$. Solve.'),
 ]
 TYPE = {t["key"]: t for t in TYPES}
 KEYS = [t["key"] for t in TYPES]
