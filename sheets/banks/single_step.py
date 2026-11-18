@@ -32,17 +32,18 @@ FACTS = range(1, 16)                       # the numbers of the basic facts
 
 TYPES = [
     dict(key="1", title="Addition",
-         look="A number added to x: x + 9 = 23, 9 + x = 23.",
+         look="A number added to $x$: $x + 9 = 23$, $9 + x = 23$.",
          move="Subtract the number from both sides."),
     dict(key="2", title="Subtraction",
-         look="A number subtracted from x, or x subtracted from a number: x - 14 = 8, 22 - x = 14.",
-         move="x - a: add the number to both sides. c - x: x is what's left when you take a away from c."),
+         look="A number subtracted from $x$, or $x$ subtracted from a number: $x - 14 = 8$, $22 - x = 14$.",
+         move="$x - a$: add the number to both sides. $c - x$: $x$ is what's left when you take $a$ away from "
+              "$c$."),
     dict(key="3", title="Multiplication",
-         look="A number times x: 13x = 169.",
+         look="A number times $x$: $13 x = 169$.",
          move="Divide both sides by the number."),
     dict(key="4", title="Division",
-         look="x divided by a number, or a number divided by x: x/7 = 12, 84/x = 7.",
-         move="x/a: multiply both sides by the number. c/x: x is what c is divided by to give a."),
+         look="$x$ divided by a number, or a number divided by $x$: $x/7 = 12$, $84/x = 7$.",
+         move="$x/a$: multiply both sides by the number. $c/x$: $x$ is what $c$ is divided by to give $a$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
