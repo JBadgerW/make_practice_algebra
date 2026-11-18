@@ -36,7 +36,7 @@ TYPES = [
          move="Start with the innermost fraction: rewrite the expression it sits in as one fraction. "
               "Work outward, one level at a time.", space="1.5in"),
     dict(key="3", title="Fractions with Powers",
-         look="Fractions whose denominators have powers, like 1/x^2 or 1/(x y).",
+         look="Fractions whose denominators have powers, like $1/x^2$ or $1/(x y)$.",
          move="Multiply the top and the bottom by the least common denominator, using the highest power of "
               "each letter. Factor and cancel if you can.", space="1.5in"),
 ]
