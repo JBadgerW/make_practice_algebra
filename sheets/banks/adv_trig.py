@@ -29,22 +29,22 @@ COURSES = {"Advanced Math": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Exact Trig Values", instructions="Find the exact value.",
-         look="Sines, cosines, and tangents of 30°, 45°, and 60°, with coefficients.",
-         move="Replace each with its exact value from the 30-60-90 and 45-45-90 triangles: sin 30° = 1/2, "
-              "cos 45° = sqrt(2)/2, tan 60° = sqrt(3), and so on. Multiply and combine."),
+         look="Sines, cosines, and tangents of $30 degree$, $45 degree$, and $60 degree$, with coefficients.",
+         move="Replace each with its exact value from the 30-60-90 and 45-45-90 triangles: $sin 30 degree = "
+              "1/2$, $cos 45 degree = sqrt(2)/2$, $tan 60 degree = sqrt(3)$, and so on. Multiply and combine."),
     dict(key="2", title="Angles Past 90°", instructions="Find the exact value.",
-         look="A trig function of an angle like 135°, 210°, or 300°.",
-         move="Find the reference angle (its distance to the x-axis) and the quadrant. Use the reference "
+         look="A trig function of an angle like $135 degree$, $210 degree$, or $300 degree$.",
+         move="Find the reference angle (its distance to the $x$-axis) and the quadrant. Use the reference "
               "angle's value, with the sign the quadrant gives: All Students Take Calculus."),
     dict(key="3", title="Rectangular to Polar",
          instructions="Convert to polar form. Write four forms: r to 0.1 and θ to 0.01°.",
-         look="x î + y ĵ.",
-         move="r = sqrt(x^2 + y^2); θ from tan θ = y/x, in the quadrant of (x, y). The other forms: -r at "
-              "θ ± 180°, and r and -r with 360° subtracted.", width="full", space="1in"),
+         look="$x hat(i) + y hat(j)$.",
+         move="$r = sqrt(x^2 + y^2)$; $theta$ from $tan theta = y/x$, in the quadrant of $(x, y)$. The other "
+              "forms: $-r$ at $theta plus.minus 180 degree$, and $r$ and $-r$ with $360 degree$ subtracted.", width="full", space="1in"),
     dict(key="4", title="Polar to Rectangular",
          instructions="Convert to rectangular form, to 0.01.",
-         look="r∠θ.",
-         move="x = r cos θ and y = r sin θ. Write x î + y ĵ."),
+         look="$r angle theta$.",
+         move="$x = r cos theta$ and $y = r sin theta$. Write $x hat(i) + y hat(j)$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
