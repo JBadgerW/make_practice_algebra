@@ -68,16 +68,16 @@ PREAMBLE = GRAPH_PREAMBLE
 
 TYPES = [
     dict(key="1", title="Sketch an Exponential, Base Greater Than 1",
-         look="A whole number greater than 1 to the power x, like 2^x or 5^x.",
-         move="The base is greater than 1, so y increases as x increases. Every curve passes through (0, 1). "
-              "Draw the tail on the left, hugging the x axis, then find one or two points on the right: "
-              "2^1 = 2, 2^2 = 4, 2^3 = 8.",
+         look="A whole number greater than $1$ to the power $x$, like $2^x$ or $5^x$.",
+         move="The base is greater than $1$, so $y$ increases as $x$ increases. Every curve passes through "
+              "$(0, 1)$. Draw the tail on the left, hugging the $x$ axis, then find one or two points on the "
+              "right: $2^1 = 2$, $2^2 = 4$, $2^3 = 8$.",
          space="0.5in"),
     dict(key="2", title="Sketch an Exponential, Base Between 0 and 1",
-         look="A base between 0 and 1, like 0.25^x or (1/2)^x.",
-         move="The base is less than 1, so y decreases as x increases: the tail is on the right. The curve "
-              "passes through (0, 1). Find points on the left with negative exponents: "
-              "(0.25)^(-1) = 1/0.25 = 4, (1/2)^(-2) = 2^2 = 4.",
+         look="A base between $0$ and $1$, like $0.25^x$ or $(1/2)^x$.",
+         move="The base is less than $1$, so $y$ decreases as $x$ increases: the tail is on the right. The "
+              "curve passes through $(0, 1)$. Find points on the left with negative exponents: $(0.25)^(-1) = "
+              "1/0.25 = 4$, $(1/2)^(-2) = 2^2 = 4$.",
          space="0.5in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
