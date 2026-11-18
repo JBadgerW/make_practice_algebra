@@ -104,39 +104,42 @@ PREAMBLE = GRAPH_PREAMBLE
 
 TYPES = [
     dict(key="1", title="Evaluating a Function",
-         look="f(x) is a formula, and you're asked for f of a number.",
-         move="Replace x everywhere with the number, in parentheses: f(5) = (5)^2 + (5) - 10. "
-              "Then follow the order of operations."),
+         look="$f(x)$ is a formula, and you're asked for $f$ of a number.",
+         move="Replace $x$ everywhere with the number, in parentheses: $f(5) = (5)^2 + (5) - 10$. Then follow "
+              "the order of operations."),
     dict(key="2", title="Substituting an Expression",
-         look="f of an expression, like f(x + 2).",
-         move="Replace x everywhere with the whole expression, in parentheses: (x + 2)^2 + 1. "
-              "Multiply out and combine like terms."),
+         look="$f$ of an expression, like $f(x + 2)$.",
+         move="Replace $x$ everywhere with the whole expression, in parentheses: $(x + 2)^2 + 1$. Multiply out "
+              "and combine like terms."),
     dict(key="3", title="A Trig Function and a Reference Triangle",
          instructions="Draw the necessary reference triangle and evaluate. Do not use a calculator.",
-         look="A function of θ made with sin, cos, or tan, at 30°, 45°, or 60°.",
-         move="Replace θ with the angle. Draw the 30-60-90 triangle (sides 1, sqrt(3), 2) or the 45-45-90 "
-              "triangle (sides 1, 1, sqrt(2)), read the ratio, and multiply: 4 sqrt(3) (1/2) = 2 sqrt(3)."),
+         look="A function of $theta$ made with sin, cos, or tan, at $30 degree$, $45 degree$, or $60 degree$.",
+         move="Replace $theta$ with the angle. Draw the 30-60-90 triangle (sides $1$, $sqrt(3)$, $2$) or the "
+              "45-45-90 triangle (sides $1$, $1$, $sqrt(2)$), read the ratio, and multiply: $4 sqrt(3) (1/2) = "
+              "2 sqrt(3)$."),
     dict(key="4", title="The Domain: a Square Root",
          instructions="Find the domain of each function.",
-         look="x under a square root.",
-         move="The quantity under the radical can't be negative: solve inside ≥ 0. "
-              "10 - x >= 0 gives x <= 10. Write the domain as {x ∈ ℝ | x <= 10}."),
+         look="$x$ under a square root.",
+         move="The quantity under the radical can't be negative: solve $\"inside\" >= 0$. $10 - x >= 0$ gives "
+              "$x <= 10$. Write the domain as ${x in RR | x <= 10}$."),
     dict(key="5", title="The Domain: a Denominator, or No Restriction",
          instructions="Find the domain of each function.",
-         look="x in a denominator, or a polynomial with no denominator and no root.",
-         move="A denominator can't be zero: leave out each x that makes it 0, {x ∈ ℝ | x != 2}. "
-              "With no denominator and no square root, every real number works: {x ∈ ℝ}."),
+         look="$x$ in a denominator, or a polynomial with no denominator and no root.",
+         move="A denominator can't be zero: leave out each $x$ that makes it $0$, ${x in RR | x != 2}$. With "
+              "no denominator and no square root, every real number works: ${x in RR}$."),
     dict(key="6", title="Domain, Range, and Graph of a Square Root",
          instructions="Find the domain and range of each function, and graph the function.",
-         look="y = sqrt(x + a): find the domain and range, and draw the graph.",
-         move="Domain: inside ≥ 0. Make a table where inside is 0, 1, 4, and 9, plot the points, and draw "
-              "the curve from the first one. A square root is never negative: the range is {y ∈ ℝ | y >= 0}.",
+         look="$y = sqrt(x + a)$: find the domain and range, and draw the graph.",
+         move='Domain: $"inside" >= 0$. Make a table where inside is $0$, $1$, $4$, and $9$, plot the points, '
+              "and draw the curve from the first one. A square root is never negative: the range is ${y in RR "
+              "| y >= 0}$.",
          space="0.4in"),
     dict(key="7", title="Domain and Range: a Root Over a Linear Factor",
          instructions="Find the domain and range of each function.",
-         look="A square root over x - a.",
-         move="Domain: the root's inside ≥ 0, and leave out the zero of the denominator. Near that zero the "
-              "graph falls without bound on one side and rises on the other, so the range is all reals, {y ∈ ℝ}.",
+         look="A square root over $x - a$.",
+         move="Domain: the root's $\"inside\" >= 0$, and leave out the zero of the denominator. Near that zero "
+              "the graph falls without bound on one side and rises on the other, so the range is all reals, "
+              "${y in RR}$.",
          space="1.25in"),
     dict(key="8", title="Does a Mapping Diagram Designate a Function?",
          instructions="Determine whether or not each diagram designates a function.",
@@ -146,8 +149,9 @@ TYPES = [
     dict(key="9", title="Which Sets of Ordered Pairs Are Functions?",
          instructions="Which of the following sets of ordered pairs are functions?",
          look="Four sets of ordered pairs, (a) to (d).",
-         move="Look for a first number that repeats with a different second number: (1, 2) and (1, 3) is not "
-              "a function. A pair written twice, like (4, 3) and (4, 3), is the same pair: still a function.",
+         move="Look for a first number that repeats with a different second number: $(1, 2)$ and $(1, 3)$ is "
+              "not a function. A pair written twice, like $(4, 3)$ and $(4, 3)$, is the same pair: still a "
+              "function.",
          width="full", space="0.5in"),
     dict(key="10", title="The Vertical and Horizontal Line Tests",
          instructions="Determine if each graph represents the graph of a function. If so, determine whether "
