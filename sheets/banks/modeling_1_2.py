@@ -46,20 +46,25 @@ COURSES = {"Algebra 1": "Lessons"}
 
 TYPES = [
     dict(key="1", title="Direct Translation",
-         look="One operation, and the words come in the same order as the symbols: cost per hour times hours, the next integer after n.",
-         move="Write each phrase as its symbol, in order: 15 dollars per hour for h hours is 15h."),
+         look="One operation, and the words come in the same order as the symbols: cost per hour times hours, "
+              "the next integer after $n$.",
+         move="Write each phrase as its symbol, in order: 15 dollars per hour for $h$ hours is $15 h$."),
     dict(key="2", title="Two Operations or a Reversed Order",
-         look="Two operations in one expression, or a subtraction or division whose order is the reverse of the words: 8 less than x, a rate plus a flat fee.",
-         move="Find the operations first. \"8 less than x\" starts at x: x − 8. A rate times the count, plus the fee: 15h + 25."),
+         look="Two operations in one expression, or a subtraction or division whose order is the reverse of "
+              "the words: 8 less than $x$, a rate plus a flat fee.",
+         move='Find the operations first. "8 less than $x$" starts at $x$: $x - 8$. A rate times the count, '
+              "plus the fee: $15 h + 25$."),
     dict(key="3", title="One Inference",
          look="One quantity the words don't state: \"the rest of the 25 L,\" a percent, a time from distance and rate, \"every row but the last.\"",
-         move="Name the hidden quantity before writing: the rest is 25 − x, 10% is 0.10, time is distance ÷ rate, all but the last is n − 1."),
+         move="Name the hidden quantity before writing: the rest is $25 - x$, 10% is $0.10$, time is "
+              '$"distance" div "rate"$, all but the last is $n - 1$.'),
     dict(key="4", title="Build a Quantity, Then Group It",
          look="A quantity that must be built and then multiplied or grouped: the discounted price of 4 tickets, 2 of a fish that costs 6 dollars more.",
-         move="Write the one-item quantity first (p − 15), then put it in parentheses and multiply: 4(p − 15)."),
+         move="Write the one-item quantity first ($p - 15$), then put it in parentheses and multiply: $4(p - "
+              "15)$."),
     dict(key="5", title="Two Inferences Combined",
          look="Two modeled quantities in one statement: a relationship inside a grouping, or two quantities added and set equal to a total.",
-         move="Model each quantity on its own, then combine them: 8t + 2(t + 6) = 37."),
+         move="Model each quantity on its own, then combine them: $8 t + 2(t + 6) = 37$."),
 ]
 TYPE = {t["key"]: t for t in TYPES}
 KEYS = [t["key"] for t in TYPES]
