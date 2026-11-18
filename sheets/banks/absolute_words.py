@@ -38,19 +38,24 @@ TYPES = [
     dict(key="1", title="Phrases for a Tolerance",
          instructions="Write an absolute value inequality for each description.",
          look="A number, give or take a tolerance: \"125, plus or minus 20,\" \"within 20 of 125,\" \"no more than 20 off from 125.\"",
-         move="The distance between x and the target is at most the tolerance: |x − target| ≤ tolerance. \"Less than\" leaves out the ends: <."),
+         move='The distance between $x$ and the target is at most the tolerance: $|x - "target"| <= '
+              '"tolerance"$. "Less than" leaves out the ends: $<$.'),
     dict(key="2", title="Modeling the Amount",
          instructions="Write an absolute value inequality that models each situation.",
          look="A story with an amount that must stay within a tolerance of a target.",
-         move="Find the target and the tolerance. Write |amount − target| ≤ tolerance, with the letter the problem gives for the amount."),
+         move='Find the target and the tolerance. Write $|"amount" - "target"| <= "tolerance"$, with the '
+              "letter the problem gives for the amount."),
     dict(key="3", title="Writing the Amount as an Expression",
          instructions="Write an absolute value inequality that models each situation.",
          look="The same stories, but the letter is what makes up the amount: the hours, the guests, the gallons.",
-         move="Write the amount in terms of the letter (distance = rate · time, cost = price · count, perimeter = 2ℓ + 2w). Put that expression in place of the amount in |amount − target| ≤ tolerance."),
+         move='Write the amount in terms of the letter ($"distance" = "rate" dot "time"$, $"cost" = "price" '
+              'dot "count"$, $"perimeter" = 2 ell + 2 w$). Put that expression in place of the amount in '
+              '$|"amount" - "target"| <= "tolerance"$.'),
     dict(key="4", title="Modeling and Solving",
          instructions="Write an absolute value inequality that models each situation. Solve it, then answer the question.",
          look="The same stories, with a question to answer.",
-         move="Write the inequality as in Type 3. Rewrite it as −tolerance ≤ expression − target ≤ tolerance and solve all three parts. Then answer the question in words."),
+         move='Write the inequality as in Type 3. Rewrite it as $-"tolerance" <= "expression" - "target" <= '
+              '"tolerance"$ and solve all three parts. Then answer the question in words.'),
 ]
 TYPE = {t["key"]: t for t in TYPES}
 KEYS = [t["key"] for t in TYPES]
