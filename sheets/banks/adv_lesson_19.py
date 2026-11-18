@@ -53,29 +53,30 @@ EXPONENTS = (("a", "b"), ("a", "b"), ("m", "n"), ("c", "d"))
 
 TYPES = [
     dict(key="1", title="A Circle and a Line",
-         look="x² + y² = r² and a line.",
-         move="Solve the line for y and substitute into the circle. Solve the quadratic (often with the "
-              "quadratic formula), then use the line to find each y.", space="2in", width="full"),
+         look="$x^2 + y^2 = r^2$ and a line.",
+         move="Solve the line for $y$ and substitute into the circle. Solve the quadratic (often with the "
+              "quadratic formula), then use the line to find each $y$.", space="2in", width="full"),
     dict(key="2", title="A Circle and a Hyperbola",
-         look="x² + y² = r² and an equation with x² and y² of opposite signs.",
-         move="Eliminate y² (scale an equation if you must) and solve for x². Then x = ± its square root; "
-              "use the circle to find y. Up to four points.", space="2in", width="full"),
+         look="$x^2 + y^2 = r^2$ and an equation with $x^2$ and $y^2$ of opposite signs.",
+         move="Eliminate $y^2$ (scale an equation if you must) and solve for $x^2$. Then $x = plus.minus$ its "
+              "square root; use the circle to find $y$. Up to four points.", space="2in", width="full"),
     dict(key="3", title="A Hyperbola and a Line",
-         look="xy = k and a line.",
-         move="Substitute the line's y into xy = k. Solve the quadratic, then use the line to find each y.",
+         look="$x y = k$ and a line.",
+         move="Substitute the line's $y$ into $x y = k$. Solve the quadratic, then use the line to find each "
+              "$y$.",
          space="2in", width="full"),
     dict(key="4", title="Factoring Exponentials", instructions="Factor.",
-         look="Terms with the same letter, its exponents written with another letter, like x²ⁿ⁺².",
-         move="Rewrite each power in pieces: x²ⁿ⁺² = xⁿ · xⁿ · x². Take out the largest number and "
-              "every piece the terms share."),
+         look="Terms with the same letter, its exponents written with another letter, like $x^(2 n + 2)$.",
+         move="Rewrite each power in pieces: $x^(2 n + 2) = x^n dot x^n dot x^2$. Take out the largest number "
+              "and every piece the terms share."),
     dict(key="5", title="Simplify by Factoring the Numerator", instructions="Simplify.",
-         look="A fraction whose top is a difference of two squares, like x²ᵃ − y²ᵇ, and whose "
-              "bottom is the sum or the difference of their square roots.",
-         move="Factor the top: A² − B² = (A + B)(A − B). Cancel the factor that matches the bottom."),
+         look="A fraction whose top is a difference of two squares, like $x^(2 a) - y^(2 b)$, and whose bottom "
+              "is the sum or the difference of their square roots.",
+         move="Factor the top: $A^2 - B^2 = (A + B)(A - B)$. Cancel the factor that matches the bottom."),
     dict(key="6", title="A Sum or Difference of Two Cubes", instructions="Factor.",
          look="Two cubes added or subtracted: the numbers are cubes and the exponents multiples of 3.",
-         move="Find F and S, the cube roots. F³ + S³ = (F + S)(F² − FS + S²) and "
-              "F³ − S³ = (F − S)(F² + FS + S²).", space="1.25in"),
+         move="Find $F$ and $S$, the cube roots. $F^3 + S^3 = (F + S)(F^2 - F S + S^2)$ and $F^3 - S^3 = (F - "
+              "S)(F^2 + F S + S^2)$.", space="1.25in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

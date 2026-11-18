@@ -18,12 +18,12 @@ from sheets import banks
 from tui.common import hint_search_text, prose
 
 NOT_YET = {
-    "absolute", "absolute_words", "adv_lesson_19", "adv_lesson_20", "adv_lesson_21",
-    "adv_lesson_24", "adv_radical_equations", "adv_rational_add", "adv_spheres", "adv_trig",
-    "adv_word", "alg1_units_1_2_cumulative", "inequalities", "ka1_02_10", "ka1_11_01",
-    "ka1_11_02", "ka1_15_02", "ka2_02_09", "ka2_03_01", "ka2_03_05", "ka2_03_07",
-    "ka2_03_09", "ka2_03_10", "kpa_01_01", "kpa_01_02", "kpa_01_03", "kpa_08_02",
-    "modeling", "modeling_1_2", "point_slope_2_2", "slope_intercept_2_1", "systems",
+    "absolute", "absolute_words", "adv_lesson_20", "adv_lesson_21", "adv_lesson_24",
+    "adv_radical_equations", "adv_rational_add", "adv_spheres", "adv_trig", "adv_word",
+    "alg1_units_1_2_cumulative", "inequalities", "ka1_02_10", "ka1_11_01", "ka1_11_02",
+    "ka1_15_02", "ka2_02_09", "ka2_03_01", "ka2_03_05", "ka2_03_07", "ka2_03_09",
+    "ka2_03_10", "kpa_01_01", "kpa_01_02", "kpa_01_03", "kpa_08_02", "modeling",
+    "modeling_1_2", "point_slope_2_2", "slope_intercept_2_1", "systems",
 }
 
 MARKUP = re.compile(r"[*_#@`\\]|<[A-Za-z]")              # strong, emphasis, code, ref, escape, label
