@@ -79,9 +79,9 @@ ROUND = "Round each answer to two decimal places at the end. Include units."
 TYPES = [
     dict(key="1", title="Surface Area of a Cylinder on a Capped Base",
          look="The base of a right cylinder: a rectangle with a semicircle on a side, and the cylinder's height.",
-         move="Base: the rectangle plus each half circle (pi r^2/2). Lateral area: the perimeter of the base "
-              "(straight sides plus each half circumference, pi r) times the height. Total: two bases plus "
-              "the lateral area.", instructions=ROUND, space="1.75in"),
+         move="Base: the rectangle plus each half circle ($(pi r^2)/2$). Lateral area: the perimeter of the "
+              "base (straight sides plus each half circumference, $pi r$) times the height. Total: two bases "
+              "plus the lateral area.", instructions=ROUND, space="1.75in"),
     dict(key="2", title="Surface Area of a Prism on a Base of Squares",
          look="A right prism whose base is made of equal squares, like a cross.",
          move="Base: the number of squares times one square. Lateral area: one rectangle (side times "
@@ -93,20 +93,20 @@ TYPES = [
          instructions=ROUND, space="1.5in"),
     dict(key="4", title="Volume of a Cone on a Capped Base",
          look="The base of a cone, a rectangle with semicircles, and the cone's height.",
-         move="Volume = (1/3) times the area of the base times the height. Find the base first: the "
-              "rectangle plus each half circle.", instructions=ROUND, space="1.5in"),
+         move="Volume = $1/3$ times the area of the base times the height. Find the base first: the rectangle "
+              "plus each half circle.", instructions=ROUND, space="1.5in"),
     dict(key="5", title="Surface Area of a Right Circular Cone",
          look="A cone's radius and slant height.",
-         move="Surface area = base + lateral area = pi r^2 + pi r l, with l the slant height.",
+         move="Surface area = base + lateral area $= pi r^2 + pi r l$, with $l$ the slant height.",
          space="1in"),
     dict(key="6", title="A Dimension from the Volume",
          look="The volume is given; a radius or a height is asked for.",
-         move="Write the volume formula (cylinder: base times height; cone: one third of that), put in "
-              "what's known, and solve: 6 pi = (1/3)(pi r^2)(2) gives r^2 = 9, r = 3.",
+         move="Write the volume formula (cylinder: base times height; cone: one third of that), put in what's "
+              "known, and solve: $6 pi = 1/3 (pi r^2)(2)$ gives $r^2 = 9$, $r = 3$.",
          space="1.5in"),
     dict(key="7", title="Surface Area of a Regular Pyramid",
          look="A pyramid with a square base; the side and the slant height are given.",
-         move="Base: side squared. Each of the 4 triangular faces: (1/2)(side)(slant height). Add them.",
+         move="Base: side squared. Each of the 4 triangular faces: $1/2$ (side)(slant height). Add them.",
          space="1in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.5in")
