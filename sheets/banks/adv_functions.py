@@ -40,22 +40,25 @@ COURSES = {"Advanced Math": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Evaluating a Function", instructions="Evaluate.",
-         look="f(x) is a formula, and you're asked for f of a number.",
-         move="Replace every x with the number, in parentheses. Then follow the order of operations."),
+         look="$f(x)$ is a formula, and you're asked for $f$ of a number.",
+         move="Replace every $x$ with the number, in parentheses. Then follow the order of operations."),
     dict(key="2", title="Substituting an Expression", instructions="Find and simplify.",
-         look="f of an expression, like f(x + 2) or f(3 x).",
-         move="Replace every x with the whole expression, in parentheses. Multiply out and combine like terms."),
+         look="$f$ of an expression, like $f(x + 2)$ or $f(3 x)$.",
+         move="Replace every $x$ with the whole expression, in parentheses. Multiply out and combine like "
+              "terms."),
     dict(key="3", title="Combining Functions", instructions="Evaluate.",
-         look="(f g)(2), (f/g)(2), or (f ∘ g)(2).",
-         move="(f g)(2) = f(2) g(2) and (f/g)(2) = f(2)/g(2). For (f ∘ g)(2), find g(2) first, then f of that."),
+         look="$(f g)(2)$, $(f/g)(2)$, or $(f compose g)(2)$.",
+         move="$(f g)(2) = f(2) g(2)$ and $(f/g)(2) = f(2)/g(2)$. For $(f compose g)(2)$, find $g(2)$ first, "
+              "then $f$ of that."),
     dict(key="4", title="The Domain", instructions="Find the domain of each function.",
-         look="A square root, or a fraction with x in the denominator.",
-         move="What's under a square root can't be negative: solve inside ≥ 0. A denominator can't be 0: "
-              "solve denominator = 0 and leave those numbers out (if they're in the domain at all).",
+         look="A square root, or a fraction with $x$ in the denominator.",
+         move="What's under a square root can't be negative: solve $\"inside\" >= 0$. A denominator can't be "
+              "$0$: solve $\"denominator\" = 0$ and leave those numbers out (if they're in the domain at all).",
          space="1.25in"),
     dict(key="5", title="Which Relations Are Functions?", instructions="Which of these relations are functions?",
          look="Sets of ordered pairs.",
-         move="A relation is a function when no x is paired with two different y's. Look for a repeated first number.",
+         move="A relation is a function when no $x$ is paired with two different $y$'s. Look for a repeated "
+              "first number.",
          width="full", space="0.5in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
