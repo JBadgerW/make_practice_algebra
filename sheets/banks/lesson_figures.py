@@ -18,6 +18,7 @@ passes a bigger one), and labels take the text size around them.
     nested(outer, foot, top, labels)  Lesson 3: a right triangle with a segment inside it, labeled and marked
     construction(prims, key)          Lesson 4: a figure and its compass construction (shown on the key only), true size
     protractor(rays, vertex)          Lesson 4: rays from the center of a protractor with both scales
+    solid(w, d, h, names, edges)      Lesson 5: a rectangular solid, corners and edges labeled, its diagonal drawn on the key
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -471,4 +472,55 @@ def protractor(rays, vertex, radius=3.0, unit="1cm", text_scale=1.0):
         cmds.append(f"content({_pt(*lab)}, [{name}])")
     cmds += ["circle((0, 0), radius: 0.06, fill: white, stroke: 0.7pt)",
              f"content((0, -0.7), [{vertex}])"]
+    return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 5: a rectangular solid and its diagonal
+# ------------------------------------------------------------------
+# The corners, by where they are: front or back, bottom or top, left or right.
+CORNERS = ("fbl", "fbr", "ftr", "ftl", "bbl", "bbr", "btr", "btl")
+
+def solid_corners(w, d, h, size=4.2, tall=2.8):
+    """Where the corners of a w-by-d-by-h solid fall when drawn: the front face w wide and
+    h tall, the depth d going back and up to the right at 30 degrees, drawn at 0.55 of its
+    length (as the book's figures are). Scaled to fit `size` wide and `tall` high."""
+    dx, dy = 0.55 * d * math.cos(math.radians(30)), 0.55 * d * math.sin(math.radians(30))
+    k = min(size / (w + dx), tall / (h + dy))
+    w, h, dx, dy = w * k, h * k, dx * k, dy * k
+    front = {"fbl": (0, 0), "fbr": (w, 0), "ftr": (w, h), "ftl": (0, h)}
+    back = {"b" + c[1:]: (x + dx, y + dy) for c, (x, y) in front.items()}
+    return front | back
+
+def solid(w, d, h, names, edges, key_lines=(), size=4.2, tall=2.8, unit="1cm"):
+    """A rectangular solid drawn as the book draws it: the top face darkest, the hidden
+    edges from the back-bottom-left corner dashed. names: {corner: markup} for the corners
+    labeled; edges: {"width": markup, "depth": markup, "height": markup}, labeled on the front
+    bottom edge, the right bottom edge going back, and the front left edge. key_lines:
+    [(corner, corner)] drawn in red on the key; the figure's size doesn't change with them
+    (they lie inside the solid), so nothing moves between the question and the key."""
+    P = solid_corners(w, d, h, size, tall)
+    cmds = [_poly([P[c] for c in ("ftl", "ftr", "btr", "btl")], ", close: true, stroke: none, fill: luma(150)"),
+            _poly([P[c] for c in ("fbl", "fbr", "ftr", "ftl")], ", close: true, stroke: none, fill: luma(215)"),
+            _poly([P[c] for c in ("fbr", "bbr", "btr", "ftr")], ", close: true, stroke: none, fill: luma(240)")]
+    for a, b in (("bbl", "fbl"), ("bbl", "bbr"), ("bbl", "btl")):
+        cmds.append(_dash(P[a], P[b]))
+    for path in (("fbl", "fbr", "ftr", "ftl", "fbl"), ("ftl", "btl", "btr", "ftr"), ("fbr", "bbr", "btr")):
+        cmds.append(_poly([P[c] for c in path], ", stroke: 0.9pt"))
+    for a, b in key_lines:
+        cmds.append(_poly([P[a], P[b]], f", stroke: 1.1pt + {KEY_INK}"))
+    out = {"fbl": "north-east", "fbr": "north", "ftr": "north-east", "ftl": "south-east",
+           "bbl": "south-west", "bbr": "west", "btr": "south-west", "btl": "south"}
+    off = {"fbl": (-0.12, -0.05), "fbr": (0, -0.08), "ftr": (-0.06, -0.06), "ftl": (-0.1, 0.05),
+           "bbl": (0.08, 0.06), "bbr": (0.1, 0), "btr": (0.05, 0.05), "btl": (0, 0.08)}
+    for c, m in names.items():
+        x, y = P[c]
+        ox, oy = off[c]
+        cmds.append(f'content({_pt(x + ox, y + oy)}, anchor: "{out[c]}", padding: 1pt, [{m}])')
+    (x0, y0), (x1, _), (x2, y2), (_, y3) = P["fbl"], P["fbr"], P["bbr"], P["ftl"]
+    if edges.get("width"):
+        cmds.append(_label((x0 + x1) / 2, -0.12, edges["width"], "north"))
+    if edges.get("depth"):
+        cmds.append(_label((x1 + x2) / 2 + 0.14, (y0 + y2) / 2 - 0.06, edges["depth"], "north-west"))
+    if edges.get("height"):
+        cmds.append(_label(-0.12, (y0 + y3) / 2, edges["height"], "east"))
     return _canvas(cmds, unit)
