@@ -26,8 +26,9 @@ COURSES = courses(1)
 
 TYPES = [
     dict(key="1", title="Sum Times Difference",
-         look="(A + B)(A - B), where A and B are monomials.",
-         move="The middle terms cancel: A^2 - B^2. Square each monomial: square the coefficient, double the exponent."),
+         look="$(A + B)(A - B)$, where $A$ and $B$ are monomials.",
+         move="The middle terms cancel: $A^2 - B^2$. Square each monomial: square the coefficient, double the "
+              "exponent."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

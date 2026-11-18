@@ -26,7 +26,7 @@ COURSES = courses(1)
 TYPES = [
     dict(key="1", title="Multiply Monomials",
          look="Two monomials multiplied.",
-         move="Multiply the coefficients and add the exponents: (a x^m)(b x^n) = a b x^(m + n)."),
+         move="Multiply the coefficients and add the exponents: $(a x^m)(b x^n) = a b x^(m + n)$."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

@@ -32,10 +32,12 @@ PAIRS = [("x", "y"), ("m", "n"), ("p", "q"), ("c", "d"), ("a", "b")]
 TYPES = [
     dict(key="1", title="Difference of Squares",
          look="Two squares with a minus between them.",
-         move="U^2 - V^2 = (U + V)(U - V). U and V are the square roots: root the numbers, halve the exponents."),
+         move="$U^2 - V^2 = (U + V)(U - V)$. $U$ and $V$ are the square roots: root the numbers, halve the "
+              "exponents."),
     dict(key="2", title="Perfect Squares",
          look="Three terms: the first and last are squares, the middle one twice their product.",
-         move="U^2 ± 2 U V + V^2 = (U ± V)^2. Find U and V from the squares, then check the middle term."),
+         move="$U^2 plus.minus 2 U V + V^2 = (U plus.minus V)^2$. Find $U$ and $V$ from the squares, then "
+              "check the middle term."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

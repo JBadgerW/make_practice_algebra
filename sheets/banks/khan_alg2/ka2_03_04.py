@@ -31,9 +31,9 @@ x = sp.Symbol("x")
 
 TYPES = [
     dict(key="1", title="A Common Factor First",
-         look="Every term shares a number and a power of x.",
-         move="Take out the greatest common factor, k x^m. Then factor what's left: a trinomial, a difference "
-              "of squares, or a perfect square."),
+         look="Every term shares a number and a power of $x$.",
+         move="Take out the greatest common factor, $k x^m$. Then factor what's left: a trinomial, a "
+              "difference of squares, or a perfect square."),
     dict(key="2", title="A Product of Quadratics",
          look="Two quadratics multiplied.",
          move="Don't multiply out. Factor each quadratic, then write all the factors together."),

@@ -27,10 +27,10 @@ COURSES = courses(2)
 TYPES = [
     dict(key="1", title="Perfect Squares",
          look="The square root of a negative perfect square.",
-         move="sqrt(-n) = sqrt(n) i. Take the square root of the number, then write i after it."),
+         move="$sqrt(-n) = sqrt(n) i$. Take the square root of the number, then write $i$ after it."),
     dict(key="2", title="Not Perfect Squares",
          look="The square root of a negative number that isn't a perfect square.",
-         move="sqrt(-n) = sqrt(n) i. Take the largest perfect square out of sqrt(n); the i goes last."),
+         move="$sqrt(-n) = sqrt(n) i$. Take the largest perfect square out of $sqrt(n)$; the $i$ goes last."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

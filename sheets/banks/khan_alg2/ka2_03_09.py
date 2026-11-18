@@ -28,15 +28,16 @@ RATIOS = ["2", "3", "4", "5", "1/2", "0.5", "1/3", "2/3", "1/4", "3/4", "0.75"]
 
 TYPES = [
     dict(key="1", title="The Sum from a and r",
-         look="The first term a, the common ratio r, and how many terms.",
-         move="S_n = a (1 - r^n)/(1 - r). Put in a, r, and n.", width="full"),
+         look="The first term $a$, the common ratio $r$, and how many terms.",
+         move="$S_n = a (1 - r^n)/(1 - r)$. Put in $a$, $r$, and $n$.", width="full"),
     dict(key="2", title="The Sum of a Written Series",
-         look="A geometric series written out: a + a r + a r^2 + ...",
-         move="The first term is a; divide the second term by the first to get r. Then S_n = a (1 - r^n)/(1 - r).",
+         look="A geometric series written out: $a + a r + a r^2 + ...$",
+         move="The first term is $a$; divide the second term by the first to get $r$. Then $S_n = a (1 - "
+              "r^n)/(1 - r)$.",
          width="full"),
     dict(key="3", title="The First Term",
-         look="The sum of the first n terms and the common ratio.",
-         move="Put the sum, r, and n into S_n = a (1 - r^n)/(1 - r), and solve for a.", width="full"),
+         look="The sum of the first $n$ terms and the common ratio.",
+         move="Put the sum, $r$, and $n$ into $S_n = a (1 - r^n)/(1 - r)$, and solve for $a$.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

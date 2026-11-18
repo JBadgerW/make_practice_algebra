@@ -41,7 +41,7 @@ TYPES = [
          move="Divide: the numbers divide, and the exponents subtract. Check by multiplying back."),
     dict(key="2", title="A Missing Side", instructions="Answer each question.",
          look="A rectangle's area, a monomial, and one of its sides.",
-         move="Area = length × width, so divide the area by the side you know.", width="full"),
+         move='$"area" = "length" times "width"$, so divide the area by the side you know.', width="full"),
     dict(key="3", title="Who Factored It Correctly?", instructions="Choose 1 answer.",
          look="Two students' factorizations of the same monomial.",
          move="Multiply each pair back: multiply the numbers and add the exponents. Does it give the monomial?",

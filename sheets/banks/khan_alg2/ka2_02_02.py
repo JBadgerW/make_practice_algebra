@@ -23,9 +23,9 @@ CHOICES = ["1", "i", "-1", "-i"]
 
 TYPES = [
     dict(key="1", title="Powers of i",
-         look="i to a whole-number power.",
-         move="The powers of i repeat every 4: i, -1, -i, 1. Divide the exponent by 4; the remainder says where you land "
-              "(remainder 0 is 1)."),
+         look="$i$ to a whole-number power.",
+         move="The powers of $i$ repeat every 4: $i$, $-1$, $-i$, $1$. Divide the exponent by $4$; the "
+              "remainder says where you land (remainder $0$ is $1$)."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

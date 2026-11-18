@@ -30,8 +30,8 @@ OUTCOMES = {"A, C": "real", "B, C": "imaginary", "C": "complex"}
 TYPES = [
     dict(key="1", title="Real, Purely Imaginary, or Complex?",
          look="A number: a real part, an imaginary part, or both.",
-         move="No i: real. Only a multiple of i, with no real part: purely imaginary. Every one of them is also "
-              "complex (a + bi), so Complex is always one of the answers."),
+         move="No $i$: real. Only a multiple of $i$, with no real part: purely imaginary. Every one of them is "
+              "also complex ($a + b i$), so Complex is always one of the answers."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

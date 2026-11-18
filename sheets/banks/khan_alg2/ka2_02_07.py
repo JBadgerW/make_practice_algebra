@@ -27,8 +27,8 @@ TYPES = [
          look="A real number times a complex number.",
          move="Distribute: multiply the real part and the imaginary part by the number."),
     dict(key="2", title="An Imaginary Number Times",
-         look="A multiple of i times a complex number.",
-         move="Distribute, then replace i^2 with -1 and write the real part first."),
+         look="A multiple of $i$ times a complex number.",
+         move="Distribute, then replace $i^2$ with $-1$ and write the real part first."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

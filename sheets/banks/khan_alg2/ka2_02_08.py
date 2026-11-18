@@ -24,7 +24,8 @@ COURSES = courses(2)
 TYPES = [
     dict(key="1", title="Two Complex Numbers",
          look="Two complex numbers multiplied, each with a real and an imaginary part.",
-         move="Multiply each part by each part (FOIL), replace i^2 with -1, and combine: real parts, then imaginary."),
+         move="Multiply each part by each part (FOIL), replace $i^2$ with $-1$, and combine: real parts, then "
+              "imaginary."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

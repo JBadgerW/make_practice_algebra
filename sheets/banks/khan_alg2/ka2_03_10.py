@@ -37,15 +37,17 @@ COURSES = courses(3)
 
 TYPES = [
     dict(key="1", title="The Total",
-         look="A first amount and a constant ratio (a fraction, or a percent more or less); the total over n.",
-         move="It's a geometric series: a is the first amount, r the ratio (1.15 for 15% more, 0.9 for 90%). "
-              "S_n = a (1 - r^n)/(1 - r), then round as asked.", width="full"),
+         look="A first amount and a constant ratio (a fraction, or a percent more or less); the total over "
+              "$n$.",
+         move="It's a geometric series: $a$ is the first amount, $r$ the ratio ($1.15$ for 15% more, $0.9$ for "
+              "90%). $S_n = a (1 - r^n)/(1 - r)$, then round as asked.", width="full"),
     dict(key="2", title="The First Amount",
-         look="The total over n and the ratio; the first amount is unknown.",
-         move="Put the total, r, and n into S_n = a (1 - r^n)/(1 - r) and solve for a.", width="full"),
+         look="The total over $n$ and the ratio; the first amount is unknown.",
+         move="Put the total, $r$, and $n$ into $S_n = a (1 - r^n)/(1 - r)$ and solve for $a$.", width="full"),
     dict(key="3", title="Which Expression?",
-         look="A story and four expressions for the total over the first n.",
-         move="The total is a (1 - r^n)/(1 - r): a the first amount, r the ratio. Check which is a and which is r.",
+         look="A story and four expressions for the total over the first $n$.",
+         move="The total is $a (1 - r^n)/(1 - r)$: $a$ the first amount, $r$ the ratio. Check which is $a$ and "
+              "which is $r$.",
          width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in", width="full")

@@ -35,9 +35,9 @@ PATTERNS = {"(U+V)^2": 1, "(U-V)^2": -1, "(U+V)(U-V)": 0}
 
 TYPES = [
     dict(key="1", title="Find U and V, Then Factor",
-         look="An expression and the pattern it fits: (U + V)^2, (U - V)^2, or (U + V)(U - V).",
-         move="U^2 and V^2 are the squares in the expression, so U and V are their square roots: halve the "
-              "exponents, take the root of the numbers. Then write the pattern with U and V.", width="full"),
+         look="An expression and the pattern it fits: $(U + V)^2$, $(U - V)^2$, or $(U + V)(U - V)$.",
+         move="$U^2$ and $V^2$ are the squares in the expression, so $U$ and $V$ are their square roots: halve "
+              "the exponents, take the root of the numbers. Then write the pattern with $U$ and $V$.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.5in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

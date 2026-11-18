@@ -35,8 +35,9 @@ CHOICES = ["$(U+V)^2$ or $(U-V)^2$", "$(U+V)(U-V)$", "We can't use any of the pa
 TYPES = [
     dict(key="1", title="Which Pattern?",
          look="An expression with a square first: two terms or three.",
-         move="Two squares with a minus between: (U + V)(U - V). Three terms, the outer two squares and the middle "
-              "one 2 U V: (U ± V)^2. A plus between two squares, or a middle term that isn't 2 U V: no pattern.",
+         move="Two squares with a minus between: $(U + V)(U - V)$. Three terms, the outer two squares and the "
+              "middle one $2 U V$: $(U plus.minus V)^2$. A plus between two squares, or a middle term that "
+              "isn't $2 U V$: no pattern.",
          width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")

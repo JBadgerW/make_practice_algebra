@@ -33,9 +33,9 @@ COURSES = courses(2)
 
 TYPES = [
     dict(key="1", title="The Quadratic Formula",
-         look="A quadratic equation = 0 that doesn't factor.",
-         move="x = (-b ± sqrt(b^2 - 4ac))/(2a). If b^2 - 4ac is negative, sqrt(-n) = sqrt(n) i: the solutions are "
-              "complex. Simplify the root and reduce both fractions.", width="full"),
+         look="A quadratic $\"equation\" = 0$ that doesn't factor.",
+         move="$x = (-b plus.minus sqrt(b^2 - 4 a c))/(2 a)$. If $b^2 - 4 a c$ is negative, $sqrt(-n) = "
+              "sqrt(n) i$: the solutions are complex. Simplify the root and reduce both fractions.", width="full"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

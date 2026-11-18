@@ -18,7 +18,6 @@ from sheets import banks
 from tui.common import hint_search_text, prose
 
 NOT_YET = {
-    "ka2_02_09", "ka2_03_01", "ka2_03_05", "ka2_03_07", "ka2_03_09", "ka2_03_10",
     "kpa_01_01", "kpa_01_02", "kpa_01_03", "kpa_08_02",
 }
 

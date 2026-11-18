@@ -29,11 +29,13 @@ SIGN = {"positive": lambda v: v > 0, "negative": lambda v: v < 0, "zero": lambda
 
 TYPES = [
     dict(key="1", title="Over an Interval", instructions="Find each average rate of change.",
-         look="A function and an interval [a, b].",
-         move="Average rate of change = (f(b) - f(a))/(b - a): the change in output over the change in input."),
+         look="A function and an interval $[a, b]$.",
+         move="Average rate of change $= (f(b) - f(a))/(b - a)$: the change in output over the change in "
+              "input."),
     dict(key="2", title="Which Interval?", instructions="Choose 1 answer.",
          look="A function and four intervals: on which is the average rate of change positive (negative, zero)?",
-         move="Find f at both ends of each interval. Positive if the output goes up, negative if down, zero if the ends match."),
+         move="Find $f$ at both ends of each interval. Positive if the output goes up, negative if down, zero "
+              "if the ends match."),
 ]
 T = gen.Types(TYPES, "", space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

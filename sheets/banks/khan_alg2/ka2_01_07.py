@@ -28,7 +28,7 @@ COURSES = courses(1)
 
 TYPES = [
     dict(key="1", title="Monomial Times Polynomial",
-         look="An area model whose height is one term, like 3 x^2.",
+         look="An area model whose height is one term, like $3 x^2$.",
          move="Multiply the height by each term of the width (one box each): multiply coefficients, add exponents. Add the boxes."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")

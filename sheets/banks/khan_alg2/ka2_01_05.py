@@ -28,8 +28,9 @@ TYPES = [
          look="Two polynomials with names, and a sum or difference of them.",
          move="Put each polynomial in parentheses, in the order asked. For a difference, change every sign in the second."),
     dict(key="2", title="Subtract One from Another",
-         look="Subtract A from B.",
-         move="\"Subtract A from B\" means B - A: write B first. Then change every sign in A and combine."),
+         look="Subtract $A$ from $B$.",
+         move='"Subtract $A$ from $B$" means $B - A$: write $B$ first. Then change every sign in $A$ and '
+              "combine."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

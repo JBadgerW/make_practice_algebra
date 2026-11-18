@@ -27,11 +27,12 @@ COURSES = courses(2)
 
 TYPES = [
     dict(key="1", title="Name the Parts", instructions="Find the real and imaginary parts of each.",
-         look="A complex number z, its parts in either order.",
-         move="Re(z) is the number without i. Im(z) is the number multiplying i: a real number, written without the i."),
+         look="A complex number $z$, its parts in either order.",
+         move='$"Re"(z)$ is the number without $i$. $"Im"(z)$ is the number multiplying $i$: a real number, '
+              "written without the $i$."),
     dict(key="2", title="Which Parts?", instructions="Choose 1 answer.",
-         look="A complex number z and four ways to read its parts.",
-         move="The real part has no i. The imaginary part is the coefficient of i, without the i.", width="full"),
+         look="A complex number $z$ and four ways to read its parts.",
+         move="The real part has no $i$. The imaginary part is the coefficient of $i$, without the $i$.", width="full"),
 ]
 T = gen.Types(TYPES, "", space="0.5in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

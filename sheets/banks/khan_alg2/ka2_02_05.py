@@ -28,12 +28,12 @@ COURSES = courses(2)
 
 TYPES = [
     dict(key="1", title="Plot the Number", instructions="Plot each number in the complex plane.",
-         look="A complex number a + b i and an empty complex plane.",
-         move="The real part a goes across (the Re axis), the imaginary part b goes up or down (the Im axis): "
-              "plot the point (a, b).", width="full"),
+         look="A complex number $a + b i$ and an empty complex plane.",
+         move="The real part $a$ goes across (the Re axis), the imaginary part $b$ goes up or down (the Im "
+              "axis): plot the point $(a, b)$.", width="full"),
     dict(key="2", title="Name the Point", instructions="Write the number each point represents, in the form a + bi.",
          look="A point plotted in the complex plane.",
-         move="Read across for the real part and up or down for the imaginary part: a + b i.", width="full"),
+         move="Read across for the real part and up or down for the imaginary part: $a + b i$.", width="full"),
 ]
 T = gen.Types(TYPES, "", space="0.25in", width="full")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY

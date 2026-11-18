@@ -25,8 +25,8 @@ COURSES = courses(1)
 
 TYPES = [
     dict(key="1", title="Square of a Binomial",
-         look="(A + B)^2, where A and B are monomials.",
-         move="(A + B)^2 = A^2 + 2 A B + B^2: square each term, and double their product for the middle."),
+         look="$(A + B)^2$, where $A$ and $B$ are monomials.",
+         move="$(A + B)^2 = A^2 + 2 A B + B^2$: square each term, and double their product for the middle."),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="0.75in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
