@@ -28,15 +28,15 @@ COURSES = {"Advanced Math": "Additional Practice"}
 TYPES = [
     dict(key="1", title="Both Amounts, Given the Total",
          look="Two solutions of different strengths, the total wanted, and its strength.",
-         move="Let x be one amount; the other is total - x. The ingredient adds up: "
-              "(low %)x + (high %)(total - x) = (target %)(total). Solve, then find the other."),
+         move='Let $x$ be one amount; the other is $"total" - x$. The ingredient adds up: $("low %") x + '
+              '("high %")("total" - x) = ("target %")("total")$. Solve, then find the other.'),
     dict(key="2", title="One Amount, Given the Total",
          look="The same, but only one of the amounts is asked for.",
-         move="Set it up as in Type 1, with x the amount asked for."),
+         move="Set it up as in Type 1, with $x$ the amount asked for."),
     dict(key="3", title="One Amount, Given the Other",
          look="One amount is known; the total isn't.",
-         move="Let x be the unknown amount. (low %)(low amount) + (high %)(high amount) = "
-              "(target %)(low amount + high amount). Solve for x."),
+         move='Let $x$ be the unknown amount. $("low %")("low amount") + ("high %")("high amount") = ("target '
+              '%")("low amount" + "high amount")$. Solve for $x$.'),
     dict(key="4", title="Water or a Pure Ingredient",
          look="Water added, water boiled off, or a pure (100%) ingredient added.",
          move="Water is 0% of the ingredient and a pure ingredient is 100%. Boiling off water takes it away. "
