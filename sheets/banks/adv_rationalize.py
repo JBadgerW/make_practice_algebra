@@ -38,16 +38,17 @@ TYPES = [
          look="One term in the denominator, with a square root.",
          move="Multiply the top and the bottom by that square root. Then simplify the fraction."),
     dict(key="2", title="i in the Denominator",
-         look="One term in the denominator, with i or a power of i.",
-         move="Reduce the powers of i. Multiply the top and the bottom by i, and use i^2 = -1."),
+         look="One term in the denominator, with $i$ or a power of $i$.",
+         move="Reduce the powers of $i$. Multiply the top and the bottom by $i$, and use $i^2 = -1$."),
     dict(key="3", title="A Binomial with a Square Root",
          look="Two terms in the denominator, one of them a square root.",
-         move="Multiply the top and the bottom by the conjugate: a + b sqrt(c) becomes a - b sqrt(c). "
-              "The denominator is a^2 - b^2 c. Multiply out the top and reduce.", space="1.5in"),
+         move="Multiply the top and the bottom by the conjugate: $a + b sqrt(c)$ becomes $a - b sqrt(c)$. The "
+              "denominator is $a^2 - b^2 c$. Multiply out the top and reduce.", space="1.5in"),
     dict(key="4", title="A Complex Denominator",
-         look="A complex number a + b i in the denominator; maybe powers of i or square roots of negatives.",
-         move="Write each square root of a negative with i and reduce the powers of i. Multiply the top "
-              "and the bottom by the conjugate a - b i; the denominator is a^2 + b^2.", space="1.5in"),
+         look="A complex number $a + b i$ in the denominator; maybe powers of $i$ or square roots of "
+              "negatives.",
+         move="Write each square root of a negative with $i$ and reduce the powers of $i$. Multiply the top "
+              "and the bottom by the conjugate $a - b i$; the denominator is $a^2 + b^2$.", space="1.5in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
