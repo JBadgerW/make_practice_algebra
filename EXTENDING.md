@@ -255,6 +255,7 @@ python3 tests/test_adv_lesson_22.py         # Advanced Math Lesson 22: every sou
 python3 tests/test_adv_lesson_23.py         # Advanced Math Lesson 23: every source is reachable and checks; sketches by their marked points, none skipped, none off the graph
 python3 tests/test_adv_lesson_1.py          # Advanced Math Lesson 1: every source is reachable and checks; the figures are drawn from the data
 python3 tests/test_adv_lesson_2.py          # Advanced Math Lesson 2: every source is reachable and checks; decimal keys within the deck's rounding
+python3 tests/test_adv_lesson_3.py          # Advanced Math Lesson 3: every source is reachable and checks; similar triangles checked by their ratios, right ones by Pythagoras
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
 python3 tests/bench_banks.py NEW_BANK        # ms a problem; a new bank should be under 100

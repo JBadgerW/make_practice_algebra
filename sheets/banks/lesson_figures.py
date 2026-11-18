@@ -14,6 +14,8 @@ passes a bigger one), and labels take the text size around them.
     mapping(domain, range_, arrows)   Lesson 21: a mapping diagram, two ovals of members and arrows
     rule_mapping(left, right, rule)   Lesson 21: a mapping by a rule, x ∈ ℝ -> x + 2
     number_line(lo, hi, pieces, dots) Lesson 22: a number line, blank or with a graph drawn on it
+    triangles(tris)                   Lesson 3: triangles with sides labeled and angles marked (arcs, right angles)
+    nested(outer, foot, top, labels)  Lesson 3: a right triangle with a segment inside it, labeled and marked
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -315,3 +317,76 @@ def number_line(lo, hi, pieces=(), dots=(), ink="black", width=7.6, slide_width=
             f"  let gw = 1 + t\n"
             f"  cetz.canvas(length: (1 + t * {_num(slide_width / width - 1)}) * 1cm, {{\n"
             f"    import cetz.draw: *\n    {body}\n  }}) }}")
+
+# ------------------------------------------------------------------
+# Lesson 3: triangles, with their sides labeled and their angles marked
+# ------------------------------------------------------------------
+def _fit(pts, wide, tall):
+    """The scale that fits the points in a wide-by-tall box, and the offset to put them at the origin."""
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    w, h = max(xs) - min(xs), max(ys) - min(ys)
+    k = min(wide / w if w else 9e9, tall / h if h else 9e9)
+    return k, min(xs), min(ys)
+
+def _side_label(a, b, inside, text, gap=0.3):
+    """A side's label at its middle, set off from the side away from the point `inside`."""
+    mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L = math.hypot(dx, dy)
+    nx, ny = -dy / L, dx / L
+    if (inside[0] - mx) * nx + (inside[1] - my) * ny > 0:
+        nx, ny = -nx, -ny
+    return _label(mx + gap * nx, my + gap * ny, text)
+
+def _angle_arcs(v, p, q, count, r0=0.3, step=0.08):
+    """`count` arcs marking the angle at v between the sides toward p and q."""
+    a0 = math.degrees(math.atan2(p[1] - v[1], p[0] - v[0]))
+    a1 = math.degrees(math.atan2(q[1] - v[1], q[0] - v[0]))
+    sweep = (a1 - a0) % 360
+    if sweep > 180:
+        a0, sweep = a1, 360 - sweep
+    out = []
+    for i in range(count):
+        r = r0 + step * i
+        out.append(_poly([(v[0] + x, v[1] + y) for x, y in _arc(r, a0, a0 + sweep, 24)], ", stroke: 0.6pt"))
+    return out
+
+def _unit(p, q):
+    L = math.hypot(q[0] - p[0], q[1] - p[1])
+    return ((q[0] - p[0]) / L, (q[1] - p[1]) / L)
+
+def triangles(tris, wide=5.6, tall=2.8, unit="1cm"):
+    """Triangles drawn to fit a wide-by-tall box. Each is dict(pts: three points,
+    labels: {side index i (from pts[i] to pts[i+1]): markup}, marks: {vertex index:
+    arcs (1, 2) or "right"}), its points in any units: they're scaled here, and the
+    labels and marks are set at a fixed size after."""
+    k, x0, y0 = _fit([p for t in tris for p in t["pts"]], wide, tall)
+    cmds = []
+    for t in tris:
+        P = [(k * (x - x0), k * (y - y0)) for x, y in t["pts"]]
+        cmds.append(_poly(P, ", close: true, stroke: 0.8pt"))
+        c = (sum(x for x, _ in P) / 3, sum(y for _, y in P) / 3)
+        for i, text in t.get("labels", {}).items():
+            cmds.append(_side_label(P[i], P[(i + 1) % 3], c, text))
+        for i, m in t.get("marks", {}).items():
+            v, p, q = P[i], P[(i + 1) % 3], P[(i + 2) % 3]
+            if m == "right":
+                cmds.append(_right_angle(v, _unit(v, p), _unit(v, q)))
+            else:
+                cmds += _angle_arcs(v, p, q, m)
+    return _canvas(cmds, unit)
+
+def nested(outer, foot, top, labels, marks=(), wide=5.0, tall=2.6, unit="1cm"):
+    """A right triangle and lines inside it, drawn to fit: outer is its three points
+    (the vertex with the marked angle, the right angle's vertex, the third), the segment
+    foot-top is drawn too; labels: (a, b, inside point, markup) for segments a-b; marks:
+    ("right", corner, toward p, toward q) or (arcs, vertex, toward p, toward q)."""
+    k, x0, y0 = _fit(list(outer), wide, tall)
+    S = lambda p: (k * (p[0] - x0), k * (p[1] - y0))
+    cmds = [_poly([S(p) for p in outer], ", close: true, stroke: 0.8pt"), _poly([S(foot), S(top)], ", stroke: 0.8pt")]
+    for a, b, inside, text in labels:
+        cmds.append(_side_label(S(a), S(b), S(inside), text))
+    for m, v, p, q in marks:
+        v, p, q = S(v), S(p), S(q)
+        cmds += [_right_angle(v, _unit(v, p), _unit(v, q))] if m == "right" else _angle_arcs(v, p, q, m)
+    return _canvas(cmds, unit)
