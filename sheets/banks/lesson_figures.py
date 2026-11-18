@@ -16,6 +16,8 @@ passes a bigger one), and labels take the text size around them.
     number_line(lo, hi, pieces, dots) Lesson 22: a number line, blank or with a graph drawn on it
     triangles(tris)                   Lesson 3: triangles with sides labeled and angles marked (arcs, right angles)
     nested(outer, foot, top, labels)  Lesson 3: a right triangle with a segment inside it, labeled and marked
+    construction(prims, key)          Lesson 4: a figure and its compass construction (shown on the key only), true size
+    protractor(rays, vertex)          Lesson 4: rays from the center of a protractor with both scales
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -389,4 +391,84 @@ def nested(outer, foot, top, labels, marks=(), wide=5.0, tall=2.6, unit="1cm"):
     for m, v, p, q in marks:
         v, p, q = S(v), S(p), S(q)
         cmds += [_right_angle(v, _unit(v, p), _unit(v, q))] if m == "right" else _angle_arcs(v, p, q, m)
+    return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 4: compass-and-straightedge constructions, and a protractor
+# ------------------------------------------------------------------
+KEY_INK = INK["red"]
+
+def construction(prims, key, unit="1cm", pad=0.35):
+    """A construction drawn from primitives, every coordinate in centimeters (on a sheet, unit
+    1cm: lengths print true, so a compass and ruler work on the page). A primitive is a tuple
+    whose first item says what it is and whose last says whose it is, "given" or "key":
+        ("seg", p, q, arrows, who)      arrows: "" none, "end" at q, "both"
+        ("dot", p, who)
+        ("label", p, markup, who)       centered at p (the bank sets it off from its point)
+        ("arc", center, r, a0, a1, who) degrees, counterclockwise from a0 to a1
+        ("box", corner, u, v, who)      a right-angle mark, its sides along unit vectors u, v
+    The key's parts are drawn in red only when key is true; either way they count toward the
+    figure's size (an invisible box around everything), so the question's figure and the key's
+    are the same size and nothing moves between them."""
+    xs, ys, cmds = [], [], []
+    for pr in prims:
+        kind, who = pr[0], pr[-1]
+        if kind == "seg":
+            pts = [pr[1], pr[2]]
+        elif kind == "arc":
+            (cx, cy), r, a0, a1 = pr[1:5]
+            pts = [(cx + x, cy + y) for x, y in _arc(r, a0, a1, 24)]
+        else:
+            pts = [pr[1]]
+        xs += [p[0] for p in pts]
+        ys += [p[1] for p in pts]
+        if who == "key" and not key:
+            continue
+        ink = KEY_INK if who == "key" else "black"
+        if kind == "seg":
+            mark = {"": "", "end": f', mark: (end: "stealth", fill: {ink}, scale: 0.7)',
+                    "both": f', mark: (start: "stealth", end: "stealth", fill: {ink}, scale: 0.7)'}[pr[3]]
+            cmds.append(_poly(pts, f", stroke: {'1pt' if who == 'given' else '0.9pt'} + {ink}{mark}"))
+        elif kind == "arc":
+            cmds.append(_poly(pts, f", stroke: 0.6pt + {ink}"))
+        elif kind == "dot":
+            cmds.append(f"circle({_pt(*pr[1])}, radius: 0.06, fill: {ink}, stroke: none)")
+        elif kind == "label":
+            body = pr[2] if who == "given" else f"#text(fill: {ink})[{pr[2]}]"
+            cmds.append(f"content({_pt(*pr[1])}, [{body}])")
+        elif kind == "box":
+            (x, y), (ux, uy), (vx, vy) = pr[1], pr[2], pr[3]
+            k = 0.2
+            cmds.append(_poly([(x + k * ux, y + k * uy), (x + k * (ux + vx), y + k * (uy + vy)),
+                               (x + k * vx, y + k * vy)], f", stroke: 0.6pt + {ink}"))
+    box = f"rect({_pt(min(xs) - pad, min(ys) - pad)}, {_pt(max(xs) + pad, max(ys) + pad)}, stroke: none)"
+    return _canvas([box] + cmds, unit)
+
+def protractor(rays, vertex, radius=3.0, unit="1cm", text_scale=1.0):
+    """A protractor on its baseline, its origin at the angle's vertex, and rays from the vertex:
+    rays is [(direction in degrees, 0 to 180 counterclockwise from the right, label markup)].
+    The inner scale reads 0 at the right, the outer 0 at the left, as the book's does."""
+    R = radius
+    small = _num(5.2 * text_scale)
+    cmds = [_poly([(-R - 0.15, 0), (-R - 0.15, -0.4), (R + 0.15, -0.4), (R + 0.15, 0)], ", stroke: 0.6pt"),
+            _poly(_arc(R, 0, 180, 90), ", stroke: 0.7pt"),
+            _poly(_arc(R - 1.2, 0, 180, 60), ", stroke: 0.4pt + luma(120)"),
+            _poly([(-R - 0.15, 0), (R + 0.15, 0)], ", stroke: 0.5pt")]
+    for i in range(181):
+        t = math.radians(i)
+        k = 0.32 if i % 10 == 0 else 0.2 if i % 5 == 0 else 0.11
+        c, s = math.cos(t), math.sin(t)
+        cmds.append(_poly([(R * c, R * s), ((R - k) * c, (R - k) * s)], ", stroke: 0.35pt"))
+        if i % 10 == 0:
+            for rr, v in ((R - 0.52, 180 - i), (R - 0.88, i)):
+                cmds.append(f"content({_pt(rr * c, rr * s)}, angle: {i - 90}deg, "
+                            f"text(size: {small}pt)[{v}])")
+    for d, name in rays:
+        t = math.radians(d)
+        end = ((R + 0.7) * math.cos(t), (R + 0.7) * math.sin(t))
+        cmds.append(_poly([(0, 0), end], ', stroke: 1pt, mark: (end: "stealth", fill: black, scale: 0.7)'))
+        lab = ((R + 1.0) * math.cos(t), (R + 1.0) * math.sin(t) + (0.0 if 0 < d < 180 else 0.3))
+        cmds.append(f"content({_pt(*lab)}, [{name}])")
+    cmds += ["circle((0, 0), radius: 0.06, fill: white, stroke: 0.7pt)",
+             f"content((0, -0.7), [{vertex}])"]
     return _canvas(cmds, unit)
