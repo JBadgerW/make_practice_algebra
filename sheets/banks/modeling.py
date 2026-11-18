@@ -36,13 +36,17 @@ COURSES = {"Algebra 1": "Lessons"}
 TYPES = [
     dict(key="1", title="One Serving",
          look="A total between two numbers: one serving (or hour, mile, bottle) of something, plus some number of a smaller item.",
-         move="Let a letter be the number of items. Write low ≤ fixed part + (each item)·n ≤ high. Subtract the fixed part from all three parts, then divide all three by the size of one item."),
+         move='Let a letter be the number of items. Write $"low" <= "fixed part" + ("each item") dot n <= '
+              '"high"$. Subtract the fixed part from all three parts, then divide all three by the size of one '
+              "item."),
     dict(key="2", title="Whole-Number Servings",
          look="The same model, but the fixed part comes in 2, 3, or 4 servings.",
-         move="The fixed part is servings times the amount in one serving. Write it as 2(320) in the model, then solve as before."),
+         move="The fixed part is servings times the amount in one serving. Write it as $2(320)$ in the model, "
+              "then solve as before."),
     dict(key="3", title="Fractional Servings",
-         look="The same model, with ½, 1½, or 2½ servings.",
-         move="The fixed part is still servings times the amount in one: 1½ servings of 320 is 1.5(320) = 480. Then solve as before."),
+         look="The same model, with $1/2$, $1 1/2$, or $2 1/2$ servings.",
+         move="The fixed part is still servings times the amount in one: $1 1/2$ servings of $320$ is "
+              "$1.5(320) = 480$. Then solve as before."),
 ]
 TYPE = {t["key"]: t for t in TYPES}
 KEYS = [t["key"] for t in TYPES]
