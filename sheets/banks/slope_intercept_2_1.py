@@ -109,65 +109,69 @@ COURSES = {"Algebra 1": "Lessons"}
 
 TYPES = [
     dict(key="1", title="Solve for y", instructions="Solve each equation for y. Write it in the form y = mx + b.",
-         look="A linear equation in x and y that isn't solved for y: 3y - 2x = -12, x = 3/2 y + 6, -6 = 3/2 y - x.",
-         move="Get the y term alone on one side (add or subtract the x term and the number), then divide every term "
-              "by y's coefficient (or multiply by its reciprocal). Write the x term first: y = 2/3 x - 4."),
+         look="A linear equation in $x$ and $y$ that isn't solved for $y$: $3 y - 2 x = -12$, $x = 3/2 y + 6$, "
+              "$-6 = 3/2 y - x$.",
+         move="Get the $y$ term alone on one side (add or subtract the $x$ term and the number), then divide "
+              "every term by $y$'s coefficient (or multiply by its reciprocal). Write the $x$ term first: $y = "
+              "2/3 x - 4$."),
     dict(key="2", title="Graph", instructions="Graph each line.",
-         look="A line in slope-intercept form, y = m x + b, and a blank graph: y = 2/3 x - 4.",
-         move="Plot the y-intercept (0, b). From it, rise the slope's numerator and run its denominator "
-              "(a negative slope goes down as it goes right) to plot more points. Draw the line through them.",
+         look="A line in slope-intercept form, $y = m x + b$, and a blank graph: $y = 2/3 x - 4$.",
+         move="Plot the $y$-intercept $(0, b)$. From it, rise the slope's numerator and run its denominator (a "
+              "negative slope goes down as it goes right) to plot more points. Draw the line through them.",
          space="0in"),
     dict(key="3", title="Solve for y, Then Graph", instructions="Solve each equation for y, then graph it.",
-         look="A linear equation that isn't solved for y, and a blank graph: 3y - 2x = -12.",
-         move="Solve for y as in Step 1: y = 2/3 x - 4. Then graph it as in Step 2: plot (0, -4), "
-              "rise 2 and run 3, and draw the line.",
+         look="A linear equation that isn't solved for $y$, and a blank graph: $3 y - 2 x = -12$.",
+         move="Solve for $y$ as in Step 1: $y = 2/3 x - 4$. Then graph it as in Step 2: plot $(0, -4)$, rise "
+              "$2$ and run $3$, and draw the line.",
          space="0in"),
     dict(key="4", title="Write the Equation", instructions="Write the equation of each line in the form y = mx + b.",
          look="A line drawn on a graph, and no equation.",
-         move="Find where the line crosses the y-axis: that's b. From there, count the rise and the run to "
-              "another point where the line crosses grid lines exactly: the slope m is rise over run "
-              "(negative if the line goes down to the right). Write y = mx + b.",
+         move="Find where the line crosses the $y$-axis: that's $b$. From there, count the rise and the run to "
+              "another point where the line crosses grid lines exactly: the slope $m$ is rise over run "
+              "(negative if the line goes down to the right). Write $y = m x + b$.",
          space="0in"),
     dict(key="5", title="Points to Equation, Integer b",
          instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
-         look="Two points, neither on an axis: (2, 3) and (5, 9). The y-intercept comes out a whole number.",
-         move="Slope first: m = (y2 - y1)/(x2 - x1) = (9 - 3)/(5 - 2) = 2. Put m and one point into "
-              "y = mx + b and solve for b: 3 = 2(2) + b, so b = -1. Write y = 2x - 1."),
+         look="Two points, neither on an axis: $(2, 3)$ and $(5, 9)$. The $y$-intercept comes out a whole "
+              "number.",
+         move="Slope first: $m = (y_2 - y_1)/(x_2 - x_1) = (9 - 3)/(5 - 2) = 2$. Put $m$ and one point into $y "
+              "= m x + b$ and solve for $b$: $3 = 2(2) + b$, so $b = -1$. Write $y = 2 x - 1$."),
     dict(key="6", title="Points to Equation, Any b",
          instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
-         look="Two points, neither on an axis: (1, 4) and (3, 5). The y-intercept may be a fraction.",
-         move="Slope first: m = (5 - 4)/(3 - 1) = 1/2. Put m and one point into y = mx + b and solve "
-              "for b: 4 = 1/2 (1) + b, so b = 7/2. Write y = 1/2 x + 7/2."),
+         look="Two points, neither on an axis: $(1, 4)$ and $(3, 5)$. The $y$-intercept may be a fraction.",
+         move="Slope first: $m = (5 - 4)/(3 - 1) = 1/2$. Put $m$ and one point into $y = m x + b$ and solve "
+              "for $b$: $4 = 1/2 (1) + b$, so $b = 7/2$. Write $y = 1/2 x + 7/2$."),
     dict(key="7", title="Fractional Coordinates",
          instructions="Write the equation of the line through each pair of points in the form y = mx + b.",
-         look="Two points with fractions or mixed numbers for coordinates: (1/2, 3) and (2 1/2, -1).",
-         move="Slope first; write a mixed number as a fraction (2 1/2 = 5/2) and subtract with a common "
-              "denominator: m = (-1 - 3)/(5/2 - 1/2) = -4/2 = -2. Put m and one point into y = mx + b and solve for b: 3 = -2(1/2) + b, so b = 4. "
-              "Write y = -2x + 4."),
+         look="Two points with fractions or mixed numbers for coordinates: $(1/2, 3)$ and $(2 1/2, -1)$.",
+         move="Slope first; write a mixed number as a fraction ($2 1/2 = 5/2$) and subtract with a common "
+              "denominator: $m = (-1 - 3)/(5/2 - 1/2) = -4/2 = -2$. Put $m$ and one point into $y = m x + b$ "
+              "and solve for $b$: $3 = -2(1/2) + b$, so $b = 4$. Write $y = -2 x + 4$."),
     dict(key="8", title="Estimation Graphs 1",
          instructions="Sketch the line through each pair of points. Mark and number the axes at -10, -5, 5, and 10; "
                       "plot the points and draw the line to the edges. Draw the rise and run between the points and "
                       "label them, then mark the y-intercept and estimate it.",
-         look="Two points, (2, 4) and (-4, -5), and bare axes.",
-         move="Number the axes at -10, -5, 5, 10. Plot the points by eye; draw the line to the edges. "
-              "Draw the run and rise between them and label them: run 6, rise 9. Mark the y-intercept: about 1.",
+         look="Two points, $(2, 4)$ and $(-4, -5)$, and bare axes.",
+         move="Number the axes at $-10$, $-5$, $5$, $10$. Plot the points by eye; draw the line to the edges. "
+              "Draw the run and rise between them and label them: run $6$, rise $9$. Mark the $y$-intercept: "
+              "about $1$.",
          space="0in"),
     dict(key="9", title="Estimation Graphs 2",
          instructions="Sketch the line through each pair of points. Choose a scale that fits both points, mark and "
                       "number each axis at its middle and its end; plot the points and draw the line to the edges. "
                       "Draw the rise and run between the points and label them, then mark the y-intercept and estimate it.",
-         look="Two points, all coordinates the same size: (450, -200) and (-700, 900).",
-         move="The scale is the smallest of 1, 10, 100, 1000, 10000 that holds them: 1000. Number both axes "
-              "at -1000, -500, 500, 1000, then sketch as in Estimation Graphs 1.",
+         look="Two points, all coordinates the same size: $(450, -200)$ and $(-700, 900)$.",
+         move="The scale is the smallest of $1$, $10$, $100$, $1000$, $10000$ that holds them: $1000$. Number "
+              "both axes at $-1000$, $-500$, $500$, $1000$, then sketch as in Estimation Graphs 1.",
          space="0in"),
     dict(key="10", title="Estimation Graphs 3",
          instructions="Sketch the line through each pair of points. Choose a scale for each axis that fits its "
                       "coordinates, mark and number each axis at its middle and its end; plot the points and draw "
                       "the line to the edges. Draw the rise and run between the points and label them, then mark "
                       "the y-intercept and estimate it.",
-         look="Two points whose x's and y's are different sizes: (0.4, 650) and (-0.9, -300).",
-         move="Scale each axis on its own: x to 1, y to 1000. Then sketch as in Estimation Graphs 1; "
-              "the run and rise are in each axis's units: run 1.3, rise 950.",
+         look="Two points whose $x$'s and $y$'s are different sizes: $(0.4, 650)$ and $(-0.9, -300)$.",
+         move="Scale each axis on its own: $x$ to $1$, $y$ to $1000$. Then sketch as in Estimation Graphs 1; "
+              "the run and rise are in each axis's units: run $1.3$, rise $950$.",
          space="0in"),
 ] + W.TYPES
 
