@@ -64,40 +64,41 @@ COURSES = {"Algebra 1": "Lessons"}
 
 TYPES = [
     dict(key="1", title="Slope From Two Points", instructions="Find the slope of the line through each pair of points.",
-         look="Two points: (2, -3) and (5, 9).",
-         move="m = (y2 - y1)/(x2 - x1) = (9 - (-3))/(5 - 2) = 12/3 = 4. Subtract in the same order "
-              "on top and bottom, and write the slope in lowest terms.",
+         look="Two points: $(2, -3)$ and $(5, 9)$.",
+         move="$m = (y_2 - y_1)/(x_2 - x_1) = (9 - (-3))/(5 - 2) = 12/3 = 4$. Subtract in the same order on "
+              "top and bottom, and write the slope in lowest terms.",
          space="1in"),
     dict(key="2", title="Point-Slope to Slope-Intercept", instructions="Write each equation in slope-intercept form.",
-         look="An equation in point-slope form: y + 3 = 2/3 (x - 4).",
-         move="Distribute the slope: y + 3 = 2/3 x - 8/3. Then get y alone: subtract 3 (as 9/3) from "
-              "both sides: y = 2/3 x - 17/3."),
+         look="An equation in point-slope form: $y + 3 = 2/3 (x - 4)$.",
+         move="Distribute the slope: $y + 3 = 2/3 x - 8/3$. Then get $y$ alone: subtract $3$ (as $9/3$) from "
+              "both sides: $y = 2/3 x - 17/3$."),
     dict(key="3", title="Slope and a Point",
          instructions="Write the equation of the line with the given slope through the given point in "
                       "point-slope form, then in slope-intercept form.",
-         look="A slope and a point: m = 2/3, through (4, -3).",
-         move="Put the point and the slope into y - y1 = m(x - x1): y - (-3) = 2/3 (x - 4), so "
-              "y + 3 = 2/3 (x - 4). Then distribute and get y alone: y = 2/3 x - 17/3.",
+         look="A slope and a point: $m = 2/3$, through $(4, -3)$.",
+         move="Put the point and the slope into $y - y_1 = m(x - x_1)$: $y - (-3) = 2/3 (x - 4)$, so $y + 3 = "
+              "2/3 (x - 4)$. Then distribute and get $y$ alone: $y = 2/3 x - 17/3$.",
          space="1.5in"),
     dict(key="4", title="Two Points to Both Forms",
          instructions="Find the slope of the line through each pair of points. Then write its equation in "
                       "point-slope form, and then in slope-intercept form.",
-         look="Two points: (2, -3) and (5, 9).",
-         move="Slope first: m = (9 - (-3))/(5 - 2) = 4. Put the first point into point-slope form: "
-              "y + 3 = 4 (x - 2). Distribute and get y alone: y = 4x - 11.",
+         look="Two points: $(2, -3)$ and $(5, 9)$.",
+         move="Slope first: $m = (9 - (-3))/(5 - 2) = 4$. Put the first point into point-slope form: $y + 3 = "
+              "4 (x - 2)$. Distribute and get $y$ alone: $y = 4 x - 11$.",
          space="1.75in"),
     dict(key="5", title="Graph Point-Slope Form", instructions="Graph each line.",
-         look="An equation in point-slope form, y + 3 = 2/3 (x - 4), and a blank graph.",
-         move="Read the point: (4, -3), the opposites of the numbers with x and y. Plot it. From it, "
-              "rise the slope's numerator and run its denominator (a negative slope goes down as it "
-              "goes right) to plot more points. Draw the line through them.",
+         look="An equation in point-slope form, $y + 3 = 2/3 (x - 4)$, and a blank graph.",
+         move="Read the point: $(4, -3)$, the opposites of the numbers with $x$ and $y$. Plot it. From it, "
+              "rise the slope's numerator and run its denominator (a negative slope goes down as it goes "
+              "right) to plot more points. Draw the line through them.",
          space="0in"),
     dict(key="6", title="Equation From a Table",
          instructions="Write the equation of the line through the points in each table, in point-slope form "
                       "and then in slope-intercept form.",
-         look="A table of five points on a line: x is -2, 0, 2, 4, 6 and y is 5, 4, 3, 2, 1.",
-         move="Slope from any two columns: m = (4 - 5)/(0 - (-2)) = -1/2. Put a point, like the first, "
-              "into point-slope form: y - 5 = -1/2 (x + 2). Distribute and get y alone: y = -1/2 x + 4.",
+         look="A table of five points on a line: $x$ is $-2$, $0$, $2$, $4$, $6$ and $y$ is $5$, $4$, $3$, "
+              "$2$, $1$.",
+         move="Slope from any two columns: $m = (4 - 5)/(0 - (-2)) = -1/2$. Put a point, like the first, into "
+              "point-slope form: $y - 5 = -1/2 (x + 2)$. Distribute and get $y$ alone: $y = -1/2 x + 4$.",
          space="1.5in"),
 ] + W.TYPES
 
