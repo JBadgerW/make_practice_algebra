@@ -48,17 +48,18 @@ TYPES = [
          look="A cube root and numbers.",
          move="Get the cube root alone. Cube both sides, solve, and check."),
     dict(key="2", title="One Radical and the Root of a Number",
-         look="A radical with the unknown, and the square root of a number, like √25.",
-         move="The root of the number is a number: √25 = 5. Get the radical alone, square both sides once, "
-              "solve, and check.", space="1.25in"),
+         look="A radical with the unknown, and the square root of a number, like $sqrt(25)$.",
+         move="The root of the number is a number: $sqrt(25) = 5$. Get the radical alone, square both sides "
+              "once, solve, and check.", space="1.25in"),
     dict(key="3", title="Two Radicals: √(s − k) + √s",
-         look="Two radicals, one of them the unknown alone: √(s − 48) + √s = 8.",
-         move="Get √(s − 48) alone and square; the s terms cancel. Get √s alone and square again. Check.",
+         look="Two radicals, one of them the unknown alone: $sqrt(s - 48) + sqrt(s) = 8$.",
+         move="Get $sqrt(s - 48)$ alone and square; the $s$ terms cancel. Get $sqrt(s)$ alone and square "
+              "again. Check.",
          space="1.75in"),
     dict(key="4", title="Two Radicals with a Coefficient",
-         look="Two radicals with the same multiple of the unknown: √(3x − 5) + √(3x) = 5.",
-         move="Get one radical alone and square; the 3x terms cancel. Get the other radical alone and square "
-              "again. Check.", space="1.75in"),
+         look="Two radicals with the same multiple of the unknown: $sqrt(3 x - 5) + sqrt(3 x) = 5$.",
+         move="Get one radical alone and square; the $3 x$ terms cancel. Get the other radical alone and "
+              "square again. Check.", space="1.75in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
