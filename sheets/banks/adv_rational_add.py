@@ -60,35 +60,35 @@ TYPES = [
          look="Two fractions over the same number.",
          move="Add or subtract the numerators. Keep the denominator."),
     dict(key="2", title="Like Denominators: A Monomial",
-         look="Two fractions over the same monomial, like 4x.",
+         look="Two fractions over the same monomial, like $4 x$.",
          move="Add or subtract the numerators and keep the denominator. If the letter is left on top alone, "
               "it cancels with the one below."),
     dict(key="3", title="Like Binomial Denominators: Subtracting",
          look="One fraction minus another, over the same binomial.",
          move="Put the second numerator in parentheses. The minus changes the sign of every term in it."),
     dict(key="4", title="Like Denominators with a Number Factor",
-         look="Number numerators over the same k(x + a).",
-         move="Add the numerators. The number on top divides by k, leaving a number over (x + a)."),
+         look="Number numerators over the same $k(x + a)$.",
+         move="Add the numerators. The number on top divides by $k$, leaving a number over $(x + a)$."),
     dict(key="5", title="Like Quadratic Denominators",
          look="Two fractions over the same quadratic.",
          move="Combine the numerators. Factor the denominator; the new numerator is one of its factors, "
               "so it cancels.", space="1.5in"),
     dict(key="6", title="Unlike Monomials: One Is the LCD",
-         look="Monomial denominators, one dividing the other: x and 5x².",
+         look="Monomial denominators, one dividing the other: $x$ and $5 x^2$.",
          move="The larger denominator is the LCD. Multiply the other fraction, top and bottom, by what it lacks."),
     dict(key="7", title="Unlike Monomials: Both Rewritten",
-         look="Monomial denominators like 4x and 6x, or 3x and 5x², neither dividing the other.",
+         look="Monomial denominators like $4 x$ and $6 x$, or $3 x$ and $5 x^2$, neither dividing the other.",
          move="The LCD takes the least common multiple of the numbers and the highest power of the letter. "
               "Rewrite both fractions over it.", space="1.25in"),
     dict(key="8", title="Monomials in Two Letters",
-         look="Denominators like 5x³y and 2x²y³.",
+         look="Denominators like $5 x^3 y$ and $2 x^2 y^3$.",
          move="The LCD takes the least common multiple of the numbers and the highest power of each letter. "
               "Rewrite both fractions over it.", space="1.25in"),
     dict(key="9", title="A Whole Term and a Fraction",
-         look="A number or a monomial added to a fraction: 5/x + 8, 7 - 4/(x - 9).",
-         move="Write the whole term over 1, then over the fraction's denominator, and combine."),
+         look="A number or a monomial added to a fraction: $5/x + 8$, $7 - 4/(x - 9)$.",
+         move="Write the whole term over $1$, then over the fraction's denominator, and combine."),
     dict(key="10", title="A Binomial and a Trinomial", width="full",
-         look="A fraction over x - b, minus one over a trinomial that has x - b as a factor.",
+         look="A fraction over $x - b$, minus one over a trinomial that has $x - b$ as a factor.",
          move="Factor the trinomial: it is the LCD. Multiply the first fraction by the factor it lacks, subtract "
               "(the minus reaches every term), and cancel the factor left on top.", space="1.75in"),
     dict(key="11", title="Two Quadratics with a Common Factor", width="full",
@@ -96,25 +96,25 @@ TYPES = [
          move="Factor both denominators. The LCD has the common factor once and each other factor. "
               "Multiply each fraction by the factor it lacks and combine.", space="2in"),
     dict(key="12", title="Two Quadratics with No Common Factor", width="full",
-         look="Number numerators, c and -c, over two quadratics that share no factor.",
+         look="Number numerators, $c$ and $-c$, over two quadratics that share no factor.",
          move="Factor both. The LCD is all four factors. Multiply each fraction by the other's two factors and "
-              "combine; the x² terms cancel.", space="2in"),
+              "combine; the $x^2$ terms cancel.", space="2in"),
     dict(key="13", title="A Number and Two Fractions", width="full",
-         look="A whole number plus x/(x + a), minus a fraction over x² − a².",
-         move="The LCD is (x + a)(x - a). Write the whole number over it, rewrite the binomial fraction, "
-              "and combine all three numerators.", space="2in"),
+         look="A whole number plus $x/(x + a)$, minus a fraction over $x^2 - a^2$.",
+         move="The LCD is $(x + a)(x - a)$. Write the whole number over it, rewrite the binomial fraction, and "
+              "combine all three numerators.", space="2in"),
     dict(key="14", title="Three Fractions, One over the LCD", width="full",
          look="Two binomial denominators and a third that is their product.",
-         move="The third denominator is the LCD. Rewrite the first two over it and combine; the x² terms "
+         move="The third denominator is the LCD. Rewrite the first two over it and combine; the $x^2$ terms "
               "cancel.", space="2in"),
     dict(key="15", title="Opposite Denominators", width="full",
-         look="Three fractions, one over a denominator like 1 − x where another has x - 1.",
-         move="Multiply the fraction over 1 − x by -1/-1 so it is over x - 1. Then the LCD is the difference "
-              "of squares; combine the three.", space="2in"),
+         look="Three fractions, one over a denominator like $1 - x$ where another has $x - 1$.",
+         move="Multiply the fraction over $1 - x$ by $(-1)/(-1)$ so it is over $x - 1$. Then the LCD is the "
+              "difference of squares; combine the three.", space="2in"),
     dict(key="16", title="Three Trinomial Denominators", width="full",
          look="Three fractions over trinomials, each sharing a factor with the next.",
          move="Factor all three. The LCD is the four different factors. Multiply each fraction by the factors "
-              "it lacks and combine; the x² terms cancel.", space="2.25in"),
+              "it lacks and combine; the $x^2$ terms cancel.", space="2.25in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
