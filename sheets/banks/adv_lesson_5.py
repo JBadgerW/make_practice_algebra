@@ -82,8 +82,8 @@ TYPES = [
         key="1",
         title="Radicals as Fractional Exponents",
         look="Square roots and other roots multiplied together, maybe with fractional powers.",
-        move="Write each radical as a fractional exponent: sqrt(t) is t^(1/2), root(4, t) is t^(1/4). Multiply the "
-        "exponents inside by the outside one, then add the exponents of like bases.",
+        move="Write each radical as a fractional exponent: $sqrt(t)$ is $t^(1/2)$, $root(4, t)$ is $t^(1/4)$. "
+             "Multiply the exponents inside by the outside one, then add the exponents of like bases.",
     ),
     dict(
         key="2",
@@ -97,46 +97,48 @@ TYPES = [
         key="3",
         title="Negative Exponents in a Complex Fraction",
         look="A sum of powers with negative exponents over a power of a product.",
-        move="Write each negative exponent as a fraction: x^(-2) is 1/x^2. Add the fractions on top, then divide "
-        "by multiplying by the reciprocal of the bottom.",
+        move="Write each negative exponent as a fraction: $x^(-2)$ is $1/x^2$. Add the fractions on top, then "
+             "divide by multiplying by the reciprocal of the bottom.",
         space="1.25in",
     ),
     dict(
         key="4",
         title="Adding Radicals with Rationalized Denominators",
         look="Square roots of fractions added to a square root of a whole number.",
-        move="Write sqrt(3/2) as sqrt(3)/sqrt(2) and rationalize: (sqrt(3) sqrt(2))/2 = sqrt(6)/2. Simplify the "
-        "whole radical (sqrt(24) = 2 sqrt(6)), write every term over the common denominator, and add.",
+        move="Write $sqrt(3/2)$ as $sqrt(3)/sqrt(2)$ and rationalize: $(sqrt(3) sqrt(2))/2 = sqrt(6)/2$. "
+             "Simplify the whole radical ($sqrt(24) = 2 sqrt(6)$), write every term over the common "
+             "denominator, and add.",
         space="1.25in",
     ),
     dict(
         key="5",
         title="Multiplying Radical Binomials",
-        look="Two binomials with sqrt(x) in each, multiplied.",
-        move="Multiply each term by each term; sqrt(a) sqrt(b) = sqrt(a b) and sqrt(x) sqrt(x) = x. Combine the two "
-        "middle terms: add them when they are like terms, or factor sqrt(x) out of them.",
+        look="Two binomials with $sqrt(x)$ in each, multiplied.",
+        move="Multiply each term by each term; $sqrt(a) sqrt(b) = sqrt(a b)$ and $sqrt(x) sqrt(x) = x$. "
+             "Combine the two middle terms: add them when they are like terms, or factor $sqrt(x)$ out of "
+             "them.",
     ),
     dict(
         key="6",
         title="Powers of i",
         look="A sum of terms with powers of $i$.",
-        move="Pair the $i$'s: each $i i$ is -1, so $i^2 = -1$, $i^3 = -i$, $i^4 = 1$, $i^5 = i$. Collect the real terms and the "
-        "$i$ terms, and write $a + b i$.",
+        move="Pair the $i$'s: each $i i$ is $-1$, so $i^2 = -1$, $i^3 = -i$, $i^4 = 1$, $i^5 = i$. Collect the "
+             "real terms and the $i$ terms, and write $a + b i$.",
     ),
     dict(
         key="7",
         title="Square Roots of Negative Numbers",
         look="Square roots of negative numbers multiplied together.",
-        move="First write each square root of a negative number with i: sqrt(-3) = sqrt(3) i, sqrt(-9) = 3 i. Only "
-        "then multiply (i i = -1). Group the real terms, then the i terms.",
+        move="First write each square root of a negative number with $i$: $sqrt(-3) = sqrt(3) i$, $sqrt(-9) = "
+             "3 i$. Only then multiply ($i i = -1$). Group the real terms, then the $i$ terms.",
         space="1.25in",
     ),
     dict(
         key="8",
         title="Ratio of Areas of Similar Figures",
         look="Two similar figures, a scale factor or two radii, and the ratio of their areas.",
-        move="Write each area with its dimensions (pi R^2 and pi ((3R)/5)^2) and divide in the order asked. The "
-        "ratio of the areas is the square of the scale factor.",
+        move="Write each area with its dimensions ($pi R^2$ and $pi ((3 R)/5)^2$) and divide in the order "
+             "asked. The ratio of the areas is the square of the scale factor.",
         instructions="Answer each question.",
     ),
     dict(
