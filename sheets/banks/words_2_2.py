@@ -46,40 +46,42 @@ TYPES = [
     dict(key="7", title="Word Problems: Is the Budget Enough?",
          instructions="Write each equation in point-slope form, then answer the question.",
          look="Prices for two sizes of the same kind of party, and a budget for a third size.",
-         move="The two prices are two points (guests, price). The slope is the change in price over the change in "
-              "guests: (1925 − 725)/(150 − 50) = 12. Write y − 725 = 12(x − 50), then put in the new number of "
-              "guests and compare the price with the budget.",
+         move="The two prices are two points (guests, price). The slope is the change in price over the change "
+              "in guests: $(1925 - 725)/(150 - 50) = 12$. Write $y - 725 = 12(x - 50)$, then put in the new "
+              "number of guests and compare the price with the budget.",
          width="full", space="1.4in"),
     dict(key="8", title="Word Problems: Finding the One-Time Fee",
          instructions="Answer each part. Write each equation in the form the problem asks for.",
          look="An hourly rate, a one-time fee you aren't told, and one rental's total.",
-         move="The rental is a point (hours, total) and the hourly rate is the slope: y − 93.75 = 12.50(x − 5.5). "
-              "The fee is the cost at 0 hours, the y-intercept: write it in slope-intercept form, y = 12.50x + 25.",
+         move="The rental is a point (hours, total) and the hourly rate is the slope: $y - 93.75 = 12.50(x - "
+              "5.5)$. The fee is the cost at $0$ hours, the $y$-intercept: write it in slope-intercept form, "
+              "$y = 12.50 x + 25$.",
          width="full", space="1.4in"),
     dict(key="9", title="Word Problems: Paying Back a Loan",
          instructions="Answer each part.",
          look="What someone owes after two different numbers of weeks, paying the same amount each week.",
          move="The two readings are points (weeks, owed). The slope is the change in what's owed each week: "
-              "(228 − 456)/(5 − 2) = −76, so the payment is 76 dollars. The amount borrowed is the y-intercept: "
-              "y = −76x + 608.",
+              "$(228 - 456)/(5 - 2) = -76$, so the payment is 76 dollars. The amount borrowed is the "
+              "$y$-intercept: $y = -76 x + 608$.",
          width="full", space="1.8in"),
     dict(key="10", title="Word Problems: Two Forms from a Table",
          instructions="Answer each part. Write each equation in the form the problem asks for.",
          look="A table of job sizes and prices that go up by the same amount, with a one-time set-up fee.",
-         move="Slope from two rows: (140 − 100)/(50 − 25) = 1.60, the cost of each. Point-slope form through a row: "
-              "y − 100 = 1.60(x − 25). Slope-intercept form shows the set-up fee as b: y = 1.60x + 60.",
+         move="Slope from two rows: $(140 - 100)/(50 - 25) = 1.60$, the cost of each. Point-slope form through "
+              "a row: $y - 100 = 1.60(x - 25)$. Slope-intercept form shows the set-up fee as $b$: $y = 1.60 x "
+              "+ 60$.",
          width="full", space="1.8in"),
     dict(key="11", title="Word Problems: Matching a Context to a Table",
          instructions="Choose the real-world context that matches the data in each table.",
-         look="A table at x = 0, 1, 2, 3, and contexts that describe a starting amount and an amount each.",
-         move="The value at x = 0 is the starting amount, and the change from one row to the next is the amount "
-              "each. Pick the context with that start and that amount each.",
+         look="A table at $x = 0, 1, 2, 3$, and contexts that describe a starting amount and an amount each.",
+         move="The value at $x = 0$ is the starting amount, and the change from one row to the next is the "
+              "amount each. Pick the context with that start and that amount each.",
          width="full", space="0.3in"),
     dict(key="12", title="Word Problems: Rising at a Constant Rate",
          instructions="Answer each part. Write each equation in the form the problem asks for.",
          look="Two readings of a height rising at a constant rate, and a question about where it started.",
-         move="The readings are points (time, height). The slope is the rate: (20 − 9)/(42 − 14.5) = 0.4. "
-              "Write y − 9 = 0.4(x − 14.5). Slope-intercept form shows the start as b: y = 0.4x + 3.2.",
+         move="The readings are points (time, height). The slope is the rate: $(20 - 9)/(42 - 14.5) = 0.4$. "
+              "Write $y - 9 = 0.4(x - 14.5)$. Slope-intercept form shows the start as $b$: $y = 0.4 x + 3.2$.",
          width="full", space="1.8in"),
 ]
 
