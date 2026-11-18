@@ -84,7 +84,7 @@ class Info:
             if self.rid()[0] == "step":
                 st = self.step(self.rid()[1])
                 rows.insert(0, ("Step", f"{st['n']} of {self.rid()[1][0]}: {st['title']}"
-                                + (f". What changes: {st['note']}" if st["note"] else ""), ""))
+                                + (f". What changes: {prose(st['note'])}" if st["note"] else ""), ""))
             return title, rows, foot
         if kind == "problem":
             return self.info_problem(*key)

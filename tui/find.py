@@ -12,6 +12,7 @@ equals, the banks the course shows.
 """
 import curses, functools, re
 from sheets import edit as E, banks, library
+from .common import hint_search_text
 
 FIND_MAX = 300                          # rows kept for a query (the box shows a screenful)
 
@@ -93,7 +94,7 @@ def find_items(lib):
                 hint = b.hint(b.type_of(e["key"]))
             except Exception:           # a bank's bug mustn't keep the finder from opening
                 hint = None
-            more = f"{hint[2]} {hint[3]}".lower() if hint else ""
+            more = hint_search_text(f"{hint[2]} {hint[3]}").lower() if hint else ""
             out.append((("count", (name, e["key"])), f"{b.TITLE} › {label}  {title}",
                         f"{b.TITLE} {label} {title} {name}".lower(), more))
     lib._find_items = out

@@ -242,6 +242,7 @@ python3 make_practice.py --selftest 100     # every type of every family + formu
 python3 tests/test_mathsheet.py              # TUI state and keys, no terminal
 python3 tests/test_library.py                # the library: banks, courses.json, tags
 python3 tests/test_typmath.py                # sympy -> Typst: every form reads back, and the form checks
+python3 tests/test_hints.py                  # every hint's math in $...$, compiled as slide text; the terminal's view
 python3 tests/test_khan.py                   # every Khan type draws, checks, and shows; tags and titles
 python3 tests/test_modeling_1_2.py           # Lesson 1-2: Modeling: draws, checks, edits, and the 100 source problems
 python3 tests/test_slope_intercept_2_1.py    # Lesson 2-1: Slope-Intercept Form: every step draws, checks, and edits; every line keeps the rules; the word problems check from their words
@@ -392,6 +393,17 @@ banks pane shows); a bank file does this with a type `"id"` apart from its
   and hand editing (`shown`, `edits`), and story templates for word problems
   (`fill`, `read`). `typmath.tx`/`single` write sympy as the key does, and
   `tests/test_typmath.py` proves every form reads back through `to_sympy`.
+- **Math in a type's hints goes in `$...$`.** The `look` and `move` text is
+  Typst markup on the slides (`type-slide`, `group-slide` in
+  `sheets/writer.py`), so bare `i^2 = -1` or `sqrt(3/2)` comes out as plain
+  text. Write every expression, equation, and lone variable in Typst math,
+  the same syntax as the problems: `"Pair the $i$'s: $i^2 = -1$, $i^3 = -i$."`
+  Words inside math need quotes (`$|"amount" - "target"|$`): an unquoted
+  word is a Typst variable and fails to compile. Outside `$...$`, keep
+  Typst's markup characters (`*`, `_`, `#`, `@`, `<`, `\`, and backticks)
+  out of the prose: a bare `S_n` there starts italics. The terminal shows hints through `prose()` in
+  `tui/common.py`, which drops the dollar signs, so never strip them in the
+  bank. `adv_lesson_5` Type 6 is the example.
   `check.same_value` compares values; `check.simplest_form` reads the form
   (positive exponents, rationalized, lowest terms) from the text as written.
 - **A new optional part of the bank interface goes in `sheets/bank.py`,** as

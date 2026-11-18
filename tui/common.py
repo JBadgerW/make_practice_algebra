@@ -204,14 +204,42 @@ def log_error(e):
 
 INFO_LABEL, INFO_KEYS_W = 10, 6         # the info box's columns: label, then the keys at the right
 
-MATH_WORDS = {"times": "×", "div": "÷", "dot": "·", "plus.minus": "±", "minus": "−", "eq.not": "≠"}
+MATH_WORDS = {"times": "×", "div": "÷", "dot": "·", "plus.minus": "±", "minus": "−", "eq.not": "≠",
+              "approx": "≈", "infinity": "∞", "oo": "∞", "theta": "θ", "alpha": "α", "beta": "β",
+              "degree": "°", "arrow.r": "→", "dots": "…"}
+MATH_FUNCTIONS = {"sin", "cos", "tan", "sec", "csc", "cot", "log", "ln", "exp", "max", "min"}
+MATH_OPS = (("<=", "≤"), (">=", "≥"), ("!=", "≠"), ("->", "→"))
+SUP = dict(zip("0123456789abcdefghijklmnoprstuvwxyz", "⁰¹²³⁴⁵⁶⁷⁸⁹ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ"))
 
 def prose(t):
-    """Hint text for the terminal: its $math$ readable, without the dollar signs."""
+    """Hint text for the terminal: its $math$ readable, without the dollar signs.
+    $i^2 = -1$ -> i² = −1, $i i$ -> i·i, $root(4, t)$ -> ⁴√(t), $x^n$ -> xⁿ,
+    $a <= b$ -> a ≤ b, $a sin 30 degree$ -> a sin 30°; a quoted word ("LCD") is shown
+    as written, without its quotes."""
     def math(m):
-        x = re.sub(r"[a-z]+(?:\.[a-z]+)?", lambda w: MATH_WORDS.get(w.group(0), w.group(0)), m.group(1))
-        return pretty(x + " ").strip() if len(x) > 1 else x
+        kept = []                           # quoted words and sin, cos, ...: kept out of pretty(),
+        def keep(s):                        # which would close them up, and put back after
+            kept.append(s)
+            return f"\ue000{len(kept) - 1}\ue001"
+        def word(w):
+            w = w.group(0)
+            if w.startswith('"'):
+                return keep(w[1:-1])
+            return keep(w) if w in MATH_FUNCTIONS else MATH_WORDS.get(w, w)
+        x = re.sub(r'"[^"]*"|[a-z]+(?:\.[a-z]+)?', word, m.group(1))
+        for a, b in MATH_OPS:
+            x = x.replace(a, b)
+        x = re.sub(r"\broot\((\d+), *", lambda r: "".join(SUP[c] for c in r.group(1)) + "√(", x)
+        x = re.sub(r"\^([a-z])\b", lambda r: SUP.get(r.group(1), r.group(0)), x)
+        x = re.sub(r"\b([a-z]) (?=\1\b)", r"\1·", x)          # i i: i·i, not the name ii
+        x = pretty(x + " ").strip() if len(x) > 1 else x.replace("-", "−")
+        x = re.sub(r" +°", "°", x)
+        return re.sub("\ue000(\\d+)\ue001", lambda q: kept[int(q.group(1))], x)
     return re.sub(r"\$([^$]*)\$", math, t)
+
+def hint_search_text(t):
+    """A hint's text for searching: as written without the dollar signs, and as the terminal shows it."""
+    return f"{t.replace('$', '')} {prose(t)}"
 
 def tags_text(tags):
     """{course: unit or None} -> "Algebra 1 › Lessons; Algebra 2", or "none"."""

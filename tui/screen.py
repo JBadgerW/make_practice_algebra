@@ -1,7 +1,6 @@
 """Drawing with curses, and run: the loop."""
-import curses, re, textwrap, threading
+import curses, textwrap, threading
 from sheets import sheet as sh, banks, library
-from sheets.typmath import pretty
 from .common import COURSE_HINT, HELP, HELP_KEYS_W, help_lines, help_section, INFO_KEYS_W, INFO_LABEL, info_lines, prose, SETTING_HINTS, SETTINGS, SHEET_MIN
 
 # Drawing
@@ -250,7 +249,7 @@ class Screen:
             hint = f"Answer: {b.answer_text(p)}.  l adds it, h removes it, L puts it at the sheet cursor."
         else:
             hint = SETTING_HINTS[key]
-        hint = re.sub(r"\$([^$]*)\$", lambda m: pretty(m.group(1)), hint)
+        hint = prose(hint)
         wrapped = textwrap.wrap(hint, LEFT_W - 3)
         if len(wrapped) > free:                           # cut short: I shows it all
             wrapped = wrapped[:free]

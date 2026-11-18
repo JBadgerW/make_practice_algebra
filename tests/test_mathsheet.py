@@ -958,7 +958,7 @@ gk("2h"); assert info(g)[1]["On sheet"][0].startswith(f"{on}")
 gk("W"); assert g.mode == "info" and g.err, "a sheet key does nothing here"
 gk("oj"); assert g.rid() == ("count", (L4, "1")) and info(g)[0] == "Type 1: One Step", info(g)[0]
 rows = info(g)[1]
-assert rows["Look for"][0] == "The unknown is tied to the rest by a single operation: +, -, ×, or ÷.", rows["Look for"]
+assert rows["Look for"][0] == "The unknown is tied to the rest by a single operation: +, −, ×, or ÷.", rows["Look for"]
 assert rows["Layout"][0] == "half width, 0.75in work space" and rows["Problems"][0].startswith("8 written, ")
 n1 = E.count(g.sheet, L4, "1")
 gk("l"); assert E.count(g.sheet, L4, "1") == n1 + 1 and info(g)[1]["On sheet"][0].startswith(f"{n1 + 1}")
