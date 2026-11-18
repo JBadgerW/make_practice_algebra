@@ -27,16 +27,16 @@ COURSES = {"Advanced Math": "Additional Practice"}
 
 TYPES = [
     dict(key="1", title="Dividing by x + a, No Remainder",
-         look="A divisor x + a or x - a that divides evenly.",
-         move="Long or synthetic division. Write a 0 for each missing power in the dividend. "
-              "The remainder is 0, so the quotient is the answer."),
+         look="A divisor $x + a$ or $x - a$ that divides evenly.",
+         move="Long or synthetic division. Write a $0$ for each missing power in the dividend. The remainder "
+              "is $0$, so the quotient is the answer."),
     dict(key="2", title="Dividing by x + a, with a Remainder",
-         look="A divisor x + a or x - a, and a remainder.",
-         move="Divide as usual. Write the answer as quotient + remainder/divisor."),
+         look="A divisor $x + a$ or $x - a$, and a remainder.",
+         move='Divide as usual. Write the answer as $"quotient" + "remainder"/"divisor"$.'),
     dict(key="3", title="Dividing by a x + b",
-         look="A divisor whose first coefficient isn't 1, like 2 x + 3.",
-         move="Long division: divide each leading term by a x. Write the answer as quotient + "
-              "remainder/divisor.", space="1.75in"),
+         look="A divisor whose first coefficient isn't $1$, like $2 x + 3$.",
+         move='Long division: divide each leading term by $a x$. Write the answer as $"quotient" + '
+              '"remainder"/"divisor"$.', space="1.75in"),
 ]
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.5in", width="full")     # one line: "Divide ... by ...", the answer clear of it
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
