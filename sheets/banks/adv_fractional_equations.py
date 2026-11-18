@@ -44,11 +44,11 @@ TYPES = [
          move="Write the value the unknown can't be. Multiply every term by the least common multiple of the "
               "denominators, cancel, and solve the linear equation.", space="1.25in"),
     dict(key="2", title="Factored Denominators",
-         look="Denominators like x, x − 1, and x(x − 1).",
+         look="Denominators like $x$, $x - 1$, and $x(x - 1)$.",
          move="Write the values the unknown can't be. Multiply by the least common multiple, solve the "
               "quadratic, and reject a root that is one of those values.", space="1.75in", width="full"),
     dict(key="3", title="Trinomial Denominators",
-         look="A denominator like x² − 9x + 20.",
+         look="A denominator like $x^2 - 9 x + 20$.",
          move="Factor each trinomial and write the values the unknown can't be. Multiply by the least common "
               "multiple, solve the quadratic, and reject a root that is one of those values.",
          space="2in", width="full"),
