@@ -191,7 +191,7 @@ def slides(sheet, v=None):
 // graph and all. hidden is the answer the question slide holds unseen, so its
 // graph never moves when the answer shows.
 #let slide(n, prob, answer: none, hidden: none, big: false) = {{
-  align(left)[#text(size: if big {{ 20pt }} else {{ 30pt }}, weight: "bold")[Problem #n]]
+  align(left)[#text(size: if big {{ 20pt }} else {{ 26pt }}, weight: "bold")[Problem #n]]
   v(if big {{ 0.3em }} else {{ 1em }})
   block(width: 100%, height: 1fr, layout(room => {{
     let body(s) = align(center, box(align(left, text(size: s, {{
@@ -228,7 +228,7 @@ def slides(sheet, v=None):
 #let type-slide(lbl, title, look, move) = align(horizon)[
   #text(size: 24pt, fill: luma(90))[#lbl]
   #v(-0.3em)
-  #text(size: 40pt, weight: "bold")[#title]
+  #text(size: 36pt, weight: "bold")[#title]
   #v(0.6em)
   #text(size: 24pt)[*Look for:* #look]
   #v(0.2em)
@@ -236,7 +236,7 @@ def slides(sheet, v=None):
 ]
 
 #let group-slide(heading, items) = align(horizon)[
-  #text(size: 40pt, weight: "bold")[#heading]
+  #text(size: 36pt, weight: "bold")[#heading]
   #v(0.5em)
   #for it in items [
     #text(size: {20 if most <= 4 else 17}pt)[*#it.at(0): #it.at(1)* #h(0.4em) _Look for:_ #it.at(2) #h(0.4em) _The move:_ #it.at(3)]
@@ -248,7 +248,7 @@ def slides(sheet, v=None):
         links = "".join(f"  #link(<version-{w + 1}>)[#text(size: 30pt, fill: blue)[Version {w + 1}]]\n  #v(0.3em)\n" for w in vs)
         s += f"""
 #align(center + horizon)[
-  #text(size: 44pt, weight: "bold")[#worksheet-title]
+  #text(size: 40pt, weight: "bold")[#worksheet-title]
   #v(0.6em)
 {links}]
 """
@@ -262,7 +262,7 @@ def _deck(sheet, v, start, bookmark):
     s = "" if start else "\n#pagebreak()\n"
     s += f"""#bookmark[Version {v + 1}] <version-{v + 1}>\n""" if bookmark else ""
     s += f"""#align(center + horizon)[
-  #text(size: 44pt, weight: "bold")[#worksheet-title]
+  #text(size: 40pt, weight: "bold")[#worksheet-title]
   #v(0.4em)
   #text(size: 28pt)[Version {v + 1}]
   #v(0.2em)
