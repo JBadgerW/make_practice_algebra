@@ -262,6 +262,7 @@ python3 tests/test_adv_lesson_4.py          # Advanced Math Lesson 4: every sour
 python3 tests/test_adv_lesson_5.py          # Advanced Math Lesson 5: every source is reachable and checks with the deck's answer; values and forms checked
 python3 tests/test_adv_lesson_6.py          # Advanced Math Lesson 6: every source is reachable and checks with the deck's answer; equations by substitution, systems solved again
 python3 tests/test_adv_lesson_25.py         # Advanced Math Lesson 25: every source is reachable and checks with the deck's answer; answers put back into the lesson's equations
+python3 tests/test_adv_lesson_26.py         # Advanced Math Lesson 26: every source is reachable and checks with the deck's answer; logs read as (base, log, number), solved values put back
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
 python3 tests/bench_banks.py NEW_BANK        # ms a problem; a new bank should be under 100
