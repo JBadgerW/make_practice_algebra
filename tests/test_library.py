@@ -43,6 +43,7 @@ assert "adv_lesson_3" in ADV_UNITS["Lessons"]
 assert "adv_lesson_4" in ADV_UNITS["Lessons"]
 assert "adv_lesson_5" in ADV_UNITS["Lessons"]
 assert "adv_lesson_6" in ADV_UNITS["Lessons"]
+assert "adv_lesson_25" in ADV_UNITS["Lessons"]
 assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus",
                                                  "Khan Prealgebra", "Khan Algebra 1", "Khan Algebra 2"]
 assert lib.view("Algebra 1") == [("Lessons", ["modeling_1_2", "equations_1_2", "equations_1_3", "lesson_1-4", "inequalities", "modeling", "absolute", "absolute_words", "slope_intercept_2_1", "point_slope_2_2", "forms_2_3", "parallel_perp_2_4"]), ("Additional Practice", ["literal"]), ("Tests", ["alg1_units_1_2_cumulative"])], \
