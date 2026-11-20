@@ -145,23 +145,23 @@ assert len(set(drawn)) == 15, drawn                               # y = |x| and 
 # ---- showing: the deck's words, the figures drawn from the data
 p = dict(type="1", prompt=prompt_of["ex 22.2"], answer="3 < x < 7", line=[1, 9])
 t, key = B.typst(p), B.key_typst(p)
-assert t.startswith("${x in RR | abs(x - 5) < 2}$") and "cetz.canvas" in t and "circle(" not in t   # a blank line
+assert t.startswith("Graph the set ${x in RR | abs(x - 5) < 2}$ on the number line.") and "cetz.canvas" in t and "circle(" not in t   # a blank line
 assert key.count("circle(") == 2 and key.count("fill: white") == 2, key        # two open circles
 assert t.count("content(") == key.count("content(") == 9                        # the integers 1 to 9
 assert B.answer_typst(p) == "$3 < x < 7$" and B.slide_typst(p) is None
-assert B.text(p) == "{x ∈ ℝ | |x − 5| < 2}" and B.answer_text(p) == "3 < x < 7", (B.text(p), B.answer_text(p))
+assert B.text(p) == "Graph the set {x ∈ ℝ | |x − 5| < 2} on the number line." and B.answer_text(p) == "3 < x < 7", (B.text(p), B.answer_text(p))
 p = dict(type="2", prompt=prompt_of["ex 22.3"], answer='x <= -5 "or" x >= 1', line=[-7, 3])
 key = B.key_typst(p)
 assert key.count("circle(") == 2 and "fill: white" not in key and key.count('mark: (end: ">"') == 2   # solid; two rays
 assert B.answer_text(p) == "x ≤ −5 or x ≥ 1", B.answer_text(p)
 p = dict(type="3", prompt=prompt_of["ex 22.1"], answer="-2 < x < 2")
-assert B.typst(p).startswith("$abs(x) - 2 < 0$") and "cetz.canvas" in B.typst(p)   # no line given: one is made
+assert B.typst(p).startswith("Graph $abs(x) - 2 < 0$ on the number line.") and "cetz.canvas" in B.typst(p)   # no line given: one is made
 p = dict(type="4", prompt=prompt_of["PS 7"], answer="(-2, 2), (0, 0), (2, 2)")
 assert "$f(x) = abs(x)$" in B.typst(p) and "circle(" not in B.typst(p)       # blank axes to sketch on
 assert B.key_typst(p).count("circle(") == 3                                  # the key: the deck's three points
 q, a = B.slide_typst(p), B.slide_typst(p, key=True)
 assert "#hide[" in q and "#text(fill: red)" in a
-assert B.text(p) == "f(x) = |x|", B.text(p)
+assert B.text(p) == "Sketch the graph of f(x) = |x|.", B.text(p)
 p = dict(type="5", prompt=prompt_of["ex 22.5"], answer="x = 0; " + TABLE)
 assert "dash" not in B.typst(p) and "dash" in B.key_typst(p) and B.key_typst(p).count("circle(") == 6
 assert "Asymptote: $x = 0$" in B.answer_typst(p) and "[$0.25$]" in B.answer_typst(p)
@@ -170,7 +170,7 @@ t, key = B.typst(p), B.key_typst(p)
 assert "dash" in t and t.count("circle(") == 2 and "$(-2, 1)$" in t and "$(-4, -1)$" in t   # the book's figure
 assert "$(-2, 1)$" not in key and key.count("circle(") == 2 and key.count("line(") > t.count("line(")   # g drawn
 assert B.answer_typst(p) == "Asymptote: $x = -3$ \\\nThrough $(-2, 1)$ and $(-4, -1)$", B.answer_typst(p)
-assert B.text(p) == "f(x) = x + 3; g(x) = 1/(x + 3)   [graph of f]", B.text(p)
+assert B.text(p) == "Sketch the graph of g(x) = 1/(x + 3), the reciprocal of f(x) = x + 3.   [graph of f]", B.text(p)
 
 # ---- editing: a new prompt is solved again; a typed answer is checked
 old = lambda typ: dict(type=typ, prompt="", answer="", source="template")

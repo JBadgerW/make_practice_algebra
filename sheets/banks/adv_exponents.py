@@ -200,7 +200,7 @@ def check(p):
 # ------------------------------------------------------------------
 # Showing and editing
 # ------------------------------------------------------------------
-typst, answer_typst, text, answer_text, height = gen.shown()
+typst, answer_typst, text, answer_text, height = gen.shown(lead="Simplify:")
 edit_text, from_edit, answer_edit_text, with_answer = gen.edits(
     answer_of, check, "(3 x^2 y^(-1))^(-2)", "(8 x^8)/(9 y^7)")
 

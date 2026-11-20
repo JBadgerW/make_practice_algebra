@@ -280,7 +280,7 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]
 # Showing and editing
 # ------------------------------------------------------------------
 def typst(p, gap="0.3em"):
-    return display(dfrac(p["prompt"]))
+    return "Solve: #h(0.5em) " + display(dfrac(p["prompt"]))
 
 def answer_typst(p):
     note = excluded_note(p)
@@ -288,7 +288,7 @@ def answer_typst(p):
     return display(dfrac(p["answer"])) + tail
 
 def text(p):
-    return plain(p["prompt"])
+    return "Solve: " + plain(p["prompt"])
 
 def answer_text(p):
     return plain(p["answer"]) + "".join(f"  ({plain(b)} is excluded)" for b in excluded_note(p))

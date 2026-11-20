@@ -533,14 +533,16 @@ def math_(t):
     return f"${dfrac(t)}$"
 
 def statement(p):
-    """The problem's words (Typst markup), without its figure."""
+    """The problem's words (Typst markup), without its figure: its own task (EXTENDING.md 3.10)."""
     k, prompt = kind(p["prompt"]), p["prompt"].strip()
     if k in ("within", "farther"):
-        return f"${{x in RR | {prompt}}}$"
+        return f"Graph the set ${{x in RR | {prompt}}}$ on the number line."
+    if k == "isolate":
+        return f"Graph {math_(prompt)} on the number line."
     if k == "line":
         f, g = [s.strip() for s in prompt.split(";")]
-        return f"{math_(f)} #h(1.2em) {math_(g)}"
-    return math_(prompt)
+        return f"Sketch the graph of {math_(g)}, the reciprocal of {math_(f)}."
+    return f"Sketch the graph of {math_(prompt)}."
 
 def number_line(p, key):
     lo, hi = line_of(p)
@@ -637,9 +639,7 @@ def _prompt(p, key):
         return f"${p['prompt']}$"
     if k in ("within", "farther", "isolate"):
         return f"{s} \\\n    #v(0.5em)\n    {f}"
-    if k == "line":
-        return f"{s} \\\n    #v(0.3em)\n    #align(center)[{f}]"
-    return f"#grid(columns: (auto, auto), column-gutter: 1.5em, align: horizon, [{s}], [{f}])"
+    return f"{s} \\\n    #v(0.3em)\n    #align(center)[{f}]"     # the sentence over its figure
 
 def typst(p, gap="0.3em"):
     return _prompt(p, False)
@@ -698,8 +698,13 @@ def text(p):
         return p["prompt"]
     t = plain(bars(p["prompt"]))
     if k in ("within", "farther"):
-        return "{x ∈ ℝ | " + t + "}"
-    return t + ("   [graph of f]" if k == "line" else "")
+        return "Graph the set {x ∈ ℝ | " + t + "} on the number line."
+    if k == "isolate":
+        return f"Graph {t} on the number line."
+    if k == "line":
+        f, g = [s.strip() for s in t.split(";")]
+        return f"Sketch the graph of {g}, the reciprocal of {f}.   [graph of f]"
+    return f"Sketch the graph of {t}."
 
 def answer_text(p):
     return plain(p["answer"]).replace('"or"', "or")
@@ -713,7 +718,7 @@ def height(p):
         if k == "line":
             return 2.0
         _, f = read_function(p["prompt"])
-        return 1.2 if k == "square" else 1.2 + 0.16 * abs(float(f.subs(X, vertex(f))))
+        return 1.5 if k == "square" else 1.5 + 0.16 * abs(float(f.subs(X, vertex(f))))
     except Exception:
         return 1.5
 

@@ -328,17 +328,27 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]
 def math(t):
     return f"${dfrac(t)}$"
 
+RELATIONS = "Which of these relations are functions?"
+
+def and_(xs):
+    """a, b, and c; a and b."""
+    return xs[0] if len(xs) == 1 else " and ".join(xs) if len(xs) == 2 else ", ".join(xs[:-1]) + ", and " + xs[-1]
+
+def sentence(p, math):
+    """The problem's own task (EXTENDING.md 3.10): "If f(x) = ..., find f(7) and f(-10)."
+    or "Find the domain of f(x) = ...", with math(t) setting each piece."""
+    parts = split_top(p["prompt"], ";")
+    defs, asks = parts[:-1], parts[-1]
+    if asks == "domain":
+        return f"Find the domain of {and_([math(d) for d in defs])}."
+    return f"If {and_([math(d) for d in defs])}, find {and_([math(a) for a in split_top(asks, ',')])}."
+
 def typst(p, gap="0.3em"):
     prompt = p["prompt"]
     if p["type"] == "5":
         items = ", ".join(f"[{math(rel)}]" for rel in split_top(prompt, ";"))
-        return f"#choices(arrangement: \"grid\", {items})"
-    parts = split_top(prompt, ";")
-    defs = ", ".join(math(d) for d in parts[:-1])
-    asks = parts[-1]
-    if asks == "domain":
-        return f"{defs}"
-    return f"{defs}; #h({gap}) " + ", ".join(math(a) for a in split_top(asks, ","))
+        return f"{RELATIONS} #choices(arrangement: \"grid\", {items})"
+    return sentence(p, math)
 
 def answer_typst(p):
     if p["type"] == "5":
@@ -347,8 +357,8 @@ def answer_typst(p):
 
 def text(p):
     if p["type"] == "5":
-        return "   ".join(f"{chr(65 + i)}. {rel}" for i, rel in enumerate(split_top(p["prompt"], ";")))
-    return plain(p["prompt"].replace(COMPOSE, "∘"))
+        return RELATIONS + "   " + "   ".join(f"{chr(65 + i)}. {rel}" for i, rel in enumerate(split_top(p["prompt"], ";")))
+    return sentence(p, lambda t: plain(t.replace(COMPOSE, "∘")))
 
 def answer_text(p):
     return plain(p["answer"])

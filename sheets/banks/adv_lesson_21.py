@@ -980,8 +980,13 @@ def trig_shown(t):
 def set_shown(t):
     return f"${t}$"
 
+PAIRS_ASK = "Which of these sets of ordered pairs are functions?"
+MAPPING_ASK = "Does this diagram designate a function?"
+GRAPH_ASK = "Is this the graph of a function? If so, is it one-to-one?"
+
 def statement(p):
-    """The problem's words (Typst markup), without a figure."""
+    """The problem's words (Typst markup), without a figure: each problem says its own
+    task (EXTENDING.md 3.10)."""
     k, prompt = kind(p["prompt"]), p["prompt"]
     if k == "evaluate":
         d, ask = [s.strip() for s in prompt.split(";")]
@@ -990,13 +995,18 @@ def statement(p):
         d, ask = [s.strip() for s in prompt.split(";")]
         return f"If ${trig_shown(d)}$, find ${trig_shown(ask)}$."
     if k == "domain":
-        return math_(prompt.split(";")[0].strip())
-    if k in ("root", "quotient"):
-        return math_(prompt)
+        return f"Find the domain of {math_(prompt.split(';')[0].strip())}."
+    if k == "root":
+        return f"Find the domain and range of {math_(prompt)}, and graph it."
+    if k == "quotient":
+        return f"Find the domain and range of {math_(prompt)}."
     if k == "pairs":
         rels = AF.split_top(prompt, ";")
-        return " #h(1.5em) ".join(f"#box[({chr(97 + i)}) #h(0.2em) ${rel}$]" for i, rel in enumerate(rels))
-    return ""
+        return PAIRS_ASK + " \\\n" + " #h(1.5em) ".join(
+            f"#box[({chr(97 + i)}) #h(0.2em) ${rel}$]" for i, rel in enumerate(rels))
+    if k == "mapping":
+        return MAPPING_ASK
+    return GRAPH_ASK
 
 def mapping_figure(prompt, unit="1cm"):
     m = read_mapping(prompt)
@@ -1079,9 +1089,7 @@ def _prompt(p, key):
         return f"${p['prompt']}$"
     if not f:
         return s
-    if not s:
-        return f"#align(center)[{f}]"
-    return f"#grid(columns: (auto, auto), column-gutter: 1.5em, align: horizon, [{s}], [{f}])"
+    return f"{s} \\\n    #v(0.3em)\n    #align(center)[{f}]"     # the sentence over its figure
 
 def typst(p, gap="0.3em"):
     return _prompt(p, False)
@@ -1155,12 +1163,16 @@ def text(p):
         t = lambda s: L20.readable(re.sub(r"\b(sin|cos|tan)\(theta\)", r"\1 θ", s).replace("theta", "θ"))
         return f"If {t(d)}, find {t(ask)}."
     if k == "domain":
-        return plain(p["prompt"].split(";")[0])
-    if k in ("root", "quotient"):
-        return plain(p["prompt"])
+        return f"Find the domain of {plain(p['prompt'].split(';')[0])}."
+    if k == "root":
+        return f"Find the domain and range of {plain(p['prompt'])}, and graph it."
+    if k == "quotient":
+        return f"Find the domain and range of {plain(p['prompt'])}."
     if k == "pairs":
-        return "   ".join(f"({chr(97 + i)}) {rel}" for i, rel in enumerate(AF.split_top(p["prompt"], ";")))
-    return plain(p["prompt"].replace("RR", "ℝ").replace(" in ", " ∈ ")) + "   [figure]"
+        return PAIRS_ASK + "   " + "   ".join(
+            f"({chr(97 + i)}) {rel}" for i, rel in enumerate(AF.split_top(p["prompt"], ";")))
+    ask = MAPPING_ASK if k == "mapping" else GRAPH_ASK
+    return ask + "   " + plain(p["prompt"].replace("RR", "ℝ").replace(" in ", " ∈ ")) + "   [figure]"
 
 def answer_text(p):
     a = p["answer"]
@@ -1171,7 +1183,7 @@ def answer_text(p):
     return plain(a.replace(" in RR", " ∈ ℝ"))
 
 def height(p):
-    return {"6": 1.9, "8": 1.5, "9": 0.5, "10": 1.0, "7": 0.5}.get(p["type"], 0.4)
+    return {"6": 2.2, "8": 1.8, "9": 0.75, "10": 1.3, "7": 0.5}.get(p["type"], 0.4)
 
 # ------------------------------------------------------------------
 # Editing: the prompt is the problem's data, in its short form

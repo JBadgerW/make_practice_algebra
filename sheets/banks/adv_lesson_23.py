@@ -241,7 +241,8 @@ CM = 0.4                                        # a graph's centimeters to a uni
 WINDOW = dict(x=(-4, 4), y=(-1, CAP + 1))
 
 def statement(p):
-    return f"${dfrac(p['prompt'])}$"
+    """The problem's own task (EXTENDING.md 3.10)."""
+    return f"Sketch the graph of ${dfrac(p['prompt'])}$."
 
 def figure(p, key=False):
     """The same axes for every problem; on the key, the curve and its marked points."""
@@ -262,7 +263,7 @@ def _prompt(p, key):
         s, f = statement(p), figure(p, key)
     except (ValueError, KeyError, SyntaxError, TypeError, IndexError, AttributeError):
         return f"${p['prompt']}$"
-    return f"#grid(columns: (auto, auto), column-gutter: 1.5em, align: horizon, [{s}], [{f}])"
+    return f"{s} \\\n    #v(0.3em)\n    #align(center)[{f}]"     # the sentence over its figure
 
 def typst(p, gap="0.3em"):
     return _prompt(p, False)
@@ -286,14 +287,14 @@ def slide_typst(p, key=False):
     return f"#grid(columns: (1fr, auto), column-gutter: 1.5em, align: horizon, [{s} #v(0.8em) {shown}], [{f}])"
 
 def text(p):
-    return plain(p["prompt"])
+    return f"Sketch the graph of {plain(p['prompt'])}."
 
 def answer_text(p):
     return plain(p["answer"])
 
 def height(p):
-    """Inches the prompt takes on the page, for page estimates: the axes are 4.8 cm tall."""
-    return 2.1
+    """Inches the prompt takes on the page, for page estimates: the sentence, then the axes, 4.8 cm tall."""
+    return 2.4
 
 # ------------------------------------------------------------------
 # Editing: the prompt is the problem's data

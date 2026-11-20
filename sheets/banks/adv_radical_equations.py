@@ -257,7 +257,7 @@ def draw(entry, r, tpl):
 
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 
-typst, answer_typst, text, answer_text, height = gen.shown()
+typst, answer_typst, text, answer_text, height = gen.shown(lead="Solve:")
 height = lambda p: 0.4
 
 edit_text, from_edit, answer_edit_text, with_answer = gen.edits(

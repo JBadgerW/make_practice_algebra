@@ -195,14 +195,28 @@ def selftest(name, generate, keys, label, n, seed, reset=25):
 # ------------------------------------------------------------------
 # Showing and editing a problem whose prompt and answer are Typst math
 # ------------------------------------------------------------------
-def shown():
+def shown(lead=None):
     """typst, answer_typst, text, answer_text, height for a bank whose prompt
     and answer are both Typst math, shown in display style: every fraction
-    full size, nested ones too (but not in exponents)."""
+    full size, nested ones too (but not in exponents).
+
+    lead: the problem's own task (EXTENDING.md 3.10), as a lead-in before the
+    math: a string ("Simplify:"), a {type: string} dict, or a function of the
+    problem. None: the bare math."""
     from .typmath import display, dfrac, text as plain
-    return (lambda p, gap="0.3em": display(dfrac(p["prompt"])),
+    def lead_of(p):
+        if callable(lead):
+            return lead(p)
+        return lead.get(p["type"], "") if isinstance(lead, dict) else lead or ""
+    def typst(p, gap="0.3em"):
+        w = lead_of(p)
+        return (f"{w} #h(0.5em) " if w else "") + display(dfrac(p["prompt"]))
+    def text(p):
+        w = lead_of(p)
+        return (f"{w} " if w else "") + plain(p["prompt"])
+    return (typst,
             lambda p: display(dfrac(p["answer"])),
-            lambda p: plain(p["prompt"]),
+            text,
             lambda p: plain(p["answer"]),
             lambda p: 0.55 if "/" in p["prompt"] else 0.3)
 

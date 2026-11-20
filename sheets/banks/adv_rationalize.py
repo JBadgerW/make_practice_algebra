@@ -214,7 +214,7 @@ def check(p):
 
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 
-typst, answer_typst, text, answer_text, height = gen.shown()
+typst, answer_typst, text, answer_text, height = gen.shown(lead="Simplify:")
 edit_text, from_edit, answer_edit_text, with_answer = gen.edits(
     answer_of, check, "(4 + sqrt(3))/(2 - sqrt(3))", "11 + 6 sqrt(3)", imaginary=True)
 

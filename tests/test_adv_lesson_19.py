@@ -93,10 +93,10 @@ for k in B.KEYS:
 
 # ---- showing
 s = dict(type="2", prompt="x^2 + y^2 = 9; 2 x^2 - y^2 = -6", answer=DECK[1][2])
-assert B.typst(s) == "$display(cases(x^2 + y^2 = 9, 2 x^2 - y^2 = -6))$"
-assert B.text(s) == "{ x^2 + y^2 = 9\n{ 2 x^2 − y^2 = −6"
+assert B.typst(s) == "Solve the system: #h(0.5em) $display(cases(x^2 + y^2 = 9, 2 x^2 - y^2 = -6))$"
+assert B.text(s) == "Solve the system:\n{ x^2 + y^2 = 9\n{ 2 x^2 − y^2 = −6"
 assert B.answer_text(dict(s, answer=DECK[2][2])).count(" and ") == 1
-assert B.typst(dict(type="5", prompt=DECK[5][1], answer="")).startswith("$display(")
+assert B.typst(dict(type="5", prompt=DECK[5][1], answer="")).startswith("Simplify: #h(0.5em) $display(")
 
 # ---- editing: a system is solved again; an answer typed with "and" is read
 p, status = B.from_edit("x^2 + y^2 = 25 ; x + y = 7", dict(type="1", prompt="", answer="", source="template"))

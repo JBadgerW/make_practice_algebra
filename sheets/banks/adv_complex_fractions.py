@@ -153,7 +153,7 @@ def check(p):
 
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 
-typst, answer_typst, text, answer_text, height = gen.shown()
+typst, answer_typst, text, answer_text, height = gen.shown(lead="Simplify:")
 edit_text, from_edit, answer_edit_text, with_answer = gen.edits(
     answer_of, check, "(3/x + 2/y)/(1/x - 4/y)", "(2 x + 3 y)/(y - 4 x)")
 

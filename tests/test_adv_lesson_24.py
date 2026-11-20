@@ -128,8 +128,8 @@ for k in B.KEYS:
 
 # ---- showing
 s = dict(type="2", prompt="sqrt(6) sin(30 degree) + 1/sqrt(2) tan(60 degree)", answer="sqrt(6)")
-assert B.typst(s) == "$display(sqrt(6) sin 30 degree + display(1/sqrt(2)) tan 60 degree)$", B.typst(s)
-assert B.text(s) == "√(6) sin 30° + 1/√(2) tan 60°", B.text(s)
+assert B.typst(s) == "Evaluate: #h(0.5em) $display(sqrt(6) sin 30 degree + display(1/sqrt(2)) tan 60 degree)$", B.typst(s)
+assert B.text(s) == "Evaluate: √(6) sin 30° + 1/√(2) tan 60°", B.text(s)
 s5 = dict(type="5", prompt="f(x) = x + 2; g(x) = x^2 + 3; (f/g)(6)", answer="(f/g)(6) = 8/39")
 assert B.typst(s5) == "If $f(x) = x + 2$ and $g(x) = x^2 + 3$, find $(f\\/g)(6)$.", B.typst(s5)
 assert B.answer_typst(s5) == "$display((f\\/g)(6) = display(8/39))$", B.answer_typst(s5)

@@ -427,9 +427,9 @@ def braced(eqs):
 
 def typst(p, gap="0.3em"):
     if not is_system(p):
-        return display(dfrac(p["prompt"]))
+        return "Solve: #h(0.5em) " + display(dfrac(p["prompt"]))
     eqs = equations(p["prompt"])
-    return braced(eqs) if len(eqs) == 2 else aligned(eqs)
+    return "Solve the system: #h(0.5em) " + (braced(eqs) if len(eqs) == 2 else aligned(eqs))
 
 def answer_typst(p):
     return f"${p['answer']}$" if is_system(p) else display(dfrac(p["answer"]))
@@ -438,8 +438,8 @@ def text(p):
     if is_system(p):
         eqs = equations(p["prompt"])
         braces = ["⎧", "⎨", "⎩"] if len(eqs) == 3 else ["⎰", "⎱"]
-        return "\n".join(f"{b} {SY.pretty(e)}" for b, e in zip(braces, eqs))
-    return plain(p["prompt"])
+        return "Solve the system:\n" + "\n".join(f"{b} {SY.pretty(e)}" for b, e in zip(braces, eqs))
+    return "Solve: " + plain(p["prompt"])
 
 def answer_text(p):
     return SY.pretty(p["answer"]) if is_system(p) else plain(p["answer"])

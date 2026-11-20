@@ -1578,7 +1578,7 @@ def _prompt(p, key):
             return f"{statement9(p['prompt'])} #v(0.3em) #align(center)[{figure9(p['prompt'], key)}]"
     except (ValueError, KeyError, gen.Redraw):
         return p["prompt"]
-    return display(dfrac(p["prompt"]))
+    return "Simplify: #h(0.5em) " + display(dfrac(p["prompt"]))     # its own task (EXTENDING.md 3.10)
 
 
 def typst(p, gap="0.3em"):
@@ -1633,7 +1633,7 @@ def text(p):
         s = s.replace("$display(", "$(").replace("$A C$", "$AC$")
         s = re.sub(r"\$([^$]*)\$", lambda m: m.group(1), s)
         return s + ("   [figure]" if t == "9" else "")
-    return plain(p["prompt"])
+    return "Simplify: " + plain(p["prompt"])
 
 
 def answer_text(p):

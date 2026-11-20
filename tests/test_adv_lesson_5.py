@@ -169,8 +169,8 @@ for k in B.KEYS:
 
 # ---- showing
 s = dict(type="1", prompt="sqrt(x^3 y) root(4, x y^3)", answer="x^(7/4) y^(5/4)")
-assert B.typst(s) == "$display(sqrt(x^3 y) root(4, x y^3))$", B.typst(s)
-assert B.text(s) == "√(x^3 y) ⁴√(x y^3)", B.text(s)
+assert B.typst(s) == "Simplify: #h(0.5em) $display(sqrt(x^3 y) root(4, x y^3))$", B.typst(s)
+assert B.text(s) == "Simplify: √(x^3 y) ⁴√(x y^3)", B.text(s)
 s8 = dict(type="8", prompt="one circle R, (3 R)/5; first", answer="25/9")
 assert B.typst(s8).startswith("The radius of one circle is $R$, and the radius of a second circle is $(3 R)/5$."), B.typst(s8)
 assert B.text(s8).endswith("to the area of the second circle?"), B.text(s8)

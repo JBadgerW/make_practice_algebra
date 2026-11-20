@@ -149,16 +149,16 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 
 # ------------------------------------------------------------------
-# Showing: sin(30 degree) as sin 30°
+# Showing: sin(30 degree) as sin 30°, after the problem's own task
 # ------------------------------------------------------------------
 def typst(p, gap="0.3em"):
-    return display(shown(p["prompt"]))
+    return "Evaluate: #h(0.5em) " + display(shown(p["prompt"]))
 
 def answer_typst(p):
     return display(shown(p["answer"]))
 
 def text(p):
-    return readable(p["prompt"])
+    return "Evaluate: " + readable(p["prompt"])
 
 def answer_text(p):
     return readable(p["answer"])

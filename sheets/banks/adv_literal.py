@@ -172,16 +172,16 @@ def check(p):
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 
 # ------------------------------------------------------------------
-# Showing and editing, as the Algebra 1 literal bank: "equation ; letter"
+# Showing: "Solve for t: equation". Editing, as the Algebra 1 literal bank: "equation ; letter"
 # ------------------------------------------------------------------
 def typst(p, gap="0.3em"):
-    return f"{display(dfrac(p['prompt']))}; #h({gap}) ${p['target']}$"
+    return f"Solve for ${p['target']}$: #h(0.5em) {display(dfrac(p['prompt']))}"
 
 def answer_typst(p):
     return display(dfrac(p["answer"]))
 
 def text(p):
-    return f"{plain(p['prompt'])};  {p['target']}"
+    return f"Solve for {p['target']}: {plain(p['prompt'])}"
 
 def answer_text(p):
     return plain(p["answer"])

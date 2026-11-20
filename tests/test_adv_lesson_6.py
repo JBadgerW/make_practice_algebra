@@ -131,11 +131,11 @@ for k in B.KEYS:
 # ---- showing
 s = dict(type="2", prompt="3/7 x + 2/5 y = 11; 0.03x - 0.2y = -0.37", answer="(21, 5)")
 t = B.typst(s)
-assert t == "$display(cases(gap: #0.8em, display(3/7) x + display(2/5) y = 11, 0.03x - 0.2y = -0.37))$", t
+assert t == "Solve the system: #h(0.5em) $display(cases(gap: #0.8em, display(3/7) x + display(2/5) y = 11, 0.03x - 0.2y = -0.37))$", t
 assert B.answer_typst(s) == "$(21, 5)$"
-assert B.text(s) == "⎰ 3/7 x + 2/5 y = 11\n⎱ 0.03x − 0.2y = −0.37", B.text(s)
+assert B.text(s) == "Solve the system:\n⎰ 3/7 x + 2/5 y = 11\n⎱ 0.03x − 0.2y = −0.37", B.text(s)
 s = dict(type="5", prompt="2x + 3y = -1; x - 2z = -3; 2y - z = -4", answer="(1, -1, 2)")
-assert B.typst(s).count(";") == 2 and B.text(s).startswith("⎧ 2x + 3y = −1"), B.text(s)
+assert B.typst(s).count(";") == 2 and B.text(s).startswith("Solve the system:\n⎧ 2x + 3y = −1"), B.text(s)
 s = dict(type="1", prompt="4/7 + 3/(x + 2) = 5/3", answer="x = 17/23")
 assert "display(4/7)" in B.typst(s), B.typst(s)
 assert B.answer_text(s) == "x = 17/23"

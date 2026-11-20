@@ -294,7 +294,7 @@ def answer_of(prompt):
     return single(sp.cancel(e)) if sp.fraction(sp.together(e))[1] != 1 else " ".join(
         f"({tx(f)})" if f.is_Add else tx(f) for f in sp.Mul.make_args(sp.factor(e)))
 
-typst, answer_typst, text, answer_text, height = gen.shown()
+typst, answer_typst, text, answer_text, height = gen.shown(lead={"1": "Simplify:", "2": "Factor:", "3": "Factor:", "4": "Factor:"})
 edit_text, from_edit, answer_edit_text, with_answer = gen.edits(
     answer_of, check, "3 y^(2 n + 1) + 12 y^(3 n + 2)", "3 y^(2 n + 1) (1 + 4 y^(n + 1))")
 

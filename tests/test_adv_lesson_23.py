@@ -118,7 +118,7 @@ assert B.typst(dict(type="1", prompt=prompt_of["ex 23.2"], answer="")).split("ce
 q, a = B.slide_typst(p), B.slide_typst(p, key=True)
 assert "#hide[" in q and "#text(fill: red)" in a
 assert B.answer_typst(p) == "$(-3, 8), (-2, 4), (-1, 2), (0, 1)$"
-assert B.text(p) == "g(x) = (1/2)^x" and B.answer_text(p) == "(−3, 8), (−2, 4), (−1, 2), (0, 1)", B.answer_text(p)
+assert B.text(p) == "Sketch the graph of g(x) = (1/2)^x." and B.answer_text(p) == "(−3, 8), (−2, 4), (−1, 2), (0, 1)", B.answer_text(p)
 
 # ---- editing: a new prompt is solved again; a typed answer is checked
 old = lambda typ: dict(type=typ, prompt="", answer="", source="template")

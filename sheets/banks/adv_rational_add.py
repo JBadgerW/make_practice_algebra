@@ -812,7 +812,16 @@ def check(p):
 
 generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]))
 
-typst, answer_typst, text, answer_text, height = gen.shown()
+def task(p):
+    """The problem's own verb, from its signs between fractions: Add:, Subtract:, or Simplify: for both."""
+    depth, signs = 0, set()
+    for i, c in enumerate(p["prompt"]):
+        depth += (c == "(") - (c == ")")
+        if depth == 0 and c in "+-" and p["prompt"][i - 1:i] == " " and p["prompt"][i + 1:i + 2] == " ":
+            signs.add(c)
+    return {frozenset("+"): "Add:", frozenset("-"): "Subtract:"}.get(frozenset(signs), "Simplify:")
+
+typst, answer_typst, text, answer_text, height = gen.shown(lead=task)
 edit_text, from_edit, answer_edit_text, with_answer = gen.edits(
     answer_of, check, "(x - 4)/(x^2 + 5 x + 6) + (x - 1)/(x^2 - 4)", "(2 x^2 - 4 x + 5)/((x + 2) (x + 3) (x - 2))")
 

@@ -431,7 +431,7 @@ def shown(t):
 def statement(p):
     t, pr = p["type"], p["prompt"]
     if t in ("1", "2"):
-        return display(shown(pr))
+        return "Evaluate: #h(0.5em) " + display(shown(pr))
     if t == "3":
         rule, ask = [s.strip() for s in pr.split(";")]
         return f"If ${shown(rule.replace('(theta)', ' theta').replace(' theta =', '(theta) =', 1))}$, evaluate ${shown(ask)}$."
@@ -455,7 +455,7 @@ def plain(t):
 def text(p):
     t = p["type"]
     if t in ("1", "2"):
-        return plain(p["prompt"])
+        return "Evaluate: " + plain(p["prompt"])
     try:
         s = statement(p)
     except (ValueError, IndexError):

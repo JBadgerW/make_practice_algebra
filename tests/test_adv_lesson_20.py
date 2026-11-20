@@ -59,8 +59,8 @@ for k in B.KEYS:
 
 # ---- showing: sin 30°, the fraction in display style
 s = dict(type="3", prompt="10/sqrt(5) tan(45 degree)", answer="2 sqrt(5)")
-assert B.typst(s) == "$display(display(10/sqrt(5)) tan 45 degree)$", B.typst(s)
-assert B.text(s) == "10/sqrt(5) tan 45°", B.text(s)
+assert B.typst(s) == "Evaluate: #h(0.5em) $display(display(10/sqrt(5)) tan 45 degree)$", B.typst(s)
+assert B.text(s) == "Evaluate: 10/sqrt(5) tan 45°", B.text(s)
 assert B.answer_typst(dict(s, answer="sqrt(3)/3")) == "$display(display(sqrt(3)/3))$"
 
 # ---- editing: a new prompt is solved again; a typed answer is checked

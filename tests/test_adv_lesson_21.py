@@ -200,7 +200,7 @@ q, a = B.slide_typst(p), B.slide_typst(p, key=True)
 assert q.replace("#hide[", "#X[") .split("#X[")[0] == a.split("#text(fill: red)[")[0]   # the figure never moves
 assert "y = x + 2" in B.typst(dict(type="8", prompt=prompt_of["ex 21.9d"], answer="function"))
 p = dict(type="9", prompt=prompt_of["ex 21.10"], answer="a, c, d")
-assert B.typst(p).startswith("#box[(a) #h(0.2em) ${(1, 2), (2, 3), (3, 4), (4, 5)}$]"), B.typst(p)
+assert B.typst(p).startswith("Which of these sets of ordered pairs are functions? \\\n#box[(a) #h(0.2em) ${(1, 2), (2, 3), (3, 4), (4, 5)}$]"), B.typst(p)
 assert B.answer_typst(p) == "*(a), (c), and (d)*" and B.slide_typst(p) is None
 p = dict(type="10", prompt=prompt_of["ex 21.11c"], answer="function, not one-to-one")
 t = B.typst(p)

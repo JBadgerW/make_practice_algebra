@@ -476,10 +476,15 @@ generate = gen.generator(NAME, draw, check, seen_key, lambda e: len(TEMPLATES[e]
 def is_system(p):
     return ";" in p["prompt"]
 
+# Each problem's own task (EXTENDING.md 3.10)
+LEAD = {"1": "Solve the system:", "2": "Solve the system:", "3": "Solve the system:",
+        "4": "Factor:", "5": "Simplify:", "6": "Factor:"}
+
 def typst(p, gap="0.3em"):
+    lead = f"{LEAD[p['type']]} #h(0.5em) "
     if is_system(p):
-        return f"$display(cases({', '.join(equations(p['prompt']))}))$"
-    return display(dfrac(p["prompt"]))
+        return lead + f"$display(cases({', '.join(equations(p['prompt']))}))$"
+    return lead + display(dfrac(p["prompt"]))
 
 def answer_typst(p):
     if is_system(p):                                            # points: commas at the top, so no display(...)
@@ -488,8 +493,8 @@ def answer_typst(p):
 
 def text(p):
     if is_system(p):
-        return "\n".join(f"{{ {plain(e)}" for e in equations(p["prompt"]))
-    return plain(p["prompt"])
+        return LEAD[p["type"]] + "\n" + "\n".join(f"{{ {plain(e)}" for e in equations(p["prompt"]))
+    return f"{LEAD[p['type']]} {plain(p['prompt'])}"
 
 def answer_text(p):
     return plain(p["answer"]).replace('"and"', "and")

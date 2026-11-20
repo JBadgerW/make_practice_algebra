@@ -222,11 +222,14 @@ def shown(t):
     t = TRIG_ARG.sub(r"\1 \2 degree", t).replace("angle -", 'angle class("unary", -)')   # ∠−59.04°, a sign
     return dfrac(t)
 
+# Each problem's own task (EXTENDING.md 3.10); Type 2 says it in a sentence.
+LEAD = {"1": "Evaluate:", "3": "Convert to polar form:", "4": "Convert to rectangular form:"}
+
 def typst(p, gap="0.3em"):
     if p["type"] == "2":
         rule, ask = (s.strip() for s in p["prompt"].split(";"))
-        return f"${shown(rule)}$; #h({gap}) ${shown(ask)}$"
-    return display(shown(p["prompt"]))
+        return f"If ${shown(rule)}$, find ${shown(ask)}$."
+    return f"{LEAD[p['type']]} #h(0.5em) " + display(shown(p["prompt"]))
 
 def answer_typst(p):
     if p["type"] == "3":
@@ -238,7 +241,10 @@ def readable(t):
                  .replace(I, "î").replace(J, "ĵ"))
 
 def text(p):
-    return readable(p["prompt"])
+    if p["type"] == "2":
+        rule, ask = (readable(s.strip()) for s in p["prompt"].split(";"))
+        return f"If {rule}, find {ask}."
+    return f"{LEAD[p['type']]} {readable(p['prompt'])}"
 
 def answer_text(p):
     return readable(p["answer"])

@@ -109,8 +109,12 @@ anything.
    equation ("Graph: y = 2/3 x − 4") is enough where the verb is the whole
    task. Put the words in the display functions (`typst`, `text`, the
    slides), not in the stored `prompt`, so checking, editing, and `seen_key`
-   still read the bare data. This is the standard for every bank unless the
-   teacher says otherwise for one.
+   still read the bare data. A bank that shows its math through `gen.shown()`
+   passes the lead-in as `gen.shown(lead="Simplify:")` (or a {type: lead-in}
+   dict, or a function of the problem). When a figure goes with the sentence,
+   set the sentence on its own line with the figure centered under it, not
+   beside it in a narrow column. This is the standard for every bank unless
+   the teacher says otherwise for one.
 
 ## 4. Where the code assumes literal equations
 
