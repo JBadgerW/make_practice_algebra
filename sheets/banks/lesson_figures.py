@@ -19,6 +19,9 @@ passes a bigger one), and labels take the text size around them.
     construction(prims, key)          Lesson 4: a figure and its compass construction (shown on the key only), true size
     protractor(rays, vertex)          Lesson 4: rays from the center of a protractor with both scales
     solid(w, d, h, names, edges)      Lesson 5: a rectangular solid, corners and edges labeled, its diagonal drawn on the key
+    altitude(names)                   Lesson 8: a right triangle and the altitude to its hypotenuse, vertices named
+    transversals(labels, ratio)       Lesson 8: three parallel lines cut by two transversals, segments labeled
+    bisector(names, lengths, labels)  Lesson 8: a triangle and an angle's bisector, to scale, sides labeled
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -524,3 +527,69 @@ def solid(w, d, h, names, edges, key_lines=(), size=4.2, tall=2.8, unit="1cm"):
     if edges.get("height"):
         cmds.append(_label(-0.12, (y0 + y3) / 2, edges["height"], "east"))
     return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 8: the altitude to the hypotenuse, parallel lines and transversals,
+# an angle bisector
+# ------------------------------------------------------------------
+def _name(p, text, anchor):
+    return f'content({_pt(*p)}, anchor: "{anchor}", padding: 3pt, [${text}$])'
+
+def altitude(names, a=1.0, b=1.8, wide=4.6, tall=2.2, unit="1cm"):
+    """names: (left, right-angle vertex, right, foot). The hypotenuse lies flat, the
+    right angle on top; legs a (left) and b (right); right angles marked at the top
+    and at the foot of the altitude."""
+    c = math.hypot(a, b)
+    pts = [(0, 0), (a * a / c, a * b / c), (c, 0), (a * a / c, 0)]
+    k, x0, y0 = _fit(pts, wide, tall)
+    L, T, R, F = [(k * (x - x0), k * (y - y0)) for x, y in pts]
+    cmds = [_poly([L, T, R], ", close: true, stroke: 0.8pt"), _poly([T, F], ", stroke: 0.8pt"),
+            _right_angle(T, _unit(T, L), _unit(T, R)), _right_angle(F, _unit(F, R), _unit(F, T))]
+    for p, n, anchor in zip((L, T, R, F), names, ("east", "south", "west", "north")):
+        cmds.append(_name(p, n, anchor))
+    return _canvas(cmds, unit)
+
+def transversals(labels, ratio, width=5.4, height=2.4, unit="1cm"):
+    """Three parallel lines (arrowheads), cut by two transversals. labels: (left upper,
+    left lower, right upper, right lower) markup; ratio: upper over lower, the spacing
+    of the lines (the same on both transversals, so the figure is to scale)."""
+    lo = height / (1 + ratio)
+    ys = (0, lo, height)
+    cmds = []
+    for y in ys:
+        cmds.append(_poly([(0, y), (width, y)], ", stroke: 0.8pt"))
+        cmds.append(_poly([(width - 1.0, y), (width - 0.86, y)],
+                          ', stroke: 0.8pt, mark: (end: ">", fill: black, scale: 0.7)'))
+    x1 = lambda y: 0.9 + 0.12 * y                                 # nearly upright, on the left
+    x2 = lambda y: 1.9 + 0.95 * y                                 # leaning right
+    for f in (x1, x2):
+        cmds.append(_poly([(f(-0.4), -0.4), (f(height + 0.4), height + 0.4)], ", stroke: 0.8pt"))
+    up1, lo1, up2, lo2 = labels
+    for f, (up, low), side in ((x1, (up1, lo1), -1), (x2, (up2, lo2), 1)):
+        for text, (ya, yb) in ((up, (lo, height)), (low, (0, lo))):
+            ym = (ya + yb) / 2
+            cmds.append(f'content({_pt(f(ym) + 0.18 * side, ym)}, anchor: "{"west" if side > 0 else "east"}", '
+                        f'padding: 2pt, [{text}])')
+    return _canvas(cmds, unit)
+
+def bisector(names, lengths, labels, wide=4.8, tall=2.4, unit="1cm"):
+    """names: (bisected vertex V, P, Q, foot D on PQ); lengths: VP, VQ, PD, DQ (numbers,
+    the triangle drawn to scale); labels: their markup (None: no label). The base PQ
+    lies flat, V above; the two halves of the angle at V are marked alike."""
+    VP, VQ, PD, DQ = lengths
+    PQ = PD + DQ
+    vx = (VP * VP - VQ * VQ + PQ * PQ) / (2 * PQ)
+    pts = [(vx, math.sqrt(max(VP * VP - vx * vx, 0))), (0, 0), (PQ, 0), (PD, 0)]
+    k, x0, y0 = _fit(pts, wide, tall)
+    V, P, Q, D = [(k * (x - x0), k * (y - y0)) for x, y in pts]
+    cmds = [_poly([V, P, Q], ", close: true, stroke: 0.8pt"), _poly([V, D], ", stroke: 0.8pt")]
+    cmds += _angle_arcs(V, P, D, 1, r0=0.42) + _angle_arcs(V, D, Q, 1, r0=0.42)
+    cmds += _angle_arcs(V, P, D, 1, r0=0.5) + _angle_arcs(V, D, Q, 1, r0=0.5)
+    c = ((V[0] + P[0] + Q[0]) / 3, (V[1] + P[1] + Q[1]) / 3)
+    for (a, b, inside), text in zip(((V, P, c), (V, Q, c), (P, D, V), (D, Q, V)), labels):
+        if text is not None:
+            cmds.append(_side_label(a, b, inside, text))
+    for p, n, anchor in zip((V, P, Q, D), names, ("south", "north-east", "north-west", "north")):
+        cmds.append(_name(p, n, anchor))
+    return _canvas(cmds, unit)
+
