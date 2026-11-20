@@ -260,6 +260,7 @@ python3 tests/test_adv_lesson_2.py          # Advanced Math Lesson 2: every sour
 python3 tests/test_adv_lesson_3.py          # Advanced Math Lesson 3: every source is reachable and checks; similar triangles checked by their ratios, right ones by Pythagoras
 python3 tests/test_adv_lesson_4.py          # Advanced Math Lesson 4: every source is reachable and checks; constructions checked by their geometry, drawn on the key only
 python3 tests/test_adv_lesson_5.py          # Advanced Math Lesson 5: every source is reachable and checks with the deck's answer; values and forms checked
+python3 tests/test_adv_lesson_6.py          # Advanced Math Lesson 6: every source is reachable and checks with the deck's answer; equations by substitution, systems solved again
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
 python3 tests/bench_banks.py NEW_BANK        # ms a problem; a new bank should be under 100
