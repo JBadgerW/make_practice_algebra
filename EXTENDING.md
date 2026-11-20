@@ -265,6 +265,7 @@ python3 tests/test_adv_lesson_3.py          # Advanced Math Lesson 3: every sour
 python3 tests/test_adv_lesson_4.py          # Advanced Math Lesson 4: every source is reachable and checks; constructions checked by their geometry, drawn on the key only
 python3 tests/test_adv_lesson_5.py          # Advanced Math Lesson 5: every source is reachable and checks with the deck's answer; values and forms checked
 python3 tests/test_adv_lesson_6.py          # Advanced Math Lesson 6: every source is reachable and checks with the deck's answer; equations by substitution, systems solved again
+python3 tests/test_adv_lesson_7.py          # Advanced Math Lesson 7: every source is reachable and checks with the deck's answer; validity by truth table; contrapositives, converses, and inverses read back
 python3 tests/test_adv_lesson_25.py         # Advanced Math Lesson 25: every source is reachable and checks with the deck's answer; answers put back into the lesson's equations
 python3 tests/test_adv_lesson_26.py         # Advanced Math Lesson 26: every source is reachable and checks with the deck's answer; logs read as (base, log, number), solved values put back
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
