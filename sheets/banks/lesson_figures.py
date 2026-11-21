@@ -22,6 +22,8 @@ passes a bigger one), and labels take the text size around them.
     altitude(names)                   Lesson 8: a right triangle and the altitude to its hypotenuse, vertices named
     transversals(labels, ratio)       Lesson 8: three parallel lines cut by two transversals, segments labeled
     bisector(names, lengths, labels)  Lesson 8: a triangle and an angle's bisector, to scale, sides labeled
+    marked(pts, chains, ...)          Lesson 9: points joined by straight chains, vertices named, and the
+                                      equal parts marked: ticks, arcs, right-angle boxes, a circle on a shared side
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -593,3 +595,71 @@ def bisector(names, lengths, labels, wide=4.8, tall=2.4, unit="1cm"):
         cmds.append(_name(p, n, anchor))
     return _canvas(cmds, unit)
 
+
+# ------------------------------------------------------------------
+# Lesson 9: a figure of segments with its equal parts marked
+# ------------------------------------------------------------------
+ANCHORS = ("west", "south-west", "south", "south-east", "east", "north-east", "north", "north-west")
+
+def _away(d):
+    """The anchor that sets a label off from its point in the direction d (the label's side nearest the point)."""
+    a = math.degrees(math.atan2(d[1], d[0])) % 360
+    return ANCHORS[int(((a + 22.5) % 360) // 45)]
+
+def _ticks(a, b, n, half=0.1, gap=0.07):
+    """n tick marks across the segment a-b at its middle."""
+    (ux, uy), m = _unit(a, b), ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+    nx, ny = -uy, ux
+    out = []
+    for i in range(n):
+        s = (i - (n - 1) / 2) * gap
+        cx, cy = m[0] + s * ux, m[1] + s * uy
+        out.append(_poly([(cx - half * nx, cy - half * ny), (cx + half * nx, cy + half * ny)], ", stroke: 0.6pt"))
+    return out
+
+def _gapped_arcs(v, p, q, count, r0=0.34, step=0.08, gap=8):
+    """Like _angle_arcs, but short of both rays by `gap` degrees, so two equal angles side
+    by side (a bisected angle) show as two arcs, not one."""
+    a0 = math.degrees(math.atan2(p[1] - v[1], p[0] - v[0]))
+    a1 = math.degrees(math.atan2(q[1] - v[1], q[0] - v[0]))
+    sweep = (a1 - a0) % 360
+    if sweep > 180:
+        a0, sweep = a1, 360 - sweep
+    g = min(gap, sweep / 4)
+    return [_poly([(v[0] + x, v[1] + y) for x, y in _arc(r0 + step * i, a0 + g, a0 + sweep - g, 24)], ", stroke: 0.6pt")
+            for i in range(count)]
+
+def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall=2.4, unit="1cm"):
+    """pts: {name: (x, y)} in any units (scaled here to fit wide by tall); chains: runs of
+    names on one straight line, each drawn as one line; ticks: (a, b, count) on segment a-b;
+    arcs: (vertex, p, q, count) in the angle at vertex between the rays toward p and q;
+    rights: (vertex, p, q), a right-angle box; circles: (a, b), a small circle on the middle
+    of segment a-b (the side two triangles share). Each name sits off its point away from
+    its own piece of the figure (across the line, for a point inside a chain)."""
+    k, x0, y0 = _fit(list(pts.values()), wide, tall)
+    P = {n: (k * (x - x0), k * (y - y0)) for n, (x, y) in pts.items()}
+    cmds = [_poly([P[n] for n in c], ", stroke: 0.8pt") for c in chains]
+    for a, b, n in ticks:
+        cmds += _ticks(P[a], P[b], n)
+    for v, p, q, n in arcs:
+        cmds += _gapped_arcs(P[v], P[p], P[q], n)
+    for v, p, q in rights:
+        cmds.append(_right_angle(P[v], _unit(P[v], P[p]), _unit(P[v], P[q]), k=0.2))
+    for a, b in circles:
+        m = ((P[a][0] + P[b][0]) / 2, (P[a][1] + P[b][1]) / 2)
+        cmds.append(f"circle({_pt(*m)}, radius: 0.1, stroke: 0.6pt)")
+    piece = {n: {n} for n in P}                                  # the connected piece each point is in
+    for c in chains:
+        joined = set().union(*(piece[n] for n in c))
+        for n in joined:
+            piece[n] = joined
+    for n, p in P.items():
+        g = piece[n]
+        c = (sum(P[m][0] for m in g) / len(g), sum(P[m][1] for m in g) / len(g))
+        d = (p[0] - c[0], p[1] - c[1])
+        for ch in chains:
+            if n in ch[1:-1]:                                    # inside a line: across it, away from the middle
+                ux, uy = _unit(P[ch[0]], P[ch[-1]])
+                d = (-uy, ux) if (-uy * d[0] + ux * d[1]) >= 0 else (uy, -ux)
+        cmds.append(_name(p, n, _away(d)))
+    return _canvas(cmds, unit)

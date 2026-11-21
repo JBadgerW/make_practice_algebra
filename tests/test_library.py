@@ -45,6 +45,7 @@ assert "adv_lesson_5" in ADV_UNITS["Lessons"]
 assert "adv_lesson_6" in ADV_UNITS["Lessons"]
 assert "adv_lesson_7" in ADV_UNITS["Lessons"]
 assert "adv_lesson_8" in ADV_UNITS["Lessons"]
+assert "adv_lesson_9" in ADV_UNITS["Lessons"]
 assert "adv_lesson_25" in ADV_UNITS["Lessons"]
 assert "adv_lesson_26" in ADV_UNITS["Lessons"]
 assert [c["title"] for c in lib.courses] == ["Prealgebra", "Algebra 1", "Geometry", "Algebra 2", "Advanced Math", "Calculus",
