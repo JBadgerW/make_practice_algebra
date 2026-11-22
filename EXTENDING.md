@@ -269,6 +269,7 @@ python3 tests/test_adv_lesson_7.py          # Advanced Math Lesson 7: every sour
 python3 tests/test_adv_lesson_8.py          # Advanced Math Lesson 8: every source is reachable and checks with the deck's answer; similarities checked by angles in two shapes, proportions solved again
 python3 tests/test_adv_lesson_9.py          # Advanced Math Lesson 9: every source is reachable and checks with the deck's answer; congruences checked against the givens' step-1 closure and the drawing, the combos table remade
 python3 tests/test_adv_lesson_10.py         # Advanced Math Lesson 10: every source is reachable and checks with the deck's answer; lines read strictly in slope-intercept form, values put back, forms read from the text
+python3 tests/test_adv_lesson_11.py         # Advanced Math Lesson 11: every source is reachable and checks with the deck's answer; values put into the circle facts; figures to scale, every label placed clear
 python3 tests/test_adv_lesson_25.py         # Advanced Math Lesson 25: every source is reachable and checks with the deck's answer; answers put back into the lesson's equations
 python3 tests/test_adv_lesson_26.py         # Advanced Math Lesson 26: every source is reachable and checks with the deck's answer; logs read as (base, log, number), solved values put back
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles

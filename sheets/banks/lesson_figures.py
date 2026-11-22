@@ -24,6 +24,8 @@ passes a bigger one), and labels take the text size around them.
     bisector(names, lengths, labels)  Lesson 8: a triangle and an angle's bisector, to scale, sides labeled
     marked(pts, chains, ...)          Lesson 9: points joined by straight chains, vertices named, and the
                                       equal parts marked: ticks, arcs, right-angle boxes, a circle on a shared side
+    circled(center, r, chains, ...)   Lesson 11: a circle with chains of segments, angle arcs, and labels, all
+                                      at coordinates the bank works out (in cm)
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -662,4 +664,20 @@ def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall
                 ux, uy = _unit(P[ch[0]], P[ch[-1]])
                 d = (-uy, ux) if (-uy * d[0] + ux * d[1]) >= 0 else (uy, -ux)
         cmds.append(_name(p, n, _away(d)))
+    return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 11: a circle with segments, marked angles, and labels; the bank
+# works out every coordinate (cm), this only draws
+# ------------------------------------------------------------------
+def circled(center, r, chains, arcs=(), labels=(), leaders=(), unit="1cm"):
+    """A circle (center, radius r), chains of points each drawn as one line, arcs: (vertex, p, q),
+    one arc in the angle at vertex between the rays toward p and q; labels: (x, y, markup),
+    each centered at its point; leaders: (a, b), a thin line from a label to what it names."""
+    cmds = [f"circle({_pt(*center)}, radius: {_num(r)}, stroke: 0.8pt)"]
+    cmds += [_poly(c, ", stroke: 0.8pt") for c in chains]
+    cmds += [_poly([a, b], ", stroke: 0.5pt") for a, b in leaders]
+    for v, p, q in arcs:
+        cmds += _angle_arcs(v, p, q, 1, r0=0.24)
+    cmds += [_label(x, y, text) for x, y, text in labels]
     return _canvas(cmds, unit)
