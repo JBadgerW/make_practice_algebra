@@ -1065,7 +1065,7 @@ def form7(answer):
     v = sp.expand(to_sympy(answer, imaginary=True))
     a, b = reim(v)
     want = len(sp.Add.make_args(a)) * (a != 0) + len(sp.Add.make_args(b))
-    flat = re.sub(r"\bi\b", "", answer).replace("(", " ").replace(")", " ")
+    flat = re.sub(r"\bi\b", "1", answer).replace("(", " ").replace(")", " ")   # a lone i is a term: 5 + i
     flat = " ".join(flat.split())
     return len(terms(flat.lstrip("-").strip())) == want
 

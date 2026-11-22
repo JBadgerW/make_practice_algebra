@@ -129,10 +129,17 @@ WRONG = [
     ("9", "CA; 2, 3, m", "sqrt(5 + m^2)"),
     ("9", "BH; x, y, z", "sqrt(x^2 + y^2)"),                                                   # the base diagonal
     ("9", "CA; 2, 6, 9", "sqrt(121)"),
+    ("7", "2 sqrt(-4) + sqrt(25) - sqrt(-3) sqrt(3)", "5 + 1 + i"),                         # terms not combined
 ]
 for typ, prompt, answer in WRONG:
     got = B.check(dict(type=typ, prompt=prompt, answer=answer))
     assert got != "checked", (typ, prompt, answer, got)
+
+# ---- an imaginary part of just i is one term (the selftest drew this one: 5 + 4 i - 3 i)
+for prompt, answer in (("2 sqrt(-4) + sqrt(25) - sqrt(-3) sqrt(3)", "5 + i"),
+                       ("sqrt(25) - sqrt(-1)", "5 - i"), ("sqrt(-4) - sqrt(-9)", "-i")):
+    assert B.answer_of(prompt, "7") == answer, (prompt, B.answer_of(prompt, "7"))
+    assert B.check(dict(type="7", prompt=prompt, answer=answer)) == "checked", (prompt, answer)
 
 # ---- every type: drawn, checked, and in its shape
 SHAPE = {
