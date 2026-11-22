@@ -26,6 +26,8 @@ passes a bigger one), and labels take the text size around them.
                                       equal parts marked: ticks, arcs, right-angle boxes, a circle on a shared side
     circled(center, r, chains, ...)   Lesson 11: a circle with chains of segments, angle arcs, and labels, all
                                       at coordinates the bank works out (in cm)
+    polygon(n, triangulated)          Lesson 12: a regular n-gon, a vertex at the left; triangulated, the
+                                      diagonals from that vertex drawn and the triangles numbered
 """
 import math
 from ..graphs import PREAMBLE, SLIDE_STATE, SLIDE_TEXT, INK, _num, _minus
@@ -680,4 +682,27 @@ def circled(center, r, chains, arcs=(), labels=(), leaders=(), unit="1cm"):
     for v, p, q in arcs:
         cmds += _angle_arcs(v, p, q, 1, r0=0.24)
     cmds += [_label(x, y, text) for x, y, text in labels]
+    return _canvas(cmds, unit)
+
+# ------------------------------------------------------------------
+# Lesson 12: a convex polygon, split into triangles from one vertex
+# ------------------------------------------------------------------
+def polygon_points(n, r=1.3):
+    """A regular n-gon's vertices, the first at the left, going clockwise."""
+    return [(r * math.cos(math.radians(180 - 360 * i / n)), r * math.sin(math.radians(180 - 360 * i / n)))
+            for i in range(n)]
+
+def polygon(n, triangulated=False, r=None, unit="1cm"):
+    """A regular n-gon (bigger as n grows); triangulated: the diagonals from the first vertex,
+    and each triangle numbered, as the deck draws example 12.1's answer. A number sits 4/5 of
+    the way from that vertex to the middle of the far side, where even a thin triangle has room."""
+    r = r or 1.3 + 0.1 * max(n - 6, 0)
+    P = polygon_points(n, r)
+    cmds = [_poly(P + [P[0]], ", stroke: 0.9pt")]
+    if triangulated:
+        cmds += [_poly([P[0], P[i]], ", stroke: 0.6pt") for i in range(2, n - 1)]
+        for i in range(1, n - 1):
+            mx, my = (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2
+            cx, cy = P[0][0] + 0.8 * (mx - P[0][0]), P[0][1] + 0.8 * (my - P[0][1])
+            cmds.append(_label(cx, cy, f"#text(size: 0.8em)[{i}]"))
     return _canvas(cmds, unit)
