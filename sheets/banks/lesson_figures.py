@@ -24,7 +24,8 @@ passes a bigger one), and labels take the text size around them.
     transversals(labels, ratio)       Lesson 8: three parallel lines cut by two transversals, segments labeled
     bisector(names, lengths, labels)  Lesson 8: a triangle and an angle's bisector, to scale, sides labeled
     marked(pts, chains, ...)          Lesson 9: points joined by straight chains, vertices named, and the
-                                      equal parts marked: ticks, arcs, right-angle boxes, a circle on a shared side
+                                      equal parts marked: ticks, arcs, right-angle boxes, a circle on a shared side;
+                                      Lesson 15: arrowheads on parallel sides
     circled(center, r, chains, ...)   Lessons 11 and 13: a circle with chains of segments, angle arcs, and
                                       labels, all at coordinates the bank works out (in cm)
     polygon(n, triangulated)          Lesson 12: a regular n-gon, a vertex at the left; triangulated, the
@@ -649,9 +650,10 @@ def _gapped_arcs(v, p, q, count, r0=0.34, step=0.08, gap=8):
     return [_poly([(v[0] + x, v[1] + y) for x, y in _arc(r0 + step * i, a0 + g, a0 + sweep - g, 24)], ", stroke: 0.6pt")
             for i in range(count)]
 
-def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall=2.4, unit="1cm"):
+def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall=2.4, unit="1cm", arrows=()):
     """pts: {name: (x, y)} in any units (scaled here to fit wide by tall); chains: runs of
     names on one straight line, each drawn as one line; ticks: (a, b, count) on segment a-b;
+    arrows: (a, b, count), arrowheads on segment a-b pointing from a toward b (parallel sides);
     arcs: (vertex, p, q, count) in the angle at vertex between the rays toward p and q;
     rights: (vertex, p, q), a right-angle box; circles: (a, b), a small circle on the middle
     of segment a-b (the side two triangles share). Each name sits off its point away from
@@ -661,6 +663,8 @@ def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall
     cmds = [_poly([P[n] for n in c], ", stroke: 0.8pt") for c in chains]
     for a, b, n in ticks:
         cmds += _ticks(P[a], P[b], n)
+    for a, b, n in arrows:
+        cmds += _arrowheads(P[a], P[b], n)
     for v, p, q, n in arcs:
         cmds += _gapped_arcs(P[v], P[p], P[q], n)
     for v, p, q in rights:
@@ -683,6 +687,21 @@ def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall
                 d = (-uy, ux) if (-uy * d[0] + ux * d[1]) >= 0 else (uy, -ux)
         cmds.append(_name(p, n, _away(d)))
     return _canvas(cmds, unit)
+
+def _arrowheads(a, b, n, size=0.13, gap=0.12):
+    """n open arrowheads at the middle of segment a-b, pointing toward b: the book's mark
+    for parallel sides."""
+    u = _unit(a, b)
+    w = (-u[1], u[0])
+    m = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+    out = []
+    for i in range(n):
+        t = (i - (n - 1) / 2) * gap
+        tip = (m[0] + (t + size / 2) * u[0], m[1] + (t + size / 2) * u[1])
+        back = (tip[0] - size * u[0], tip[1] - size * u[1])
+        out.append(_poly([(back[0] + 0.7 * size * w[0], back[1] + 0.7 * size * w[1]), tip,
+                          (back[0] - 0.7 * size * w[0], back[1] - 0.7 * size * w[1])], ", stroke: 0.8pt"))
+    return out
 
 # ------------------------------------------------------------------
 # Lesson 11: a circle with segments, marked angles, and labels; the bank
