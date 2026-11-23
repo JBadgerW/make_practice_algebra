@@ -14,7 +14,8 @@ passes a bigger one), and labels take the text size around them.
     mapping(domain, range_, arrows)   Lesson 21: a mapping diagram, two ovals of members and arrows
     rule_mapping(left, right, rule)   Lesson 21: a mapping by a rule, x ∈ ℝ -> x + 2
     number_line(lo, hi, pieces, dots) Lesson 22: a number line, blank or with a graph drawn on it
-    triangles(tris)                   Lesson 3: triangles with sides labeled and angles marked (arcs, right angles)
+    triangles(tris)                   Lesson 3: triangles with sides labeled and angles marked (arcs, right angles);
+                                      Lesson 14: angles labeled too
     nested(outer, foot, top, labels)  Lesson 3: a right triangle with a segment inside it, labeled and marked
     construction(prims, key)          Lesson 4: a figure and its compass construction (shown on the key only), true size
     protractor(rays, vertex)          Lesson 4: rays from the center of a protractor with both scales
@@ -370,8 +371,9 @@ def _unit(p, q):
 def triangles(tris, wide=5.6, tall=2.8, unit="1cm"):
     """Triangles drawn to fit a wide-by-tall box. Each is dict(pts: three points,
     labels: {side index i (from pts[i] to pts[i+1]): markup}, marks: {vertex index:
-    arcs (1, 2) or "right"}), its points in any units: they're scaled here, and the
-    labels and marks are set at a fixed size after."""
+    arcs (1, 2) or "right"}, and optional angles: {vertex index: markup}, a label set
+    inside the angle on its bisector, as far in as a narrow angle needs), its points in
+    any units: they're scaled here, and the labels and marks are set at a fixed size after."""
     k, x0, y0 = _fit([p for t in tris for p in t["pts"]], wide, tall)
     cmds = []
     for t in tris:
@@ -386,7 +388,21 @@ def triangles(tris, wide=5.6, tall=2.8, unit="1cm"):
                 cmds.append(_right_angle(v, _unit(v, p), _unit(v, q)))
             else:
                 cmds += _angle_arcs(v, p, q, m)
+        for i, text in t.get("angles", {}).items():
+            cmds.append(_angle_label(P[i], P[(i + 1) % 3], P[(i + 2) % 3], text))
     return _canvas(cmds, unit)
+
+def _angle_label(v, p, q, text):
+    """A label inside the angle at v, on its bisector, far enough in that the label (its
+    room, a radius, grows with its characters) clears both sides."""
+    shown = text.replace("$", "").replace(" degree", "°").replace(" ", "")
+    room = 0.15 + 0.06 * len(shown)
+    u1, u2 = _unit(v, p), _unit(v, q)
+    bx, by = u1[0] + u2[0], u1[1] + u2[1]
+    n = math.hypot(bx, by)
+    half = math.acos(max(-1.0, min(1.0, u1[0] * u2[0] + u1[1] * u2[1]))) / 2
+    d = max(0.6, room / math.sin(half) + 0.05)
+    return _label(v[0] + d * bx / n, v[1] + d * by / n, text)
 
 def nested(outer, foot, top, labels, marks=(), wide=5.0, tall=2.6, unit="1cm"):
     """A right triangle and lines inside it, drawn to fit: outer is its three points
