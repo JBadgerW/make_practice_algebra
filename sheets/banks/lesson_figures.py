@@ -650,10 +650,13 @@ def _gapped_arcs(v, p, q, count, r0=0.34, step=0.08, gap=8):
     return [_poly([(v[0] + x, v[1] + y) for x, y in _arc(r0 + step * i, a0 + g, a0 + sweep - g, 24)], ", stroke: 0.6pt")
             for i in range(count)]
 
-def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall=2.4, unit="1cm", arrows=()):
+def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall=2.4, unit="1cm", arrows=(),
+           side_labels=(), angle_labels=()):
     """pts: {name: (x, y)} in any units (scaled here to fit wide by tall); chains: runs of
     names on one straight line, each drawn as one line; ticks: (a, b, count) on segment a-b;
     arrows: (a, b, count), arrowheads on segment a-b pointing from a toward b (parallel sides);
+    side_labels: (a, b, markup) beside segment a-b, outside its figure; angle_labels: (vertex, p, q,
+    markup) inside the angle (Lesson 17);
     arcs: (vertex, p, q, count) in the angle at vertex between the rays toward p and q;
     rights: (vertex, p, q), a right-angle box; circles: (a, b), a small circle on the middle
     of segment a-b (the side two triangles share). Each name sits off its point away from
@@ -677,9 +680,14 @@ def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall
         joined = set().union(*(piece[n] for n in c))
         for n in joined:
             piece[n] = joined
+    middle = lambda g: (sum(P[m][0] for m in g) / len(g), sum(P[m][1] for m in g) / len(g))
+    for a, b, text in side_labels:
+        cmds.append(_side_label(P[a], P[b], middle(piece[a]), text))
+    for v, p, q, text in angle_labels:
+        cmds.append(_angle_label(P[v], P[p], P[q], text))
     for n, p in P.items():
         g = piece[n]
-        c = (sum(P[m][0] for m in g) / len(g), sum(P[m][1] for m in g) / len(g))
+        c = middle(g)
         d = (p[0] - c[0], p[1] - c[1])
         for ch in chains:
             if n in ch[1:-1]:                                    # inside a line: across it, away from the middle

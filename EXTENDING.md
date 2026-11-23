@@ -275,6 +275,7 @@ python3 tests/test_adv_lesson_13.py         # Advanced Math Lesson 13: every sou
 python3 tests/test_adv_lesson_14.py         # Advanced Math Lesson 14: every source is reachable and checks with the deck's answer; legs and angles by other ratios than the build, stories read back, polar forms turned back into the point
 python3 tests/test_adv_lesson_15.py         # Advanced Math Lesson 15: every source is reachable and its key is the deck's two-column proof; a proof checker replays each row from the givens; broken proofs fail
 python3 tests/test_adv_lesson_16.py         # Advanced Math Lesson 16: every source is reachable and checks, its key the deck's answer (or its value, regrouped); the Additional Practice checks
+python3 tests/test_adv_lesson_17.py         # Advanced Math Lesson 17: every source is reachable and its key is the deck's; similarity proofs checked row by row, similar-or-not against every correspondence
 python3 tests/test_adv_lesson_25.py         # Advanced Math Lesson 25: every source is reachable and checks with the deck's answer; answers put back into the lesson's equations
 python3 tests/test_adv_lesson_26.py         # Advanced Math Lesson 26: every source is reachable and checks with the deck's answer; logs read as (base, log, number), solved values put back
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
