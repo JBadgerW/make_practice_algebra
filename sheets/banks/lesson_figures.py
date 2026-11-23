@@ -24,8 +24,8 @@ passes a bigger one), and labels take the text size around them.
     bisector(names, lengths, labels)  Lesson 8: a triangle and an angle's bisector, to scale, sides labeled
     marked(pts, chains, ...)          Lesson 9: points joined by straight chains, vertices named, and the
                                       equal parts marked: ticks, arcs, right-angle boxes, a circle on a shared side
-    circled(center, r, chains, ...)   Lesson 11: a circle with chains of segments, angle arcs, and labels, all
-                                      at coordinates the bank works out (in cm)
+    circled(center, r, chains, ...)   Lessons 11 and 13: a circle with chains of segments, angle arcs, and
+                                      labels, all at coordinates the bank works out (in cm)
     polygon(n, triangulated)          Lesson 12: a regular n-gon, a vertex at the left; triangulated, the
                                       diagonals from that vertex drawn and the triangles numbered
 """
@@ -674,13 +674,14 @@ def marked(pts, chains, ticks=(), arcs=(), rights=(), circles=(), wide=4.4, tall
 # ------------------------------------------------------------------
 def circled(center, r, chains, arcs=(), labels=(), leaders=(), unit="1cm"):
     """A circle (center, radius r), chains of points each drawn as one line, arcs: (vertex, p, q),
-    one arc in the angle at vertex between the rays toward p and q; labels: (x, y, markup),
-    each centered at its point; leaders: (a, b), a thin line from a label to what it names."""
+    one arc in the angle at vertex between the rays toward p and q (or (vertex, p, q, radius),
+    for an arc set farther out than 0.24); labels: (x, y, markup), each centered at its point;
+    leaders: (a, b), a thin line from a label to what it names."""
     cmds = [f"circle({_pt(*center)}, radius: {_num(r)}, stroke: 0.8pt)"]
     cmds += [_poly(c, ", stroke: 0.8pt") for c in chains]
     cmds += [_poly([a, b], ", stroke: 0.5pt") for a, b in leaders]
-    for v, p, q in arcs:
-        cmds += _angle_arcs(v, p, q, 1, r0=0.24)
+    for v, p, q, *r0 in arcs:
+        cmds += _angle_arcs(v, p, q, 1, r0=r0[0] if r0 else 0.24)
     cmds += [_label(x, y, text) for x, y, text in labels]
     return _canvas(cmds, unit)
 
