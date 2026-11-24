@@ -17,6 +17,12 @@ a coefficient of 1 is left off. In intercept form, a and b are the x- and y-inte
 whole numbers, written with their signs in front of the fractions (x/1 keeps its 1).
 Point-slope form is a starting form only: it has too many right answers to be a target.
 
+Types 5 to 12: Word Problems, one type for each of the teacher's word problems
+(2-3_word_problems.md: 1 and 3, 2, 4, 5, 6, 7, 8, 9, in that order), each in four stories
+(Type 11, bare math, in one) with new numbers every draw; they are written, checked, and
+shown by words_2_3.py, which has the details. Their prompt is the story's words, and their
+answer its parts separated by "; " (Types 10 and 11: a letter, with choices).
+
 A type's starting form is any of the other four (point-slope among them); a sheet's
 problems of one type are spread evenly over its four starting forms (gen.generator's balance).
 
@@ -40,6 +46,7 @@ from .. import gen
 from ..gen import need, written
 from . import slope_intercept_2_1 as si
 from . import point_slope_2_2 as ps
+from . import words_2_3 as W
 
 NAME = FAMILY = "forms_2_3"
 FIXED = False
@@ -68,7 +75,7 @@ TYPES = [
          move="Find the intercepts: $y = 0$ gives $x = 6$, and $x = 0$ gives $y = -4$. Then write $x/6 + "
               "y/(-4) = 1$, with the sign out front: $x/6 - y/4 = 1$. Or: get the number alone on the right, "
               "$2 x - 3 y = 12$, and divide every term by it."),
-]
+] + W.TYPES
 
 T = gen.Types(TYPES, INSTRUCTIONS, space="1.25in")
 TYPE, KEYS, ENTRIES, ENTRY = T.TYPE, T.KEYS, T.ENTRIES, T.ENTRY
@@ -77,6 +84,8 @@ label, entry_key, type_of, heading, hint, special, type_instructions = T.functio
 FORMS = ("si", "ps", "std", "gen", "int")
 FORM_NAME = dict(si="slope-intercept", ps="point-slope", std="standard", gen="general", int="intercept")
 TARGET = {"1": "si", "2": "std", "3": "gen", "4": "int"}
+FORM_TYPES = tuple(TARGET)     # Types 1 to 4: one form to another
+WORDS = W.TYPES_               # the word problems (words_2_3.py)
 SOURCES = {k: tuple(f for f in FORMS if f != t) for k, t in TARGET.items()}
 INTERCEPTS = 10                # intercept form: each intercept -10 to 10, not 0
 LATTICE = 10                   # its point-slope prompt's point: -10 to 10, not 0
@@ -87,6 +96,8 @@ def initial_seen():
     return set()
 
 def seen_key(p):
+    if p["type"] in WORDS:
+        return (NAME, p["type"], W.seen_key(p))
     return (NAME, p["prompt"], p.get("form"), p["type"])   # the form and type, for spreading each type's forms
 
 # ------------------------------------------------------------------
@@ -163,7 +174,9 @@ def _type(entry):
     """A type's own generator: its starting forms are spread over the sheet's problems of that type only."""
     return gen.generator(NAME, draw, lambda p: check(p), seen_key, lambda e: 1,
                          balance=(SOURCES[entry], lambda k: k[2] if k[0] == NAME and len(k) == 4 and k[3] == entry else None))
-TYPE_GENERATE = {k: _type(k) for k in KEYS}
+TYPE_GENERATE = {k: _type(k) for k in FORM_TYPES}
+TYPE_GENERATE.update({k: gen.generator(NAME, lambda e, r, tpl: W.draw(e, r, tpl), lambda p: W.check(p), seen_key,
+                                       lambda e: W.stories(e)) for k in WORDS})
 
 def generate(entry, rng, seen):
     return TYPE_GENERATE[entry](entry, rng, seen)
@@ -253,6 +266,8 @@ def form_of(t):
     return next((f for f in FORMS if read(f, t) is not None), None)
 
 def check(p):
+    if p.get("type") in WORDS:
+        return W.check(p)
     try:
         typ, form = p["type"], p.get("form")
         if form not in SOURCES[typ]:
@@ -280,9 +295,23 @@ def answer_of(prompt, typ):
 # ------------------------------------------------------------------
 # Showing
 # ------------------------------------------------------------------
-typst, answer_typst, text, answer_text, _height = gen.shown()
+_typst, _answer_typst, _text, _answer_text, _height = gen.shown()
+
+def typst(p, gap="0.3em"):
+    return W.typst(p) if p["type"] in WORDS else _typst(p, gap)
+
+def answer_typst(p):
+    return W.answer_typst(p) if p["type"] in WORDS else _answer_typst(p)
+
+def text(p):
+    return W.text(p) if p["type"] in WORDS else _text(p)
+
+def answer_text(p):
+    return W.answer_text(p) if p["type"] in WORDS else _answer_text(p)
 
 def height(p):
+    if p["type"] in WORDS:
+        return W.height(p)
     return 0.55 if "/" in p["prompt"] or "/" in p["answer"] else 0.3
 
 # ------------------------------------------------------------------
@@ -300,6 +329,8 @@ def from_edit(t, old):
     """An edited prompt in one of the type's starting forms, its answer worked out again. A prompt
     in the type's own form, or in none of the forms, is refused."""
     typ = old.get("type")
+    if typ in WORDS:
+        return W.from_edit(t, old)
     t = tidy(t)
     form = form_of(t)
     if form is None:
@@ -317,6 +348,8 @@ def from_edit(t, old):
     return new, check(new)
 
 def with_answer(p, t):
+    if p.get("type") in WORDS:
+        return W.with_answer(p, t, check)
     new = dict(p, answer=tidy(t))
     return new, check(new)
 

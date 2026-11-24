@@ -335,6 +335,31 @@ through any of its readings is accepted), money keeps its cents
 (`12.50`), and slope-intercept form is given wherever the question needs the
 y-intercept.
 
+### Lesson 2-3: Forms of Linear Equations: word problems
+
+The `forms_2_3` bank's Types 5 to 12 are the teacher's Lesson 2-3 word
+problems (Standard Form), in order, each in four stories with new numbers and
+names every draw (Type 11, bare math, in one). They live in
+`sheets/banks/words_2_3.py` and are built like Lesson 2-2's.
+
+| Key | Type | Source example |
+|---|---|---|
+| 5 | Word Problems: Two Prices and a Total | 1 and 3: $150, $25 and $10 tickets: `25x + 10y = 150` |
+| 6 | Word Problems: About the Same Amount of Each | 2: $30, almonds $10/lb, cashews $12/lb: `10x + 12y = 30`; x = y = 15/11 ≈ 1.36 lb |
+| 7 | Word Problems: Only One, Only the Other, or a Mix | 4: $30, $3 and $5 cheese: 10 lb, 6 lb, 5 lb and 3 lb, `3x + 5y = 30` |
+| 8 | Word Problems: Sharing a Space | 5: a 50 ft square pen, 100 ft² goats, 20 ft² chickens: `100x + 20y = 2500`; whole numbers only; 15 goats and 45 chickens, validated |
+| 9 | Word Problems: Which Points Are Viable? | 6: $300, $20 shirts, $12 caps: `20x + 12y = 300`; only (0, 25), (3, 20), ..., (15, 0) |
+| 10 | Word Problems: Choosing the Equation in Standard Form | 7: $50, $2.50 and $4: `5x + 8y = 100` among the source's three shufflings of 5, 8, 100 (a letter) |
+| 11 | Fractions to Standard Form | 8: `3/8 x + 2/3 y = 5`: `9x + 16y = 120` among slope-intercept, point-slope, the given, and half-cleared (a letter) |
+| 12 | Word Problems: Three Items, Two at a Time | 9: $8, three fruits per cup: each pair's equation, its range of cups, the pairs that reach 12 cups |
+
+The model equation keeps the story's whole-number prices (`25x + 10y = 150`,
+not reduced) and clears decimals by the smallest whole number that does it
+(`5x + 8y = 100`); an edited answer may be any whole-number multiple of the
+line. Interpretations are sentences, checked word for word against the
+story's numbers; the check reads the numbers back out of the words and
+solves forward.
+
 Steps 5 to 7 give two points, each coordinate from −10 to 10 and not 0 (so
 neither point is an intercept), different in x and in y; Step 7's
 coordinates are in lowest terms (an integer as an integer, never n/1), and
@@ -473,6 +498,7 @@ ever runs code.
 | `sheets/banks/modeling_1_2.py` | The Lesson 1-2: Modeling bank: five levels, an entry per category, a story per problem shape of the teacher's bank, and a check that reads the prompt back with its story |
 | `sheets/banks/slope_intercept_2_1.py` | The Lesson 2-1: Slope-Intercept Form bank: a step per entry: 1 solve for y from six forms, 2 graph, 3 solve and graph, 4 write the equation of a drawn line; a sympy check, and the key's graph |
 | `sheets/banks/words_2_2.py` | Lesson 2-2's word problems, Types 7 to 12 of `point_slope_2_2` (not a bank of its own) |
+| `sheets/banks/words_2_3.py` | Lesson 2-3's word problems, Types 5 to 12 of `forms_2_3` (not a bank of its own) |
 | `sheets/banks/words_2_1.py` | Lesson 2-1's word problems, Steps 11 to 18 (not a bank of its own): the stories, the forward check from the words, and how they're shown |
 | `sheets/banks/equations_1_2.py`, `equations_1_3.py` | The Lesson 1-2 and 1-3 linear-equation banks: the types, a template per equation shape of the lessons' banks, and a sympy check (`sheets/linear.py`: `key`, `keyed`) |
 | `sheets/banks/modeling.py` | The Lesson 1-6: Compound Inequalities bank: the four stories, the three types, and a check that reads the numbers back out of the prompt |

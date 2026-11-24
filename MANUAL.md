@@ -218,6 +218,12 @@ same way: the key gives point-slope form through the story's first reading,
 and slope-intercept form where the question needs the y-intercept. Type 11
 is multiple choice (one letter).
 
+`forms_2_3/5:1` through `/12:1` draw Lesson 2-3's word problems the same
+way: the key writes each model in standard form with the story's numbers
+(`25x + 10y = 150`; decimals cleared, `5x + 8y = 100`), and any whole-number
+multiple is accepted. Types 10 and 11 are multiple choice (one letter); `i`
+on Type 11 edits the fractional equation, and its choices are made again.
+
 ### Advanced Math
 
 `--mix adv_exponents/3:4` draws from an Advanced Math bank (the README lists
