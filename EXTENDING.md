@@ -280,6 +280,7 @@ python3 tests/test_adv_lesson_18.py         # Advanced Math Lesson 18: every sou
 python3 tests/test_adv_lesson_25.py         # Advanced Math Lesson 25: every source is reachable and checks with the deck's answer; answers put back into the lesson's equations
 python3 tests/test_adv_lesson_26.py         # Advanced Math Lesson 26: every source is reachable and checks with the deck's answer; logs read as (base, log, number), solved values put back
 python3 tests/test_adv_lesson_27.py         # Advanced Math Lesson 27: every source is reachable and checks with the deck's answer; values worked again exactly, forms by Lesson 20's rules
+python3 tests/test_adv_lesson_28.py         # Advanced Math Lesson 28: every source is reachable and checks with the deck's answer; factorials worked from the text, stories read back and rates and times put back by value and form
 python3 tests/test_graphs.py                 # graphs: clipping, and a cetz sample compiles
 python3 tests/test_perf.py                   # a frame stays under 15 ms, with the real banks and 1000 made-up ones
 python3 tests/bench_banks.py NEW_BANK        # ms a problem; a new bank should be under 100
